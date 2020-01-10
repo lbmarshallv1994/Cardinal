@@ -138,6 +138,7 @@ function load() {
         'ui.patron.edit.au.prefix.suggest',
         'ui.patron.edit.ac.barcode.regex',
         'ui.patron.edit.au.second_given_name.show',
+        'ui.patron.edit.au.second_given_name.require',
         'ui.patron.edit.au.second_given_name.suggest',
         'ui.patron.edit.au.suffix.show',
         'ui.patron.edit.au.suffix.suggest',
