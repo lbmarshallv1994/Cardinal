@@ -11,6 +11,7 @@ function($scope , egCore) {
     egCore.startup.go();
 
     $scope.focusBarcode = true;
+    $scope.successText = "Item Updated";
 
     $scope.updateBarcode = function() {
         $scope.copyNotFound = false;
@@ -32,6 +33,7 @@ function($scope , egCore) {
             egCore.pcrud.update(copy).then(function(stat) {
                 $scope.updateOK = stat;
                 $scope.focusBarcode = true;
+                $scope.successText = $scope.barcode1 + " was updated to " + $scope.barcode2;
                 $scope.barcode1 = "";
                 $scope.barcode2 = "";
             });
