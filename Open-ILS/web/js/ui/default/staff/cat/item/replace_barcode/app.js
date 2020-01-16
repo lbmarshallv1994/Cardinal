@@ -32,6 +32,8 @@ function($scope , egCore) {
             egCore.pcrud.update(copy).then(function(stat) {
                 $scope.updateOK = stat;
                 $scope.focusBarcode = true;
+                $scope.barcode1 = "";
+                $scope.barcode2 = "";
             });
         });
     }
