@@ -207,10 +207,10 @@
         <div class="col-lg-1">
           <ng-container 
             *ngFor="let code of ctx.holdMeta.bibSummary.attributes.icon_format">
-            <img class="pr-1" 
+            <img class="pr-1 format_icon" 
               alt="{{iconFormatLabel(code)}}"
               title="{{iconFormatLabel(code)}}"
-              src="/images/format_icons/icon_format/{{code}}.png"/>
+              src="/images/format_icons/icon_format/{{code}}.svg"/>
           </ng-container>
         </div>
         <!-- TODO: link for a metarecord should 
@@ -267,10 +267,10 @@
               <input class="form-check-input" type="checkbox" 
                 [disabled]="ctx.holdMeta.metarecord_filters.formats.length == 1"
                 [(ngModel)]="ctx.selectedFormats.formats[ccvm.code()]"/>
-              <img class="ml-1" 
+              <img class="ml-1 format_icon" 
                 alt="{{iconFormatLabel(ccvm.code())}}"
                 title="{{iconFormatLabel(ccvm.code())}}"
-                src="/images/format_icons/icon_format/{{ccvm.code()}}.png"/>
+                src="/images/format_icons/icon_format/{{ccvm.code()}}.svg"/>
               <label class="form-check-label ml-1">
                 {{ccvm.search_label() || ccvm.value()}}
               </label>
