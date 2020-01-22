@@ -1005,7 +1005,7 @@ tr.result_table_row > td.result_table_title_cell {
     vertical-align: top;
 }
 
-.result_table_title_cell .format_icon {
+div.format_icon img, img.format_icon {
     min-width: 48px;
     max-width: 4VW;
 }

@@ -184,7 +184,8 @@ END;
                                                     <div class='result_table_title_cell'>
                                                     [%- IF attrs.format_label; %]
                                                         [% FOR format IN attrs.all_formats %]
-                                                            <img title="[% format.label | html %]" 
+                                                            <img title="[% format.label | html %]"
+                                                                class="format_icon"
                                                                 alt="[% format.label | html %]" 
                                                                 src="[% format.icon %]"
 								class="format_icon"/> 
