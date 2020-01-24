@@ -373,6 +373,7 @@ sub load_rresults {
     $ctx->{search_facets} = {};
     $ctx->{hit_count} = 0;
     $ctx->{is_meta} = $is_meta;
+    $ctx->{icon_file_type} = 'svg';
 
     # Special alternative searches here.  This could all stand to be cleaner.
     if ($cgi->param("_special")) {
