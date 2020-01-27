@@ -375,7 +375,7 @@ sub load_rresults {
         my $cfg_icon = config_value(
                 apps => 'open-ils.search' => app_settings => 'format_icon_file_type'
         );
-        $logger->error($cfg_icon);
+        $logger->debug("::ICON_FILE_TYPE:: "$cfg_icon);
         print($cfg_icon);
         $default_file_type = $config-> $cfg_icon || 'svg';
 
