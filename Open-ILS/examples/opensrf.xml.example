@@ -672,6 +672,11 @@ vim:et:ts=4:sw=4:
                             Set the global, default preferred languange
                     -->
                     <default_preferred_language>eng</default_preferred_language>
+                    <!--
+                        format_icon_file_type
+                            Set the file type of format icons that appear on search result rows.
+                    -->
+                    <format_icon_file_type>svg</format_icon_file_type>
 
                     <!--
                         default_preferred_language_weight

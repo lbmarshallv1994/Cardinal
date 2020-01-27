@@ -4,6 +4,7 @@ use Apache2::Const -compile => qw(OK DECLINED FORBIDDEN HTTP_INTERNAL_SERVER_ERR
 use OpenSRF::Utils::Logger qw/$logger/;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
 use OpenILS::Utils::Fieldmapper;
+use OpenSRF::Utils::SettingsClient;
 use OpenILS::Application::AppUtils;
 use OpenSRF::Utils::JSON;
 use Data::Dumper;
@@ -366,6 +367,19 @@ sub load_rresults {
     if (my $bbag_err = $self->load_rresults_bookbag) {
         return $bbag_err;
     }
+    
+    my $default_file_type;
+    my $config = OpenSRF::Utils::SettingsClient->new();
+    # find the default file type for format icons
+    if (!$default_file_type) {
+        my $cfg_icon = config_value(
+                apps => 'open-ils.search' => app_settings => 'format_icon_file_type'
+        );
+        $logger->error($cfg_icon);
+        print($cfg_icon);
+        $default_file_type = $config-> $cfg_icon || 'svg';
+
+    }
 
     $ctx->{page} = 'rresult' unless $internal;
     $ctx->{ids} = [];
@@ -373,7 +387,7 @@ sub load_rresults {
     $ctx->{search_facets} = {};
     $ctx->{hit_count} = 0;
     $ctx->{is_meta} = $is_meta;
-    $ctx->{icon_file_type} = 'svg';
+    $ctx->{icon_file_type} = $default_file_type;
 
     # Special alternative searches here.  This could all stand to be cleaner.
     if ($cgi->param("_special")) {
