@@ -372,12 +372,12 @@ sub load_rresults {
     my $config = OpenSRF::Utils::SettingsClient->new();
     # find the default file type for format icons
     if (!$default_file_type) {
-        my $cfg_icon = config_value(
+        my $cfg_icon = $config->config_value(
                 apps => 'open-ils.search' => app_settings => 'format_icon_file_type'
         );
-        $logger->debug("::ICON_FILE_TYPE:: "$cfg_icon);
+        $logger->info("::ICON_FILE_TYPE:: " . $cfg_icon);
         print($cfg_icon);
-        $default_file_type = $config-> $cfg_icon || 'svg';
+        $default_file_type = $cfg_icon || 'svg';
 
     }
 
