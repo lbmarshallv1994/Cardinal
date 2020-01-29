@@ -375,7 +375,6 @@ sub load_rresults {
     $ctx->{search_facets} = {};
     $ctx->{hit_count} = 0;
     $ctx->{is_meta} = $is_meta;
-     = $default_file_type;
 
     # Special alternative searches here.  This could all stand to be cleaner.
     if ($cgi->param("_special")) {
