@@ -340,6 +340,7 @@ sub recs_from_metarecord {
 
 
 
+
 # context additions: 
 #   page_size
 #   hit_count
@@ -368,26 +369,13 @@ sub load_rresults {
         return $bbag_err;
     }
     
-    my $default_file_type;
-    my $config = OpenSRF::Utils::SettingsClient->new();
-    # find the default file type for format icons
-    if (!$default_file_type) {
-        my $cfg_icon = $config->config_value(
-                apps => 'open-ils.search' => app_settings => 'format_icon_file_type'
-        );
-        $logger->info("::ICON_FILE_TYPE:: " . $cfg_icon);
-        print($cfg_icon);
-        $default_file_type = $cfg_icon || 'svg';
-
-    }
-
     $ctx->{page} = 'rresult' unless $internal;
     $ctx->{ids} = [];
     $ctx->{records} = [];
     $ctx->{search_facets} = {};
     $ctx->{hit_count} = 0;
     $ctx->{is_meta} = $is_meta;
-    $ctx->{icon_file_type} = $default_file_type;
+     = $default_file_type;
 
     # Special alternative searches here.  This could all stand to be cleaner.
     if ($cgi->param("_special")) {
