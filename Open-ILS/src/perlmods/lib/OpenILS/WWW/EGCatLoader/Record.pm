@@ -594,11 +594,11 @@ sub load_icon_type {
     my $sname = 'cat.format.icon.type';
     my $org;
     if ($self->ctx->{is_staff}) {
-        $org = $ctx->{user}->ws_ou;
+        $org = $self->ctx->{user}->ws_ou;
     } else {
         $org = $self->_get_search_lib();
     }
-    $self->ctx->->{icon_file_type} = $self->ctx->{get_org_setting}->($org, $sname) || 'svg';
+    $self->ctx->{icon_file_type} = $self->ctx->{get_org_setting}->($org, $sname) || 'svg';
 }
 
 # for each type, fire off the reqeust to see if content is available
