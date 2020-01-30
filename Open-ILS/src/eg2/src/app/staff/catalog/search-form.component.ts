@@ -35,7 +35,6 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
         this.ccvmMap = this.cat.ccvmMap;
         this.cmfMap = this.cat.cmfMap;
         this.context = this.staffCat.searchContext;
-
         // Start with advanced search options open
         // if any filters are active.
         this.showSearchFilters = this.filtersActive();

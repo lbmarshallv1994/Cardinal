@@ -23,6 +23,7 @@ export class CatalogService {
     // No need to re-fetch with every page of search data.
     lastFacetData: any;
     lastFacetKey: string;
+    defaultSearchIcon: string;
 
     // Allow anyone to watch for completed searches.
     onSearchComplete: EventEmitter<CatalogSearchContext>;
@@ -37,7 +38,7 @@ export class CatalogService {
         private basket: BasketService
     ) {
         this.onSearchComplete = new EventEmitter<CatalogSearchContext>();
-
+        this.defaultSearchIcon = this.org.get(settings['cat.format.icon.type']);
     }
 
     search(ctx: CatalogSearchContext): Promise<void> {
