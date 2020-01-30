@@ -10,6 +10,7 @@ import {CatalogSearchContext, CatalogSearchState} from './search-context';
 import {BibRecordService, BibRecordSummary} from './bib-record.service';
 import {BasketService} from './basket.service';
 import {CATALOG_CCVM_FILTERS} from './search-context';
+import {ServerStoreService} from '@eg/core/server-store.service';
 
 @Injectable()
 export class CatalogService {
