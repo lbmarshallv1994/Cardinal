@@ -39,7 +39,9 @@ export class CatalogService {
         private basket: BasketService
     ) {
         this.onSearchComplete = new EventEmitter<CatalogSearchContext>();
-        this.defaultSearchIcon = this.org.get(settings['cat.format.icon.type']);
+        this.org.settings('cat.format.icon.type').then(sets => {
+            this.defaultSearchIcon = sets['cat.format.icon.type'];
+        });
     }
 
     search(ctx: CatalogSearchContext): Promise<void> {
