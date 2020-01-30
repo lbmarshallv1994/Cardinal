@@ -44,7 +44,7 @@ export class ResultRecordComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.searchContext = this.staffCat.searchContext;
-        this.defaultSearchIcon; = this.staffCat.defaultSearchIcon;
+        this.defaultSearchIcon = this.staffCat.defaultSearchIcon;
         this.summary.getHoldCount();
         this.isRecordSelected = this.basket.hasRecordId(this.summary.id);
 
