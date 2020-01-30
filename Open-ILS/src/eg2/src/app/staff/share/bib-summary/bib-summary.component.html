@@ -7,7 +7,7 @@
         <ng-container *ngFor="let icon of summary.attributes.icon_format">
           <span class="pr-1 pl-2">
             <img class="pr-1"
-              src="/images/format_icons/icon_format/{{icon}}.png"/>
+              src="/images/format_icons/icon_format/{{icon}}.{{defaultSearchIcon}}"/>
             <span class="font-weight-normal">{{iconFormatLabel(icon)}}</span>
           </span>
         </ng-container>

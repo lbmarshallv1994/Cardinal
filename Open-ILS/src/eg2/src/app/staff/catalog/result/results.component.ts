@@ -28,6 +28,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
     searchSub: Subscription;
     routeSub: Subscription;
     basketSub: Subscription;
+    defaultSearchIcon: string;
 
     constructor(
         private route: ActivatedRoute,
@@ -41,7 +42,7 @@ export class ResultsComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.searchContext = this.staffCat.searchContext;
-
+        this.defaultSearchIcon = this.cat.defaultSearchIcon;
         // Our search context is initialized on page load.  Once
         // ResultsComponent is active, it will not be reinitialized,
         // even if the route parameters changes (unless we change the

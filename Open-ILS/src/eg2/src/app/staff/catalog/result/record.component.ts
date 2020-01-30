@@ -29,6 +29,7 @@ export class ResultRecordComponent implements OnInit, OnDestroy {
     searchContext: CatalogSearchContext;
     isRecordSelected: boolean;
     basketSub: Subscription;
+    defaultSearchIcon: string;
 
     constructor(
         private router: Router,
@@ -43,6 +44,7 @@ export class ResultRecordComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.searchContext = this.staffCat.searchContext;
+        this.defaultSearchIcon; = this.staffCat.defaultSearchIcon;
         this.summary.getHoldCount();
         this.isRecordSelected = this.basket.hasRecordId(this.summary.id);
 

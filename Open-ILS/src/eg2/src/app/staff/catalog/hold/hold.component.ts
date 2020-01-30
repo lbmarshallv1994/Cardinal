@@ -53,6 +53,7 @@ export class HoldComponent implements OnInit {
     smsCarrier: string;
     suspend: boolean;
     activeDate: string;
+    defaultSearchIcon: string;
 
     holdContexts: HoldContext[];
     recordSummaries: BibRecordSummary[];
@@ -87,7 +88,7 @@ export class HoldComponent implements OnInit {
         this.holdType = this.route.snapshot.params['type'];
         this.holdTargets = this.route.snapshot.queryParams['target'];
         this.holdFor = this.route.snapshot.queryParams['holdFor'] || 'patron';
-
+        this.defaultSearchIcon = this.cat.defaultSearchIcon;
         if (!Array.isArray(this.holdTargets)) {
             this.holdTargets = [this.holdTargets];
         }

@@ -12,6 +12,7 @@ import {CatalogService} from '@eg/share/catalog/catalog.service';
 })
 export class BibSummaryComponent implements OnInit {
 
+    defaultSearchIcon: string;
     initDone = false;
 
     // True / false if the display is vertically expanded
@@ -52,7 +53,7 @@ export class BibSummaryComponent implements OnInit {
                 this.loadSummary();
             }
         }
-
+        this.defaultSearchIcon = this.cat.defaultSearchIcon;
         this.store.getItem('eg.cat.record.summary.collapse')
         .then(value => this.expand = !value)
         .then(() => this.initDone = true);

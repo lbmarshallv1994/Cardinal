@@ -17,6 +17,7 @@ export class StaffCatalogService {
     routeIndex = 0;
     defaultSearchOrg: IdlObject;
     defaultSearchLimit: number;
+    defaultSearchIcon: string;
 
     // TODO: does unapi support pref-lib for result-page copy counts?
     prefOrg: IdlObject;
@@ -41,7 +42,7 @@ export class StaffCatalogService {
         // search results pages will handle running the actual search.
         this.searchContext =
             this.catUrl.fromUrlParams(this.route.snapshot.queryParamMap);
-
+        this.defaultSearchIcon = this.org.get(settings['cat.format.icon.type']);
         this.searchContext.org = this.org; // service, not searchOrg
         this.searchContext.isStaff = true;
         this.applySearchDefaults();
