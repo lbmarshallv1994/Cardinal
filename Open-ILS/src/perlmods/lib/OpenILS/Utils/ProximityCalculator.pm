@@ -3,7 +3,7 @@ use strict; use warnings;
 use WWW::REST;
 use OpenILS::Application::Actor;
 use OpenSRF::AppSession;
-my $actor = OpenSRF::AppSession->create('open-ils.actor');
+my $actor;
 
 sub get_ou {
     my $org = shift || '-';
@@ -27,6 +27,7 @@ sub get_ou {
 }
 
 sub proximity {
+    my $actor =  = OpenSRF::AppSession->create('open-ils.actor');
     my( $self, $org1id, $org2id ) = @_;
     my $org1 = get_ou($org1id)->[0];
     my $org2 = get_ou($org2id)->[0];
