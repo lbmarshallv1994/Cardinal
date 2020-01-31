@@ -6,6 +6,7 @@ use OpenSRF::AppSession;
 my $actor;
 
 sub get_ou {
+    $actor = OpenSRF::AppSession->create('open-ils.actor');
     my $org = shift || '-';
     my $org_unit;
 
@@ -27,7 +28,6 @@ sub get_ou {
 }
 
 sub proximity {
-    $actor = OpenSRF::AppSession->create('open-ils.actor');
     my( $self, $org1id, $org2id ) = @_;
     my $org1 = get_ou($org1id)->[0];
     my $org2 = get_ou($org2id)->[0];
