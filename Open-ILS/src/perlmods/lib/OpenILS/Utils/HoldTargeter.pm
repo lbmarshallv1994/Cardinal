@@ -16,6 +16,7 @@ package OpenILS::Utils::HoldTargeter;
 use strict;
 use warnings;
 use DateTime;
+use Data::Dumper;
 use OpenSRF::AppSession;
 use OpenSRF::Utils::Logger qw(:logger);
 use OpenSRF::Utils::JSON;
@@ -262,6 +263,8 @@ package OpenILS::Utils::HoldTargeter::Single;
 use strict;
 use warnings;
 use DateTime;
+use Data::Dumper;
+use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
@@ -1094,32 +1097,64 @@ sub attempt_prev_copy_retarget {
     return undef;
 }
 
-# Returns the closest copy by proximity that is a confirmed valid
+# Returns the closest copy by proximity and vicinity that is a confirmed valid
 # targetable copy.
 sub find_nearest_copy {
     my $self = shift;
     my %prox_map = %{$self->{weighted_prox_map}};
     my $hold = $self->hold;
+    my $req_hub;
+    my $vinc_calc = OpenILS::Utils::VicinityCalculator::Matrix->new();
     my %seen;
 
-    # Pick a copy at random from each tier of the proximity map,
-    # starting at the lowest proximity and working up, until a
-    # copy is found that is suitable for targeting.
     for my $prox (sort {$a <=> $b} keys %prox_map) {
+        my %distance_matrix;
+        my %hub_by_target;
         my @copies = @{$prox_map{$prox}};
         next unless @copies;
-
-        my $rand = int(rand(scalar(@copies)));
-
-        while (my ($c) = splice(@copies, $rand, 1)) {
-            $rand = int(rand(scalar(@copies)));
-            next if $seen{$c->{id}};
-
-            return $c if $self->copy_is_permitted($c);
-            $seen{$c->{id}} = 1;
-
-            last unless(@copies);
+        # run vicinity calculator if proximity is greater than or equal to 3
+        unless($prox < 3){
+            unless($req_hub){  
+                # assigning the shipping hub for this hold
+                $req_hub = $vinc_calc->get_hub_from_ou($hold->pickup_lib);
+            }
+            my @copy_ids = map {$_->{id}} @copies;
+            # determine which shipping hub OU these copies would need to be sent to
+            %hub_by_target = $vinc_calc->get_target_hubs(\@copy_ids);
+            my @hubs = values(%hub_by_target);
+            %distance_matrix =  $vinc_calc->hub_matrix($req_hub,\@hubs);
         }
+        # run this block only if target copies are within the same OU 
+        # or a distance matrix could not be retreived for a destination      
+        if($prox < 3 || !%distance_matrix){
+            # Pick a copy at random from each tier of the proximity map,
+            # starting at the lowest proximity and working up, until a
+            # copy is found that is suitable for targeting.
+            my $rand = int(rand(scalar(@copies)));
+            while (my ($c) = splice(@copies, $rand, 1)) {
+                $rand = int(rand(scalar(@copies)));
+                next if $seen{$c->{id}};
+
+                return $c if $self->copy_is_permitted($c);
+                $seen{$c->{id}} = 1;
+
+                last unless(@copies);
+            }
+        }
+        else{
+            # select the target copy from the closest OU
+            # TODO what happens if two hubs are the same distance away from home hub?
+            # TODO should we round distances so two hubs don't always choose from one another?
+            # TODO what if this was stored in the Action.hold_copy_map like the prox is? 
+            for my $c (sort { $distance_matrix{$hub_by_target{$a->{id}}} <=> $distance_matrix{$hub_by_target{$b->{id}}} } @copies){
+                $self->log_hold("VicinityCalculator - Copy: ".$c->{id}." Shipping Hub:".$hub_by_target{$c->{id}}. "Physical Distance: ".$distance_matrix{$hub_by_target{$c->{id}}});
+                next if $seen{$c->{id}};
+                return $c if $self->copy_is_permitted($c);
+                $seen{$c->{id}} = 1;
+                last unless(@copies);
+            }
+        }
+        
     }
 
     return undef;

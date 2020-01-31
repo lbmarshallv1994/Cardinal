@@ -113,6 +113,24 @@ __PACKAGE__->columns( Essential => qw/org_unit name value/);
 
 
 #-------------------------------------------------------------------------------
+package actor::org_unit_shipping_hub;
+use base qw/actor/;
+
+__PACKAGE__->table( 'actor_org_unit_shipping_hub' );
+__PACKAGE__->columns( Primary => qw/id/);
+__PACKAGE__->columns( Essential => qw/org_unit hub/);
+
+
+#-------------------------------------------------------------------------------
+package actor::org_unit_shipping_hub_distance;
+use base qw/actor/;
+
+__PACKAGE__->table( 'actor_org_unit_shipping_hub_distance' );
+__PACKAGE__->columns( Primary => qw/id/);
+__PACKAGE__->columns( Essential => qw/orig_hub dest_hub distance/);
+
+
+#-------------------------------------------------------------------------------
 package actor::stat_cat;
 use base qw/actor/;
 

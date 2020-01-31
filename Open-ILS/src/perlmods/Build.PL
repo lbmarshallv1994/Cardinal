@@ -40,6 +40,7 @@ my $build = Module::Build->new(
         'File::Spec' => '0',
         'File::stat' => '0',
         'File::Temp' => '0',
+        'Geo::Coder::Bing' => '0',
         'Getopt::Long' => '0',
         'IO::Scalar' => '0',
         'List::Util' => '0',
@@ -87,10 +88,11 @@ my $build = Module::Build->new(
         'Unicode::Normalize' => '0',
         'UNIVERSAL::require' => '0',
         'UUID::Tiny' => '0',
+        'WWW::REST' => '0',
         'XML::LibXML' => '0',
         'XML::LibXML::XPathContext' => '0',
         'XML::LibXSLT' => '0',
-        'XML::Simple' => '0',
+        'XML::Simple' => '0'
     }
 );
 

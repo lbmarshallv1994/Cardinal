@@ -8,6 +8,7 @@ SELECT evergreen.populate_call_number(4, '780 B',  'IMPORT CONCERTO', 2); -- BR1
 SELECT evergreen.populate_call_number(5, '780 A',  'IMPORT CONCERTO', 2); -- BR2
 SELECT evergreen.populate_call_number(6, '781 D',  'IMPORT CONCERTO', 2); -- BR3
 SELECT evergreen.populate_call_number(7, '781 G',  'IMPORT CONCERTO', 2); -- BR4
+SELECT evergreen.populate_call_number(11, 'LB 782 G',  'IMPORT CONCERTO', 2); -- BR5
 SELECT evergreen.populate_call_number(9, '780 R',  'IMPORT CONCERTO', 2); -- BM1
 
 -- Create copies
@@ -15,6 +16,7 @@ SELECT evergreen.populate_copy(4, 4, 'CONC40000', 'M'); -- BR1
 SELECT evergreen.populate_copy(5, 5, 'CONC50000', 'M'); -- BR2
 SELECT evergreen.populate_copy(6, 6, 'CONC60000', 'M'); -- BR3
 SELECT evergreen.populate_copy(7, 7, 'CONC70000', 'M'); -- BR4
+SELECT evergreen.populate_copy(11, 11, 'CONC80000', 'M'); -- BR5
 SELECT evergreen.populate_copy(9, 9, 'CONC90000', 'M'); -- BM1
 
 SELECT evergreen.populate_copy(4, 4, 'CONC41000', 'M'); -- BR1

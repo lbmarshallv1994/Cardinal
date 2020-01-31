@@ -3,6 +3,10 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (3, 1, 2, 'SYS2', oils_i18n_gettext(3, 'Example System 2', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
+    (10, 1, 2, 'SYS3', oils_i18n_gettext(10, 'Example System 3', 'aou', 'name'));
+INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
+    (12, 1, 2, 'SYS4', oils_i18n_gettext(12, 'Example System 4', 'aou', 'name'));
+INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (4, 2, 3, 'BR1', oils_i18n_gettext(4, 'Example Branch 1', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (5, 2, 3, 'BR2', oils_i18n_gettext(5, 'Example Branch 2', 'aou', 'name'));
@@ -11,41 +15,53 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (7, 3, 3, 'BR4', oils_i18n_gettext(7, 'Example Branch 4', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
+    (11, 10, 3, 'BR5', oils_i18n_gettext(11, 'Example Branch 5', 'aou', 'name'));
+INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
+    (13, 12, 3, 'BR6', oils_i18n_gettext(13, 'Example Branch 6', 'aou', 'name'));
+INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (8, 4, 4, 'SL1', oils_i18n_gettext(8, 'Example Sub-library 1', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (9, 6, 5, 'BM1', oils_i18n_gettext(9, 'Example Bookmobile 1', 'aou', 'name'));
 
-INSERT INTO actor.org_lasso (id, name, global) VALUES (1000001, 'Even Branches', FALSE);
-INSERT INTO actor.org_lasso_map (lasso, org_unit) VALUES (1000001, 5), (1000001, 7);
 
-INSERT INTO actor.org_lasso (id, name, global) VALUES (1000002, 'Non-branches', TRUE);
-INSERT INTO actor.org_lasso_map (lasso, org_unit) VALUES (1000002, 8), (1000002, 9);
 
 -- Address for the Consortium
-SELECT evergreen.create_aou_address(1, '123 Main St.', NULL, 'Anywhere', 'GA', 'US', '30303', NULL);
+SELECT evergreen.create_aou_address(1, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Fulton', 'US', '30312', NULL);
 
 -- Addresses for System 1
-SELECT evergreen.create_aou_address(2, '234 Side St.', NULL, 'Anywhere', 'GA', 'US', '30304', NULL);
+SELECT evergreen.create_aou_address(2, '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', NULL);
 
 -- Addresses for System 2
-SELECT evergreen.create_aou_address(3, '345 Corner Crescent', NULL, 'Elsewhere', 'GA', 'US', '30335', NULL);
+SELECT evergreen.create_aou_address(3, '831 Adams St', NULL, 'Macon', 'GA','Bibb', 'US', '31201', NULL);
+
+-- Addresses for System 3
+SELECT evergreen.create_aou_address(10, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'Clarke', 'US', '30601', NULL);
+
+-- Addresses for System 4
+SELECT evergreen.create_aou_address(12, '625 Academy St NE', NULL, 'Gainesville', 'GA', 'Hall', 'US', '30501', NULL);
 
 -- Addresses for Branch 1
-SELECT evergreen.create_aou_address(4, 'BR1', '123 Main St.', 'Anywhere', 'GA', 'US', '30303', 'billing mailing');
-SELECT evergreen.create_aou_address(4, 'Holds and ILL', '125 Main St.', 'Anywhere', 'GA', 'US', '30303', 'interlibrary holds');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Hall','US', '30312', 'billing mailing');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Hall','US', '30312', 'interlibrary holds');
 
 -- Addresses for Branch 2
-SELECT evergreen.create_aou_address(5, 'BR2', '234 Side St.', 'Anywhere', 'GA', 'US', '30304', 'mailing');
-SELECT evergreen.create_aou_address(5, 'BR2 - Billing', '234 Side St.', 'Anywhere', 'GA', 'US', '30304', 'billing');
-SELECT evergreen.create_aou_address(5, 'BR2 - Holds and ILL', '234 Side St.', 'Anywhere', 'GA', 'US', '30304', 'interlibrary holds');
+SELECT evergreen.create_aou_address(5, '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'mailing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'billing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'interlibrary holds');
 
 -- Addresses for Branch 3
-SELECT evergreen.create_aou_address(6, 'BR3', '347 Corner Crescent', 'Elsewhere', 'GA', 'US', '30335', NULL);
+SELECT evergreen.create_aou_address(6, '831 Adams St', NULL, 'Macon', 'GA','Bibb', 'US', '31201', NULL);
 
 -- Addresses for Branch 4
-SELECT evergreen.create_aou_address(7, 'BR4', '446 Nowhere Road', 'Elsewhere', 'GA', 'US', '30404', 'mailing');
-SELECT evergreen.create_aou_address(7, 'BR4 - Billing Dept', '446 Nowhere Road', 'Elsewhere', 'GA', 'US', '30404', 'billing');
-SELECT evergreen.create_aou_address(7, 'BR4 - Holds and ILL', '756 Industrial Lane', 'Elsewhere', 'GA', 'US', '30304', 'interlibrary holds');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond', 'US', '30901', 'mailing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond','US', '30901', 'billing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond','US', '30901', 'interlibrary holds');
+
+-- Addresses for Branch 5
+SELECT evergreen.create_aou_address(11, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'Clarke', 'US', '30601', NULL);
+
+-- Addresses for Branch 6
+SELECT evergreen.create_aou_address(13,  '625 Academy St NE', NULL, 'Gainesville', 'GA', 'Hall', 'US', '30501', NULL);
 
 -- Hours for branches
 INSERT INTO actor.hours_of_operation (id, dow_0_open, dow_0_close, dow_1_open, dow_1_close,
@@ -67,8 +83,19 @@ INSERT INTO actor.org_unit_setting(org_unit, name, value) VALUES
     (6, 'lib.info_url', '"http://br3.example.com"'), -- BR3
     (7, 'lib.info_url', '"http://br4.example.com/info"'); -- BR4
 
+UPDATE actor.org_unit SET shipping_hub_ou = 4 WHERE id = 2;
+UPDATE actor.org_unit SET shipping_hub_ou = 7 WHERE id = 3;
+UPDATE actor.org_unit SET shipping_hub_ou = 11 WHERE id = 10;
+UPDATE actor.org_unit SET shipping_hub_ou = 13 WHERE id = 12;
+INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub, distance) VALUES (4,4,0),(4,7,25),(4,11,50),(4,13,80),
+                                                                            (7,7,0),(7,4,25),(7,11,65),(7,13,35),
+                                                                            (11,7,65),(11,4,50),(11,11,0),(11,13,25),
+                                                                            (13,7,35),(13,4,80),(13,11,25),(13,13,0);
+
 
 UPDATE actor.org_unit SET email = 'br1@example.com', phone = '(555) 555-0271' WHERE shortname = 'BR1';
 UPDATE actor.org_unit SET email = 'br2@example.com', phone = '(555) 555-0272' WHERE shortname = 'BR2';
 UPDATE actor.org_unit SET email = 'br3@example.com', phone = '(555) 555-0273' WHERE shortname = 'BR3';
 UPDATE actor.org_unit SET email = 'br4@example.com', phone = '(555) 555-0274' WHERE shortname = 'BR4';
+UPDATE actor.org_unit SET email = 'br5@example.com', phone = '(555) 555-0275' WHERE shortname = 'BR5';
+UPDATE actor.org_unit SET email = 'br6@example.com', phone = '(555) 555-0276' WHERE shortname = 'BR6';

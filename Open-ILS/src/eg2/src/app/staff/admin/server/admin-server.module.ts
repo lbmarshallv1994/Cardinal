@@ -3,6 +3,7 @@ import {TreeModule} from '@eg/share/tree/tree.module';
 import {AdminCommonModule} from '@eg/staff/admin/common.module';
 import {AdminServerRoutingModule} from './routing.module';
 import {AdminServerSplashComponent} from './admin-server-splash.component';
+import {OrgUnitShippingHubDistanceComponent} from './org-unit-shipping-hub-distance.component';
 import {OrgUnitTypeComponent} from './org-unit-type.component';
 import {PrintTemplateComponent} from './print-template.component';
 import {SampleDataService} from '@eg/share/util/sample-data.service';
@@ -18,6 +19,7 @@ generated UI's into lazy-loadable sub-mobules. */
   declarations: [
       AdminServerSplashComponent,
       OrgUnitTypeComponent,
+      OrgUnitShippingHubDistanceComponent,
       PrintTemplateComponent,
       PermGroupTreeComponent,
       PermGroupMapDialogComponent
