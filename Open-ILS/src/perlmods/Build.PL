@@ -87,6 +87,7 @@ my $build = Module::Build->new(
         'Unicode::Normalize' => '0',
         'UNIVERSAL::require' => '0',
         'UUID::Tiny' => '0',
+        'WWW::REST' => '0',
         'XML::LibXML' => '0',
         'XML::LibXML::XPathContext' => '0',
         'XML::LibXSLT' => '0',
