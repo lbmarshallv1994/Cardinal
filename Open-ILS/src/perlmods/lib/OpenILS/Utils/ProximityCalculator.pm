@@ -2,6 +2,8 @@ package OpenILS::Utils::ProximityCalculator;
 use strict; use warnings;
 use WWW::REST;
 use OpenILS::Application::Actor;
+use OpenSRF::AppSession;
+my $actor = OpenSRF::AppSession->create('open-ils.actor');
 
 sub get_ou {
     my $org = shift || '-';
