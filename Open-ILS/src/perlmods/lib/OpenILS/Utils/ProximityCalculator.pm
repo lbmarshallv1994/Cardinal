@@ -3,6 +3,8 @@ use strict; use warnings;
 use WWW::REST;
 use OpenILS::Application::Actor;
 use OpenSRF::AppSession;
+use OpenILS::Utils::Fieldmapper;
+use OpenILS::Application::AppUtils;
 my $actor;
 
 sub get_ou {
