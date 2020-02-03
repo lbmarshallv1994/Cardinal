@@ -42,9 +42,9 @@ export class CatalogService {
         this.defaultSearchIcon = 'svg';
         this.org.settings('cat.format.icon.type').then(sets => {
             let v = sets['cat.format.icon.type'];
-            this.defaultSearchIcon = v;
-            console.log(v);
-            console.log(sets);
+            if(v){
+                this.defaultSearchIcon = v;
+            }
         });
     }
 
