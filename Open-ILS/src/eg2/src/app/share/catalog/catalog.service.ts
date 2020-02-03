@@ -39,8 +39,12 @@ export class CatalogService {
         private basket: BasketService
     ) {
         this.onSearchComplete = new EventEmitter<CatalogSearchContext>();
+        this.defaultSearchIcon = 'svg';
         this.org.settings('cat.format.icon.type').then(sets => {
-            this.defaultSearchIcon = sets['cat.format.icon.type'];
+            let v = sets['cat.format.icon.type'];
+            this.defaultSearchIcon = v;
+            console.log(v);
+            console.log(sets);
         });
     }
 
