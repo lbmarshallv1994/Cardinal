@@ -8,12 +8,11 @@ CREATE TABLE actor.org_unit_shipping_hub (
     hub BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE
 );
 
-CREATE OR REPLACE FUNCTION actor.org_unit_ancestor_shipping_hub(
-    setting_name text,
-    org_id integer)
+CREATE OR REPLACE FUNCTION actor.org_unit_ancestor_shipping_hub(org_id integer)
   RETURNS SETOF actor.org_unit_shipping_hub AS
 $func$
 DECLARE
+    shipping_hub INT;
     cur_org INT;
 BEGIN
     cur_org := org_id;
