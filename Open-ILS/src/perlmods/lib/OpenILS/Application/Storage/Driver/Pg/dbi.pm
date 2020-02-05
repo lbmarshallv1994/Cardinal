@@ -454,6 +454,12 @@
     actor::org_unit::closed_date->sequence( 'actor.org_unit_closed_id_seq' );
 
     #---------------------------------------------------------------------
+    package actor::org_unit_shipping_hub;
+    
+    actor::org_unit_shipping_hub->table( 'actor.org_unit_shipping_hub' );
+    actor::org_unit_shipping_hub->sequence( 'actor.org_unit_shipping_hub_id_seq' );
+
+    #---------------------------------------------------------------------
     package actor::org_unit_setting;
     
     actor::org_unit_setting->table( 'actor.org_unit_setting' );
