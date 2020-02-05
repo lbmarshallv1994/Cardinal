@@ -3886,6 +3886,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 			<link field="name" reltype="has_a" key="name" map="" class="coust"/>
 		</links>
 	</class>
+    <class id="aoush" controller="open-ils.cstore" oils_obj:fieldmapper="actor::org_unit_shipping_hub" oils_persist:tablename="actor.org_unit_shipping_hub" reporter:label="Organizational Unit Shipping Hub">
+		<fields oils_persist:primary="id" oils_persist:sequence="actor.org_unit_shipping_hub_id_seq">
+			<field name="id" />
+			<field name="org_unit" reporter:datatype="org_unit"/>
+			<field name="hub"  reporter:datatype="org_unit"/>
+		</fields>
+		<links>
+			<link field="org_unit" reltype="has_a" key="id" map="" class="aou"/>
+			<link field="hub" reltype="has_a" key="id" map="" class="aou"/>
+		</links>
+	</class>
 	<class id="acpn" controller="open-ils.cstore open-ils.pcrud" oils_obj:fieldmapper="asset::copy_note" oils_persist:tablename="asset.copy_note" reporter:label="Copy Note">
 		<fields oils_persist:primary="id" oils_persist:sequence="asset.copy_note_id_seq">
 			<field reporter:label="Note Creation Date/Time" name="create_date" reporter:datatype="timestamp"/>
