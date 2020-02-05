@@ -12,7 +12,7 @@ CREATE OR REPLACE FUNCTION actor.org_unit_ancestor_shipping_hub(org_id integer)
   RETURNS SETOF actor.org_unit_shipping_hub AS
 $func$
 DECLARE
-    shipping_hub INT;
+    shipping_hub record;
     cur_org INT;
 BEGIN
     cur_org := org_id;
