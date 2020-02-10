@@ -40,6 +40,7 @@ my $build = Module::Build->new(
         'File::Spec' => '0',
         'File::stat' => '0',
         'File::Temp' => '0',
+        'Geo::Coder::Bing' => '0',
         'Getopt::Long' => '0',
         'IO::Scalar' => '0',
         'List::Util' => '0',
