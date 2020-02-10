@@ -18,10 +18,18 @@ sub new {
     my ($class, $api_key) = @_;
     my $self = {
         editor => new_editor(),
-        bing => Geo::Coder::Bing->new(key => $api_key)
+        bing => Geo::Coder::Bing->new(key => $api_key),
+        hub_cache => {},
+        coord_cache => {},
+        
     };
     $self->{editor}->init;
     return bless($self, $class);
+}
+
+sub uniq {
+    my %seen;
+    grep !$seen{$_}++, @_;
 }
 
 # Use Bing maps API to calculate the distances between all shipping hubs
@@ -59,7 +67,7 @@ sub calculate_distance_matrix {
 
 sub hub_matrix {
     my ($self, $origin_hub, @dest_hubs) = @_;
-    return $self->{editor}->json_query({
+    my @d = $self->{editor}->json_query({
         select => {'aoushd' => [{column => 'dest_hub'},{column => 'distance'}]},
         from => 'aoushd',
         where => {'orig_hub'=>[$origin_hub],'dest_hub'=>@dest_hubs},
@@ -67,6 +75,14 @@ sub hub_matrix {
             {class => 'aoushd', field => 'distance', direction => 'ASC'},
         ]
     });
+    
+    my %matrix;
+    for my $ref (@d) {
+        for (@$ref){
+            $matrix{$_->{'dest_hub'}}=$_->{distance};
+        }
+    }
+    return %matrix; 
 }
 
 sub get_addr_from_ou {
@@ -122,15 +138,7 @@ my @sh = $self->{editor}->json_query({
         from => {aou=>{h1=>{class=>'aoush',fkey => 'id',field => 'org_unit',type=>'left'},h2=>{class=>'aoush',fkey => 'parent_ou',field => 'org_unit',type=>'left'}}},
         where => {"+aou"=>{id=>[@org_ids]}}
     });
-    my %hubs;
-    for my $ref (@sh) {
-        for (@$ref){
-        my $h = $_->{my_hub} || $_->{parent_hub} || 0;
-        $self->{hub_cache}->{id} = $h;
-        $hubs{$_->{id}} = $h;
-        }
-    }
-    return %hubs; 
+    return $sh[0][0]->{'my_hub'} || $sh[0][0]->{'parent_hub'};
 }
 
 sub get_all_hubs {
@@ -198,10 +206,41 @@ sub proximity_between_ou {
        return $self->proximity_between_coord($self->get_coord_from_address($addrs[0]),$self->get_coord_from_address($addrs[1]));
 }
 
-sub uniq {
-    my %seen;
-    grep !$seen{$_}++, @_;
+sub proximity_between_hub {
+ my( $self, $org1, $org2 ) = @_; 
+ my %hubs = $self->get_hub_from_ou($org1,$org2);
+ if($hubs{$org1} == 0 || $hubs{$org2} == 0){
+ print("Requested OU does not have a shipping hub!");
+ die;
+ }
+
+ return $self->proximity_between_ou($hubs{$org1},$hubs{$org2});
 }
+
+sub get_target_hubs{
+    my $self = shift;
+    my @target_copies = shift;
+    my @h = $self->{editor}->json_query({
+        select => {'acp' => ['id'],
+            "h1" => [{column=>'hub',alias=>'my_hub'}],
+            "h2" => [{column=>'hub',alias=>'parent_hub'}]},
+        from => {'acp' =>{aou => {fkey => 'circ_lib',field => 'id', join => {
+        h1=>{class=>'aoush',fkey => 'id',field => 'org_unit',type=>'left'},h2=>{class=>'aoush',fkey => 'parent_ou',field => 'org_unit',type=>'left'}
+        }}}},
+        where => {'+acp'=>{id => @target_copies}}
+    }); 
+        my %hubs;
+    for my $ref (@h) {
+        for (@$ref){
+        $hubs{$_->{id}} = $_->{'my_hub'} || $_->{'parent_hub'};
+        }
+    }
+    return %hubs; 
+}
+
+
+=begin work zone
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
 my $pc = OpenILS::Utils::ProximityCalculator->new("AosM-K7Hdbk-OMZ1jcJC1boNDGRpoYRL_bzgK6pqKNNVAc2-z0qbOVtc3itjfWj5");
+=cut
 1;
