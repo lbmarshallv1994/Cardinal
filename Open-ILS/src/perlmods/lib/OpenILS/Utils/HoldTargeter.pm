@@ -18,7 +18,7 @@ use warnings;
 use DateTime;
 use Data::Dumper;
 use OpenSRF::AppSession;
-use OpenILS::Utils::ProximityCalculator
+use OpenILS::Utils::ProximityCalculator;
 use OpenSRF::Utils::Logger qw(:logger);
 use OpenSRF::Utils::JSON;
 use OpenILS::Utils::DateTime qw/:datetime/;
@@ -1074,7 +1074,7 @@ sub find_nearest_copy {
             my @copies = @{$prox_map{$prox}};
             next unless @copies;
             unless($req_hub){         
-            $req_hub = $prox_calc->get_hub_from_ou($hold.req_hub);
+            $req_hub = $prox_calc->get_hub_from_ou($hold->pickup_lib);
             }
             my @copy_ids = map {$_->{id}} @copies;
             $logger->info("Getting hubs for all target copies");
