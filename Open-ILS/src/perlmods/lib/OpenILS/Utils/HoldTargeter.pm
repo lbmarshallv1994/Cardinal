@@ -1057,7 +1057,7 @@ sub find_nearest_copy {
         my @copies = @{$prox_map{$prox}};
         next unless @copies;
         
-        if($prox >= 3){
+        if($prox < 3){
         my $rand = int(rand(scalar(@copies)));
 
         while (my ($c) = splice(@copies, $rand, 1)) {
@@ -1083,7 +1083,7 @@ sub find_nearest_copy {
             my @hubs = values(%hub_by_target);
             $logger->info("Getting distance matrix for hubs");
             %distance_matrix =  $prox_calc->hub_matrix($req_hub,\@hubs);
-            $logger->info(Dumper(\%hub_by_target));
+            $logger->info(Dumper(\%distance_matrix));
             for my $c (sort { $distance_matrix{$hub_by_target{$b}} <=> $distance_matrix{$hub_by_target{$a}} } @copies){
                 next if $seen{$c->{id}};
                 return $c if $self->copy_is_permitted($c);
