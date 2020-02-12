@@ -259,6 +259,8 @@ package OpenILS::Utils::HoldTargeter::Single;
 use strict;
 use warnings;
 use DateTime;
+use Data::Dumper;
+use OpenILS::Utils::ProximityCalculator;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
