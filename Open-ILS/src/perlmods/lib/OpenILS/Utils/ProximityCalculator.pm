@@ -130,15 +130,11 @@ my($self,@org_ids) = @_;
 sub get_hub_from_ou {
 my($self,@org_ids) = @_;
 my @sh = $self->{editor}->json_query({
-        select => {
-            aou => ['id'],
-            "h1" => [{column=>'hub',alias=>'my_hub'}],
-            "h2" => [{column=>'hub',alias=>'parent_hub'}]
-        },
-        from => {aou=>{h1=>{class=>'aoush',fkey => 'id',field => 'org_unit',type=>'left'},h2=>{class=>'aoush',fkey => 'parent_ou',field => 'org_unit',type=>'left'}}},
-        where => {"+aou"=>{id=>[@org_ids]}}
+        select => [{column=>'org_unit'},{column=>'hub'}],
+        from => [
+            'actor.list_org_unit_ancestor_shipping_hub',@org_ids]
     });
-    return $sh[0][0]->{'my_hub'} || $sh[0][0]->{'parent_hub'};
+    return $sh[0][0]->{'hub'};
 }
 
 sub get_all_hubs {
@@ -219,22 +215,36 @@ sub proximity_between_hub {
 
 sub get_target_hubs{
     my $self = shift;
-    my @target_copies = shift;
+    my $copies_ref = shift;
+    my @target_copies = @{ $copies_ref };
     my @h = $self->{editor}->json_query({
-        select => {'acp' => ['id'],
-            "h1" => [{column=>'hub',alias=>'my_hub'}],
-            "h2" => [{column=>'hub',alias=>'parent_hub'}]},
-        from => {'acp' =>{aou => {fkey => 'circ_lib',field => 'id', join => {
-        h1=>{class=>'aoush',fkey => 'id',field => 'org_unit',type=>'left'},h2=>{class=>'aoush',fkey => 'parent_ou',field => 'org_unit',type=>'left'}
-        }}}},
-        where => {'+acp'=>{id => @target_copies}}
+        select => {'acp' => ['id','circ_lib']},
+        from => 'acp',
+        where => {'+acp'=>{id => [@target_copies]}}
     }); 
-        my %hubs;
+        my %circ_libs;
     for my $ref (@h) {
         for (@$ref){
-        $hubs{$_->{id}} = $_->{'my_hub'} || $_->{'parent_hub'};
+        $circ_libs{$_->{id}} = $_->{circ_lib};
         }
     }
+
+    my %circ_hubs;
+    my %hubs;
+    my @sh = $self->{editor}->json_query({
+        select => [{column=>'org_unit'},{column=>'hub'}],
+        from => [
+            'actor.list_org_unit_ancestor_shipping_hub',values(%circ_libs)]
+    });
+        for my $ref (@sh) {
+        for (@$ref){
+        $circ_hubs{$_->{org_unit}} = $_->{hub};
+        }
+    }
+    foreach my $copy(@target_copies){
+    $hubs{$copy} = $circ_hubs{$circ_libs{$copy}};
+    }
+   
     return %hubs; 
 }
 
