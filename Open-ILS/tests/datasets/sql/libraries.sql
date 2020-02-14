@@ -5,7 +5,7 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (10, 1, 2, 'SYS3', oils_i18n_gettext(10, 'Example System 3', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
-    (10, 1, 2, 'SYS3', oils_i18n_gettext(12, 'Example System 4', 'aou', 'name'));
+    (12, 1, 2, 'SYS4', oils_i18n_gettext(12, 'Example System 4', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (4, 2, 3, 'BR1', oils_i18n_gettext(4, 'Example Branch 1', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
@@ -17,7 +17,7 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (11, 10, 3, 'BR5', oils_i18n_gettext(11, 'Example Branch 5', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
-    (11, 10, 3, 'BR5', oils_i18n_gettext(13, 'Example Branch 6', 'aou', 'name'));
+    (13, 12, 3, 'BR5', oils_i18n_gettext(13, 'Example Branch 6', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (8, 4, 4, 'SL1', oils_i18n_gettext(8, 'Example Sub-library 1', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
@@ -84,7 +84,7 @@ INSERT INTO actor.org_unit_setting(org_unit, name, value) VALUES
     (7, 'lib.info_url', '"http://br4.example.com/info"'); -- BR4
 
 INSERT INTO actor.org_unit_shipping_hub(org_unit, hub) VALUES (2,4),(3,7),(10,11);
-INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub) VALUES (4,4,0),(4,7,25),(4,11,50),
+INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub, distance) VALUES (4,4,0),(4,7,25),(4,11,50),
                                                                             (7,7,0),(7,4,25),(7,11,65),
                                                                             (11,7,65),(11,4,50),(11,11,0);
 
