@@ -85,7 +85,7 @@ INSERT INTO actor.org_unit_setting(org_unit, name, value) VALUES
 
 INSERT INTO actor.org_unit_shipping_hub(org_unit, hub) VALUES (2,4),(3,7),(10,11);
 INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub) VALUES (4,4,0),(4,7,25),(4,11,50),
-                                                                            (7,7,0),(7,4,25),(7,11,65)
+                                                                            (7,7,0),(7,4,25),(7,11,65),
                                                                             (11,7,65),(11,4,50),(11,11,0);
 
 
