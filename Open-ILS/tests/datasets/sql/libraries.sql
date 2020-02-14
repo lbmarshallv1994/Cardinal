@@ -17,7 +17,7 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (11, 10, 3, 'BR5', oils_i18n_gettext(11, 'Example Branch 5', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
-    (13, 12, 3, 'BR5', oils_i18n_gettext(13, 'Example Branch 6', 'aou', 'name'));
+    (13, 12, 3, 'BR6', oils_i18n_gettext(13, 'Example Branch 6', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
     (8, 4, 4, 'SL1', oils_i18n_gettext(8, 'Example Sub-library 1', 'aou', 'name'));
 INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES 
