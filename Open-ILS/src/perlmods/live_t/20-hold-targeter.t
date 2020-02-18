@@ -2,13 +2,14 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 17;
 diag("General hold targeter tests");
 
 use OpenILS::Const qw/:const/;
 use OpenILS::Utils::TestUtils;
 use OpenILS::Application::AppUtils;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
+use Data::Dumper;
 
 my $script = OpenILS::Utils::TestUtils->new();
 my $U = 'OpenILS::Application::AppUtils';
@@ -24,6 +25,7 @@ sub target {
         @_
     );
 }
+
 
 # == Targeting Concerto hold 67.  Title hold.
 
@@ -75,6 +77,64 @@ $maps = $e->search_action_hold_copy_map({hold => $hold_id});
 is(scalar(@$maps), 29, 
     "Hold $hold_id retains 29 mapped potential copies with soft_retarget_interval");
 
+
+# == Resource sharing title hold 264
+#
+# Hold 264 is a title hold with pickup lib 13, target 9
+# test ensures that hold is fulfilled from the closest org unit (by physical distance)
+
+$hold_id = 264;
+my $hold_lib = 13;
+$result = target({hold => $hold_id});
+
+ok($result->{success}, "Targeting hold $hold_id returned success");
+$current_copy = $e->retrieve_asset_copy($result->{target});
+$maps = $e->search_action_hold_copy_map([
+    {hold => $hold_id},
+    {
+        flesh => 2, 
+        flesh_fields => {ahcm => ['target_copy'], acp => ['call_number']}
+    }
+]);
+my @org_ids = map{$_->[2]->circ_lib} @$maps;
+push @org_ids, $hold_lib;
+    my %circ_hubs;
+    my %hubs;
+    my @sh = $e->json_query({
+        select => [{column=>'org_unit'},{column=>'hub'}],
+        from => [
+            'actor.list_org_unit_ancestor_shipping_hub',@org_ids]
+    });
+        for my $ref (@sh) {
+        for (@$ref){
+        $circ_hubs{$_->{org_unit}} = $_->{hub};
+        } 
+        }
+my @d = $e->json_query({
+        select => {'aoushd' => [{column => 'dest_hub'},{column => 'distance'}]},
+        from => 'aoushd',
+        where => {'orig_hub'=>[$hold_lib],'dest_hub'=>[values(%circ_hubs)]},
+        order_by => [
+            {class => 'aoushd', field => 'distance', direction => 'ASC'},
+        ]
+    });
+    
+    my %matrix;
+    my $min_dist;
+    for my $ref (@d) {
+        for (@$ref){
+            if ($_->{'distance'} != 0){
+            $matrix{$_->{'dest_hub'}}=$_->{distance};
+            if(!defined($min_dist) || $min_dist > $_->{distance}){
+                $min_dist = $_->{distance};
+            }            
+            }
+        }
+    }
+    
+$current_copy = $e->retrieve_asset_copy($result->{target});
+is($matrix{$circ_hubs{$current_copy->circ_lib}}, $min_dist, 
+    "Selected copy for $hold_id is the minimum distance ($min_dist miles) from OU $hold_lib");
 
 # == Metarecord hold tests
 #
