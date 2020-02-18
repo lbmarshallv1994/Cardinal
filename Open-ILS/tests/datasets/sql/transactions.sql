@@ -106,7 +106,15 @@ BEGIN
                 'T', bre.id, recipient.id, recipient.id,
                 recipient.home_ou, FALSE, NULL
             );
-
+            
+            -- title hold, resource sharing
+            bre := evergreen.next_bib(bre.id);
+            EXIT WHEN bre IS NULL;
+            PERFORM evergreen.populate_hold(
+                'T', bre.id, recipient.id, recipient.id,
+                13, FALSE, NULL
+            );
+            
             -- title hold, circulator-placed 
             bre := evergreen.next_bib(bre.id);
             EXIT WHEN bre IS NULL;

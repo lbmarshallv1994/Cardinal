@@ -83,10 +83,11 @@ INSERT INTO actor.org_unit_setting(org_unit, name, value) VALUES
     (6, 'lib.info_url', '"http://br3.example.com"'), -- BR3
     (7, 'lib.info_url', '"http://br4.example.com/info"'); -- BR4
 
-INSERT INTO actor.org_unit_shipping_hub(org_unit, hub) VALUES (2,4),(3,7),(10,11);
-INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub, distance) VALUES (4,4,0),(4,7,25),(4,11,50),
-                                                                            (7,7,0),(7,4,25),(7,11,65),
-                                                                            (11,7,65),(11,4,50),(11,11,0);
+INSERT INTO actor.org_unit_shipping_hub(org_unit, hub) VALUES (2,4),(3,7),(10,11),(12,13);
+INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub, distance) VALUES (4,4,0),(4,7,25),(4,11,50),(4,13,80),
+                                                                            (7,7,0),(7,4,25),(7,11,65),(7,13,35),
+                                                                            (11,7,65),(11,4,50),(11,11,0),(11,13,25),
+                                                                            (13,7,35),(13,4,80),(13,11,25),(13,13,0);
 
 
 UPDATE actor.org_unit SET email = 'br1@example.com', phone = '(555) 555-0271' WHERE shortname = 'BR1';
