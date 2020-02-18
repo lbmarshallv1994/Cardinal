@@ -146,7 +146,6 @@ BEGIN
         '{"0":[{"_attr":"mr_hold_format","_val":"score"}]}'
     );
     -- title hold, resource sharing
-    EXIT WHEN bre IS NULL;
     PERFORM evergreen.populate_hold(
         'T', 9, 9, 9,
         13, FALSE, NULL
