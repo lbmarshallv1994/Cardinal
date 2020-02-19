@@ -32,6 +32,7 @@
 <!ENTITY conify.org_unit.editor_pane.main_phone "Main Phone Number">
 <!ENTITY conify.org_unit.editor_pane.org_unit_type "Organization Unit Type">
 <!ENTITY conify.org_unit.editor_pane.parent "Parent Organization Unit">
+<!ENTITY conify.org_unit.editor_pane.shipping_hub "Shipping Hub Organization Unit">
 <!ENTITY conify.org_unit.editor_pane.opac_visible "OPAC Visible">
 <!-- Hours of operation --> 
 <!ENTITY conify.org_unit.hoo_pane.title "Hours of Operation">
