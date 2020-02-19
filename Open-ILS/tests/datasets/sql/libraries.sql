@@ -84,9 +84,9 @@ INSERT INTO actor.org_unit_setting(org_unit, name, value) VALUES
     (7, 'lib.info_url', '"http://br4.example.com/info"'); -- BR4
 
 UPDATE actor.org_unit SET shipping_hub_ou = 4 WHERE id = 2;
-UPDATE actor.org_unit SET shipping_hub_ou = 3 WHERE id = 7;
-UPDATE actor.org_unit SET shipping_hub_ou = 10 WHERE id = 11;
-UPDATE actor.org_unit SET shipping_hub_ou = 12 WHERE id = 13;
+UPDATE actor.org_unit SET shipping_hub_ou = 7 WHERE id = 3;
+UPDATE actor.org_unit SET shipping_hub_ou = 11 WHERE id = 10;
+UPDATE actor.org_unit SET shipping_hub_ou = 13 WHERE id = 12;
 INSERT INTO actor.org_unit_shipping_hub_distance(orig_hub, dest_hub, distance) VALUES (4,4,0),(4,7,25),(4,11,50),(4,13,80),
                                                                             (7,7,0),(7,4,25),(7,11,65),(7,13,35),
                                                                             (11,7,65),(11,4,50),(11,11,0),(11,13,25),
