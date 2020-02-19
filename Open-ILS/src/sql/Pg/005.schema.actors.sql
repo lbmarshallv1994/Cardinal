@@ -1293,7 +1293,7 @@ BEGIN
     org_unit := cur_org;
     LOOP
         SELECT INTO next_hub actor.org_unit.shipping_hub_ou FROM actor.org_unit WHERE actor.org_unit.id = cur_org;
-        IF FOUND THEN
+        IF FOUND AND next_hub IS NOT NULL THEN
             hub := next_hub;
             return next;
             EXIT;
