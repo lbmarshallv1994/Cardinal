@@ -3886,17 +3886,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 			<link field="name" reltype="has_a" key="name" map="" class="coust"/>
 		</links>
 	</class>
-    <class id="aoush" controller="open-ils.cstore" oils_obj:fieldmapper="actor::org_unit_shipping_hub" oils_persist:tablename="actor.org_unit_shipping_hub" reporter:label="Organizational Unit Shipping Hub">
-		<fields oils_persist:primary="id" oils_persist:sequence="actor.org_unit_shipping_hub_id_seq">
-			<field name="id" />
-			<field name="org_unit" reporter:datatype="org_unit"/>
-			<field name="hub"  reporter:datatype="org_unit"/>
-		</fields>
-		<links>
-			<link field="org_unit" reltype="has_a" key="id" map="" class="aou"/>
-			<link field="hub" reltype="has_a" key="id" map="" class="aou"/>
-		</links>
-	</class>
     <class id="aoushd" controller="open-ils.cstore" oils_obj:fieldmapper="actor::org_unit_shipping_hub_distance" oils_persist:tablename="actor.org_unit_shipping_hub_distance" reporter:label="Organizational Unit Shipping Hub Distance">
 		<fields oils_persist:primary="id" oils_persist:sequence="actor.org_unit_shipping_hub_distance_id_seq">
 			<field name="id" />
@@ -6767,6 +6756,7 @@ SELECT  usr,
 			<field reporter:label="Name" name="name" reporter:datatype="text" oils_persist:i18n="true"/>
 			<field reporter:label="Organizational Unit Type" name="ou_type" reporter:datatype="link"/>
 			<field reporter:label="Parent Organizational Unit" name="parent_ou" reporter:datatype="link"/>
+			<field reporter:label="Shipping Hub Unit" name="shipping_hub_ou" reporter:datatype="link"/>
 			<field reporter:label="Short (Policy) Name" name="shortname" reporter:datatype="text" oils_obj:required="true" oils_obj:validate="^.+$"/>
 			<field reporter:label="Email Address" name="email" reporter:datatype="text"/>
 			<field reporter:label="Phone Number" name="phone" reporter:datatype="text"/>
@@ -6796,6 +6786,7 @@ SELECT  usr,
 			<link field="ou_type" reltype="has_a" key="id" map="" class="aout"/>
 			<link field="mailing_address" reltype="has_a" key="id" map="" class="aoa"/>
 			<link field="parent_ou" reltype="has_a" key="id" map="" class="aou"/>
+			<link field="shipping_hub_ou" reltype="has_a" key="id" map="" class="aou"/>
 			<link field="ill_address" reltype="has_a" key="id" map="" class="aoa"/>
 			<link field="fiscal_calendar" reltype="has_a" key="id" map="" class="acqfc"/>
 			<link field="users" reltype="has_many" key="home_ou" map="" class="au"/>

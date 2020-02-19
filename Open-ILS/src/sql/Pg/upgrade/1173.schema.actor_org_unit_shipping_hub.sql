@@ -2,11 +2,8 @@ BEGIN;
 
 INSERT INTO config.upgrade_log (version) VALUES ('1173'); 
 
-CREATE TABLE actor.org_unit_shipping_hub (
-    id SERIAL PRIMARY KEY,
-    org_unit BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE,
-    hub BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE
-);
+ALTER TABLE actor.org_unit
+ADD COLUMN shipping_hub_ou BIGINT REFERENCES actor.org_unit(id) ON DELETE SET NULL;
 
 CREATE OR REPLACE FUNCTION actor.org_unit_ancestor_shipping_hub(org_id integer)
   RETURNS SETOF actor.org_unit_shipping_hub AS
@@ -17,7 +14,7 @@ DECLARE
 BEGIN
     cur_org := org_id;
     LOOP
-        SELECT INTO shipping_hub * FROM actor.org_unit_shipping_hub WHERE org_unit = cur_org;
+        SELECT INTO shipping_hub actor.org_unit.shipping_hub_ou FROM actor.org_unit WHERE id = cur_org;
         IF FOUND THEN
             RETURN NEXT shipping_hub;
             EXIT;
@@ -43,7 +40,7 @@ BEGIN
     cur_org := org_id;
     org_unit := cur_org;
     LOOP
-        SELECT INTO next_hub actor.org_unit_shipping_hub.hub FROM actor.org_unit_shipping_hub WHERE actor.org_unit_shipping_hub.org_unit = cur_org;
+        SELECT INTO next_hub actor.org_unit.shipping_hub_ou FROM actor.org_unit WHERE actor.org_unit.id = cur_org;
         IF FOUND THEN
             hub := next_hub;
             return next;
