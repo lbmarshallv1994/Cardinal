@@ -73,6 +73,8 @@ function save_org () {
     delete_ou_button.disabled = false;
 
     var modified_ou = new aou().fromStoreItem( current_ou );
+    console.log(modified_ou);
+    debugger;
     modified_ou.ischanged ( 1 );
 
     pcrud.apply( modified_ou, {
