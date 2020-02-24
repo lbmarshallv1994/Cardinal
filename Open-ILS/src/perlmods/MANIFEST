@@ -154,7 +154,7 @@ lib/OpenILS/Utils/Normalize.pm
 lib/OpenILS/Utils/OfflineStore.pm
 lib/OpenILS/Utils/Penalty.pm
 lib/OpenILS/Utils/PermitHold.pm
-lib/OpenILS/Utils/ProximityCalculator.pm
+lib/OpenILS/Utils/VicinityCalculator.pm
 lib/OpenILS/Utils/RemoteAccount.pm
 lib/OpenILS/Utils/ZClient.pm
 lib/OpenILS/WWW/AddedContent.pm

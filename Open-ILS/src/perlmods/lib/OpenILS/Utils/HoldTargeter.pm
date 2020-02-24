@@ -18,7 +18,7 @@ use warnings;
 use DateTime;
 use Data::Dumper;
 use OpenSRF::AppSession;
-use OpenILS::Utils::ProximityCalculator;
+use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::Utils::Logger qw(:logger);
 use OpenSRF::Utils::JSON;
 use OpenILS::Utils::DateTime qw/:datetime/;
@@ -260,7 +260,7 @@ use strict;
 use warnings;
 use DateTime;
 use Data::Dumper;
-use OpenILS::Utils::ProximityCalculator;
+use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
@@ -1047,7 +1047,7 @@ sub find_nearest_copy {
     my %prox_map = %{$self->{weighted_prox_map}};
     my $hold = $self->hold;
     my $req_hub;
-    my $prox_calc = OpenILS::Utils::ProximityCalculator->new();
+    my $prox_calc = OpenILS::Utils::VicinityCalculator->new();
     my %distance_matrix;
     my %seen;
 
@@ -1055,7 +1055,7 @@ sub find_nearest_copy {
     # starting at the lowest proximity and working up, until a
     # copy is found that is suitable for targeting.
     for my $prox (sort {$a <=> $b} keys %prox_map) {
-        # run proximity calculator if proximity is greater than or equal to 3
+        # run vicinity calculator if proximity is greater than or equal to 3
         my @copies = @{$prox_map{$prox}};
         next unless @copies;
         
