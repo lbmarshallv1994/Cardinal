@@ -259,7 +259,7 @@ use strict;
 use warnings;
 use DateTime;
 use Data::Dumper;
-use OpenILS::Utils::VicinityCalculator::Matrix;
+use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
