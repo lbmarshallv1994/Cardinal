@@ -194,6 +194,11 @@
 							editor_pane_parent_ou.validate(true);
 							editor_pane_parent_ou.setValue( this.store.getValue( current_ou, 'parent_ou' ) );
 						}
+                        
+                        editor_pane_shipping_hub_ou.disabled = false;
+                        editor_pane_shipping_hub_ou.required = false;
+						editor_pane_shipping_hub_ou.validate(true);
+						editor_pane_shipping_hub_ou.setValue( this.store.getValue( current_ou, 'shipping_hub_ou' ) );
 
 						editor_pane_opac_visible.setChecked( this.store.getValue( current_ou, 'opac_visible' ) == 't' ? true : false );
 
@@ -303,20 +308,26 @@
 									</div>
 								</td>
 							</tr>
-                            							<tr>
+                            <tr>
 								<th>&conify.org_unit.editor_pane.shipping_hub;</th>
 								<td>
 									<div
-									  id="editor_pane_shipping_hub"
+									  id="editor_pane_shipping_hub_ou"
 									  dojoType="dijit.form.FilteringSelect"
-									  jsId="editor_pane_shipping_hub"
+									  jsId="editor_pane_shipping_hub_ou"
 									  store="ou_list_store"
 									  searchAttr="shortname"
 									  ignoreCase="true"
-									>
+									>                            
+										<script type="dojo/method" event="onChange">
+<![CDATA[
+											if (current_ou && this.getValue()) this.store.setValue( current_ou, "shipping_hub_ou", this.getValue() );
+
+]]>                                            
+										</script>
 									</div>
 								</td>
-							</tr>
+							</tr> 
 							<tr>
 								<th>&conify.org_unit.editor_pane.opac_visible;</th>
 								<td>
