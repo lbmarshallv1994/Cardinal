@@ -68,26 +68,6 @@ sub calculate_distance_matrix {
     $self->{editor}->xact_commit;
 }
 
-sub hub_matrix {
-    my ($self, $origin_hub, @dest_hubs) = @_;
-    my @d = $self->{editor}->json_query({
-        select => {'aoushd' => [{column => 'dest_hub'},{column => 'distance'}]},
-        from => 'aoushd',
-        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>@dest_hubs},
-        order_by => [
-            {class => 'aoushd', field => 'distance', direction => 'ASC'},
-        ]
-    });
-    
-    my %matrix;
-    for my $ref (@d) {
-        for (@$ref){
-            $matrix{$_->{'dest_hub'}}=$_->{distance};
-        }
-    }
-    return %matrix; 
-}
-
 sub get_addr_from_ou {
 my($self,@org_ids) = @_;
     my @ma = $self->{editor}->json_query({
@@ -130,15 +110,7 @@ my($self,@org_ids) = @_;
     return %addrs; 
 }
 
-sub get_hub_from_ou {
-my($self,@org_ids) = @_;
-my @sh = $self->{editor}->json_query({
-        select => [{column=>'org_unit'},{column=>'hub'}],
-        from => [
-            'actor.list_org_unit_ancestor_shipping_hub',@org_ids]
-    });
-    return $sh[0][0]->{'hub'};
-}
+
 
 sub get_all_hubs {
 my($self) = @_;
@@ -177,10 +149,10 @@ sub get_coord_from_address{
 sub vicinity_between_coord{
 my( $self, $origin_coord, $dest_coord ) = @_;
     my $b = $self->{bing};
-    return _prox_request($origin_coord,$dest_coord)->[0]->{travelDistance};
+    return _geo_request($origin_coord,$dest_coord)->[0]->{travelDistance};
 }
 
-sub _prox_request{
+sub _geo_request{
 my( $self, $origin_coord, $dest_coord ) = @_;
     my $b = $self->{bing};
     unless( $b->{key} ){
@@ -194,7 +166,7 @@ sub vicinity_between_coords{
 my( $self, $origin_ref, $dest_ref ) = @_;
     my @origins = @{ $origin_ref };
     my @destinations = @{ $dest_ref };
-    return $self->_prox_request(join(';',@origins),join(';',@destinations));
+    return $self->_geo_request(join(';',@origins),join(';',@destinations));
 }
 
 
@@ -214,6 +186,45 @@ sub vicinity_between_hub {
  }
 
  return $self->vicinity_between_ou($hubs{$org1},$hubs{$org2});
+}
+
+
+package OpenILS::Utils::VicinityCalculator::Matrix;
+use OpenSRF::System;
+use OpenILS::Application::Actor;
+use OpenSRF::Utils::Logger qw(:logger);
+use OpenSRF::AppSession;
+use OpenILS::Utils::Fieldmapper;
+use OpenSRF::Utils::SettingsClient;
+use OpenILS::Application::AppUtils;
+use OpenILS::Utils::CStoreEditor qw/:funcs/;
+
+our $U = "OpenILS::Application::AppUtils";
+sub new {
+    my ($class) = @_;
+    my $self = { editor => new_editor() };
+    $self->{editor}->init;
+    return bless($self, $class);
+}
+
+sub hub_matrix {
+    my ($self, $origin_hub, @dest_hubs) = @_;
+    my @d = $self->{editor}->json_query({
+        select => {'aoushd' => [{column => 'dest_hub'},{column => 'distance'}]},
+        from => 'aoushd',
+        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>@dest_hubs},
+        order_by => [
+            {class => 'aoushd', field => 'distance', direction => 'ASC'},
+        ]
+    });
+    
+    my %matrix;
+    for my $ref (@d) {
+        for (@$ref){
+            $matrix{$_->{'dest_hub'}}=$_->{distance};
+        }
+    }
+    return %matrix; 
 }
 
 sub get_target_hubs{
@@ -250,6 +261,20 @@ sub get_target_hubs{
    
     return %hubs; 
 }
+
+sub get_hub_from_ou {
+my($self,@org_ids) = @_;
+my @sh = $self->{editor}->json_query({
+        select => [{column=>'org_unit'},{column=>'hub'}],
+        from => [
+            'actor.list_org_unit_ancestor_shipping_hub',@org_ids]
+    });
+    return $sh[0][0]->{'hub'};
+}
+
+
+
+
 =begin work zone
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
     my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");

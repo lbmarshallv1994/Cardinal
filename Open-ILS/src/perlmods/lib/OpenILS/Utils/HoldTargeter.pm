@@ -18,7 +18,6 @@ use warnings;
 use DateTime;
 use Data::Dumper;
 use OpenSRF::AppSession;
-use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::Utils::Logger qw(:logger);
 use OpenSRF::Utils::JSON;
 use OpenILS::Utils::DateTime qw/:datetime/;
@@ -260,7 +259,7 @@ use strict;
 use warnings;
 use DateTime;
 use Data::Dumper;
-use OpenILS::Utils::VicinityCalculator;
+use OpenILS::Utils::VicinityCalculator::Matrix;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
@@ -1047,7 +1046,7 @@ sub find_nearest_copy {
     my %prox_map = %{$self->{weighted_prox_map}};
     my $hold = $self->hold;
     my $req_hub;
-    my $prox_calc = OpenILS::Utils::VicinityCalculator->new();
+    my $prox_calc = OpenILS::Utils::VicinityCalculator::Matrix->new();
     my %distance_matrix;
     my %seen;
 
