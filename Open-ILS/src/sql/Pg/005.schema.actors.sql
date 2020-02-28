@@ -1312,4 +1312,12 @@ CREATE TABLE actor.org_unit_shipping_hub_distance (
     dest_hub BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE,
     distance INT NOT NULL
 );
+
+CREATE OR REPLACE FUNCTION actor.clear_org_unit_shipping_hub_distances()
+  AS
+  $func$
+  BEGIN
+    DELETE FROM actor.org_unit_shipping_hub_distance;
+END;
+$func$ LANGUAGE PLPGSQL;
 COMMIT;
