@@ -1313,11 +1313,4 @@ CREATE TABLE actor.org_unit_shipping_hub_distance (
     distance INT NOT NULL
 );
 
-CREATE OR REPLACE FUNCTION actor.clear_org_unit_shipping_hub_distances()
-  AS
-  $func$
-  BEGIN
-    DELETE FROM actor.org_unit_shipping_hub_distance;
-END;
-$func$ LANGUAGE PLPGSQL;
 COMMIT;
