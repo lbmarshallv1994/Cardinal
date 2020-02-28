@@ -68,6 +68,15 @@ sub calculate_distance_matrix {
     $self->{editor}->xact_commit;
 }
 
+sub clear_distance_matrix {
+    $self->{editor}->xact_begin;
+    $self->{editor}->json_query({
+            select => [],
+            from => 'actor.org_unit_shipping_hub_distance'
+        });
+    $self->{editor}->xact_commit;
+}
+
 sub get_addr_from_ou {
 my($self,@org_ids) = @_;
     my @ma = $self->{editor}->json_query({

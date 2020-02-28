@@ -1247,6 +1247,26 @@ vim:et:ts=4:sw=4:
                 </app_settings>
             </open-ils.hold-targeter>
 
+            <open-ils.vicinity-calculator>
+                <keepalive>3</keepalive>
+                <stateless>1</stateless>
+                <language>perl</language>
+                <implementation>OpenILS::Application::VicinityCalculator</implementation>
+                <max_requests>5</max_requests>
+                <unix_config>
+                    <unix_sock>open-ils.vicinity-calculator_unix.sock</unix_sock>
+                    <unix_pid>open-ils.vicinity-calculator_unix.pid</unix_pid>
+                    <max_requests>100</max_requests>
+                    <unix_log>open-ils.vicinity-calculator_unix.log</unix_log>
+                    <min_children>1</min_children>
+                    <max_children>15</max_children>
+                    <min_spare_children>1</min_spare_children>
+                    <max_spare_children>5</max_spare_children>
+                </unix_config>
+                <app_settings>
+                </app_settings>
+            </open-ils.vicinity-calculator>
+
             <open-ils.ebook_api>
                 <keepalive>5</keepalive>
                 <stateless>1</stateless>
