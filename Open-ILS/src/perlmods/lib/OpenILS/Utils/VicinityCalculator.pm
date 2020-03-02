@@ -69,6 +69,7 @@ sub calculate_distance_matrix {
 }
 
 sub clear_distance_matrix {
+    my $self = shift;
     $self->{editor}->xact_begin;
     $self->{editor}->json_query({
             delete => [],

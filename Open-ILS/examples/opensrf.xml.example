@@ -1334,6 +1334,7 @@ vim:et:ts=4:sw=4:
                 <appname>open-ils.vandelay</appname>  
                 <appname>open-ils.serial</appname>  
                 <appname>open-ils.hold-targeter</appname>  
+                <appname>open-ils.vicinity-calculator</appname>  
                 <appname>open-ils.ebook_api</appname>
             </activeapps>
         </localhost>
