@@ -38,6 +38,7 @@ Example OpenSRF bootstrap configuration file for Evergreen
           <service>open-ils.vandelay</service>
           <service>open-ils.serial</service>
           <service>open-ils.ebook_api</service>
+          <service>open-ils.vicinity-calculator</service>
         </services>
       </router>
 
