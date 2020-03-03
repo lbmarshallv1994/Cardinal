@@ -96,7 +96,7 @@ my($self,@org_ids) = @_;
                 }             
             ]
         },
-        from => {aou => {'aoa'}},
+        from => {aou => 'aoa'},
         where => {id=>[@org_ids]}
     });
     my %addrs;
@@ -127,7 +127,7 @@ my @sh = $self->{editor}->json_query({
     for my $ref (@sh) {
         for (@$ref){
         my $hub = $_->{shipping_hub_ou};
-        if($hub && !($hub eq '')){ 
+        if($hub && $hub != 0 && !($hub eq '')){ 
             push @hubs, $hub;
         }
         }
