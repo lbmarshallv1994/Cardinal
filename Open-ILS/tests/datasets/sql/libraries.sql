@@ -41,27 +41,27 @@ SELECT evergreen.create_aou_address(10, '215 N Lumpkin St', NULL, 'Athens', 'GA'
 SELECT evergreen.create_aou_address(12, '625 Academy St NE', NULL, 'Gainesville', 'GA', 'US', '30501', NULL);
 
 -- Addresses for Branch 1
-SELECT evergreen.create_aou_address(4, 'BR1', '250 Georgia Ave SE #103', 'Atlanta', 'GA', 'US', '30312', 'billing mailing');
-SELECT evergreen.create_aou_address(4, 'Holds and ILL', '250 Georgia Ave SE #103', 'Atlanta', 'GA', 'US', '30312', 'interlibrary holds');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'US', '30312', 'billing mailing');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'US', '30312', 'interlibrary holds');
 
 -- Addresses for Branch 2
-SELECT evergreen.create_aou_address(5, 'BR2', '1721 Waters Ave', 'Savannah', 'GA', 'US', '31404', 'mailing');
-SELECT evergreen.create_aou_address(5, 'BR2 - Billing', '1721 Waters Ave', 'Savannah', 'GA', 'US', '31404', 'billing');
-SELECT evergreen.create_aou_address(5, 'BR2 - Holds and ILL', '1721 Waters Ave', 'Savannah', 'GA', 'US', '31404', 'interlibrary holds');
+SELECT evergreen.create_aou_address(5, '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'mailing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'billing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'interlibrary holds');
 
 -- Addresses for Branch 3
-SELECT evergreen.create_aou_address(6, 'BR3', '831 Adams St', 'Macon', 'GA', 'US', '31201', NULL);
+SELECT evergreen.create_aou_address(6, '831 Adams St', NULL, 'Macon', 'GA', 'US', '31201', NULL);
 
 -- Addresses for Branch 4
-SELECT evergreen.create_aou_address(7, 'BR4', '419 7th St', 'Augusta', 'GA', 'US', '30901', 'mailing');
-SELECT evergreen.create_aou_address(7, 'BR4 - Billing Dept', '419 7th St', 'Augusta', 'GA', 'US', '30901', 'billing');
-SELECT evergreen.create_aou_address(7, 'BR4 - Holds and ILL', '419 7th St', 'Augusta', 'GA', 'US', '30901', 'interlibrary holds');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'mailing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'billing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'interlibrary holds');
 
 -- Addresses for Branch 5
-SELECT evergreen.create_aou_address(11, 'BR5', '215 N Lumpkin St', 'Athens', 'GA', 'US', '30601', NULL);
+SELECT evergreen.create_aou_address(11, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'US', '30601', NULL);
 
 -- Addresses for Branch 6
-SELECT evergreen.create_aou_address(13, 'BR6', '625 Academy St NE', 'Gainesville', 'GA', 'US', '30501', NULL);
+SELECT evergreen.create_aou_address(13,  '625 Academy St NE', NULL, 'Gainesville', 'GA', 'US', '30501', NULL);
 
 -- Hours for branches
 INSERT INTO actor.hours_of_operation (id, dow_0_open, dow_0_close, dow_1_open, dow_1_close,
