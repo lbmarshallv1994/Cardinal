@@ -35,5 +35,3 @@ sub build_distance_matrix{
 }
 
 1;
-"open-ils.vicinity-calculator.build-distance-matrix",
-    "server_class":"open-ils.vicinity-calculator"
