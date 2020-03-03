@@ -53,6 +53,9 @@ sub calculate_distance_matrix {
     # make one giant request to bing to calculate our distance matrix
     my @distance_matrix = $self->vicinity_between_coords(\@origins,\@destinations);
     $self->{editor}->xact_begin;
+    for my $hub (@hub_ids){
+    $self->{editor}->runmethod('delete', 'actor.org_unit_shipping_hub_distance', 'aoushd', {orig_hub => $hub});
+    }
     for my $ref (@distance_matrix) {
         for (@$ref){
             # create our AOUSHD objects for the data returned
@@ -65,16 +68,6 @@ sub calculate_distance_matrix {
         }
     }
     # commit to DB 
-    $self->{editor}->xact_commit;
-}
-
-sub clear_distance_matrix {
-    my $self = shift;
-    $self->{editor}->xact_begin;
-    $self->{editor}->json_query({
-            delete => [],
-            from => 'actor.org_unit_shipping_hub_distance'
-        });
     $self->{editor}->xact_commit;
 }
 
@@ -126,14 +119,17 @@ sub get_all_hubs {
 my($self) = @_;
 my @sh = $self->{editor}->json_query({
         select => {
-            aoush => ['hub'],
+            aou => ['shipping_hub_ou'],
         },
-        from => 'aoush'
+        from => 'aou'
     });
     my @hubs;
     for my $ref (@sh) {
         for (@$ref){
-        push @hubs, $_->{hub}
+        my $hub = $_->{shipping_hub_ou};
+        if($hub && !($hub eq '')){ 
+            push @hubs, $hub;
+        }
         }
     }
     return @hubs; 

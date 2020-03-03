@@ -28,11 +28,12 @@ sub build_distance_matrix{
                 apps => 'open-ils.vicinity-calculator' => app_settings => 'key'
         );
    if($key == undef || $key == ''){
-   $logger->error("No Maps API key has been set up in bootstrap file.");  
+   $logger->error("No Maps API key has been set up in opensrf xml.");  
    }
    my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
-   $calculator->clear_distance_matrix();
    $calculator->calculate_distance_matrix();
 }
 
 1;
+"open-ils.vicinity-calculator.build-distance-matrix",
+    "server_class":"open-ils.vicinity-calculator"
