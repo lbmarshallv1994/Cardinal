@@ -6,7 +6,7 @@ use Data::Dumper;
 use URI;
 use OpenSRF::System;
 use OpenILS::Application::Actor;
-use OpenSRF::Utils::Logger qw(:logger);
+use OpenSRF::Utils::Logger qw($logger);
 use OpenSRF::AppSession;
 use OpenILS::Utils::Fieldmapper;
 use OpenSRF::Utils::SettingsClient;
@@ -41,7 +41,6 @@ sub calculate_distance_matrix {
     my @hubs = $self->get_all_hubs();
     my %hub_coord;
     # find addresses of all hub OUs
-
     my %hub_addr = $self->get_addr_from_ou(uniq(@hubs));
     while( my($k,$v) = each %hub_addr){
         # use Bing to find the longitude and latitude of all hub OUs
@@ -52,23 +51,27 @@ sub calculate_distance_matrix {
     my @hub_ids = keys(%hub_coord);
     # make one giant request to bing to calculate our distance matrix
     my @distance_matrix = $self->vicinity_between_coords(\@origins,\@destinations);
-    $self->{editor}->xact_begin;
-    for my $hub (@hub_ids){
-    $self->{editor}->runmethod('delete', 'actor.org_unit_shipping_hub_distance', 'aoushd', {orig_hub => $hub});
-    }
-    for my $ref (@distance_matrix) {
-        for (@$ref){
-            # create our AOUSHD objects for the data returned
-            my $dist = Fieldmapper::actor::org_unit_shipping_hub_distance->new;
-            $dist->orig_hub($hub_ids[$_->{originIndex}]);
-            $dist->dest_hub($hub_ids[$_->{destinationIndex}]);
-            $dist->distance($_->{travelDistance});
-            # place AOUSHD into the DB
-            $self->{editor}->runmethod('create', 'actor.org_unit_shipping_hub_distance', 'aoushd', $dist);
+    if(@distance_matrix){
+        $self->{editor}->xact_begin;
+        # clear out existing matrix
+        $self->clear_hub_distances();
+        for my $ref (@distance_matrix) {
+            for (@$ref){
+                # create our AOUSHD objects for the data returned
+                my $dist = Fieldmapper::actor::org_unit_shipping_hub_distance->new;
+                $dist->orig_hub($hub_ids[$_->{originIndex}]);
+                $dist->dest_hub($hub_ids[$_->{destinationIndex}]);
+                $dist->distance($_->{travelDistance});
+                # place AOUSHD into the DB
+                $self->{editor}->runmethod('create', 'actor.org_unit_shipping_hub_distance', 'aoushd', $dist);
+            }
         }
+        # commit to DB 
+        $self->{editor}->xact_commit;
     }
-    # commit to DB 
-    $self->{editor}->xact_commit;
+    else{
+    $logger->error("API failed to calculate distance matrix");
+    }
 }
 
 sub get_addr_from_ou {
@@ -100,20 +103,45 @@ my($self,@org_ids) = @_;
         where => {id=>[@org_ids]}
     });
     my %addrs;
+   
     for my $ref (@ma) {
         for (@$ref){
-            unless($_->{street2}){
-                $addrs{$_->{id}} = $_->{street1}.", ".$_->{city}.", ".$_->{county}.", ".$_->{state}.", ".$_->{post_code};
-            }
-            else{
-                $addrs{$_->{id}} = $_->{street1}." ".$_->{street2}.", ".$_->{city}.", ".$_->{county}.", ".$_->{state}.", ".$_->{post_code};
-            }
+            $addrs{$_->{id}} = $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
         }
     }
     return %addrs; 
 }
 
+# gets the address into the proper format for API
+sub format_street_address{
+shift;
+return join(', ',grep(defined, @_));
+}
 
+# remove all existing distance calculations.
+# TODO make this all happen in one query
+# what could the analog to DELETE FROM TABLE be?
+sub clear_hub_distances {
+my($self,@org_ids) = @_;
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoushd => [
+                {
+                    column => 'id',
+                }            
+            ]
+        },
+        from => 'aoushd'
+    });
+
+    for my $ref (@ma) {
+        for (@$ref){
+            my $dist = Fieldmapper::actor::org_unit_shipping_hub_distance->new;
+            $dist->id($_->{id});
+            $self->{editor}->runmethod('delete', 'actor.org_unit_shipping_hub_distance', 'aoushd', $dist);
+        }
+    }
+}
 
 sub get_all_hubs {
 my($self) = @_;
@@ -135,17 +163,6 @@ my @sh = $self->{editor}->json_query({
     return @hubs; 
 }
 
-
-# get longitude and lattitude from an OU
-sub get_coord_from_ou{
-    my( $self, $org_id ) = @_;
-    my $org1addr = $self->get_addr_from_ou($org_id)->[0];
-    my $org1geo = $self->{bing}->geocode(location => $org1addr);
-    my $coords = $org1geo->{point}{coordinates}[0].",".$org1geo->{point}{coordinates}[1];
-    $self->{coord_cache}->{$org_id} = $coords;
-    return $coords;
-}
-
 sub get_coord_from_address{
     my( $self, $addr ) = @_;
     my $org1geo = $self->{bing}->geocode(location => $addr);
@@ -162,10 +179,11 @@ sub _geo_request{
 my( $self, $origin_coord, $dest_coord ) = @_;
     my $b = $self->{bing};
     unless( $b->{key} ){
-    print("API Key was not found")
+    $logger->error("API key was not found");
+    return undef;
     }
     my $uri = URI->new("https://dev.virtualearth.net/REST/v1/Routes/DistanceMatrix?origins=$origin_coord&destinations=$dest_coord&distanceUnit=mi&travelMode=driving&key=".$b->{key});
-    return $b->_rest_request($uri)->{results}
+    return eval{$b->_rest_request($uri)->{results}};
 }
 
 sub vicinity_between_coords{
