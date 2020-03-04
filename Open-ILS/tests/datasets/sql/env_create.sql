@@ -16,7 +16,7 @@ CREATE TABLE marcxml_import (id SERIAL PRIMARY KEY, marc TEXT, tag TEXT);
  * This will happily create duplicate addresses if given duplicate info.
  */
 CREATE FUNCTION evergreen.create_aou_address
-    (owning_lib INTEGER, street1 TEXT, street2 TEXT, city TEXT, state TEXT, country TEXT,
+    (owning_lib INTEGER, street1 TEXT, street2 TEXT, city TEXT, state TEXT, county TEXT, country TEXT,
      post_code TEXT, address_type TEXT)
 RETURNS void AS $$
 BEGIN
