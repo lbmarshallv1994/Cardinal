@@ -26,42 +26,42 @@ INSERT INTO actor.org_unit (id, parent_ou, ou_type, shortname, name) VALUES
 
 
 -- Address for the Consortium
-SELECT evergreen.create_aou_address(1, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'US', '30312', NULL);
+SELECT evergreen.create_aou_address(1, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Fulton', 'US', '30312', NULL);
 
 -- Addresses for System 1
-SELECT evergreen.create_aou_address(2, '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', NULL);
+SELECT evergreen.create_aou_address(2, '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', NULL);
 
 -- Addresses for System 2
-SELECT evergreen.create_aou_address(3, '831 Adams St', NULL, 'Macon', 'GA', 'US', '31201', NULL);
+SELECT evergreen.create_aou_address(3, '831 Adams St', NULL, 'Macon', 'GA','Bibb', 'US', '31201', NULL);
 
 -- Addresses for System 3
-SELECT evergreen.create_aou_address(10, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'US', '30601', NULL);
+SELECT evergreen.create_aou_address(10, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'Clarke', 'US', '30601', NULL);
 
 -- Addresses for System 4
-SELECT evergreen.create_aou_address(12, '625 Academy St NE', NULL, 'Gainesville', 'GA', 'US', '30501', NULL);
+SELECT evergreen.create_aou_address(12, '625 Academy St NE', NULL, 'Gainesville', 'GA', 'Hall', 'US', '30501', NULL);
 
 -- Addresses for Branch 1
-SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'US', '30312', 'billing mailing');
-SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'US', '30312', 'interlibrary holds');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Hall','US', '30312', 'billing mailing');
+SELECT evergreen.create_aou_address(4, '250 Georgia Ave SE #103', NULL, 'Atlanta', 'GA', 'Hall','US', '30312', 'interlibrary holds');
 
 -- Addresses for Branch 2
-SELECT evergreen.create_aou_address(5, '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'mailing');
-SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'billing');
-SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA', 'US', '31404', 'interlibrary holds');
+SELECT evergreen.create_aou_address(5, '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'mailing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'billing');
+SELECT evergreen.create_aou_address(5,  '1721 Waters Ave', NULL, 'Savannah', 'GA','Chatham', 'US', '31404', 'interlibrary holds');
 
 -- Addresses for Branch 3
-SELECT evergreen.create_aou_address(6, '831 Adams St', NULL, 'Macon', 'GA', 'US', '31201', NULL);
+SELECT evergreen.create_aou_address(6, '831 Adams St', NULL, 'Macon', 'GA','Bibb', 'US', '31201', NULL);
 
 -- Addresses for Branch 4
-SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'mailing');
-SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'billing');
-SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'US', '30901', 'interlibrary holds');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond', 'US', '30901', 'mailing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond','US', '30901', 'billing');
+SELECT evergreen.create_aou_address(7, '419 7th St', NULL, 'Augusta', 'GA', 'Richmond','US', '30901', 'interlibrary holds');
 
 -- Addresses for Branch 5
-SELECT evergreen.create_aou_address(11, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'US', '30601', NULL);
+SELECT evergreen.create_aou_address(11, '215 N Lumpkin St', NULL, 'Athens', 'GA', 'Clarke', 'US', '30601', NULL);
 
 -- Addresses for Branch 6
-SELECT evergreen.create_aou_address(13,  '625 Academy St NE', NULL, 'Gainesville', 'GA', 'US', '30501', NULL);
+SELECT evergreen.create_aou_address(13,  '625 Academy St NE', NULL, 'Gainesville', 'GA', 'Hall', 'US', '30501', NULL);
 
 -- Hours for branches
 INSERT INTO actor.hours_of_operation (id, dow_0_open, dow_0_close, dow_1_open, dow_1_close,

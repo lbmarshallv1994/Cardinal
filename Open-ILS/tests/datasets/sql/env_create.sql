@@ -20,22 +20,22 @@ CREATE FUNCTION evergreen.create_aou_address
      post_code TEXT, address_type TEXT)
 RETURNS void AS $$
 BEGIN
-    INSERT INTO actor.org_address (org_unit, street1, street2, city, state, country, post_code)
-        VALUES ($1, $2, $3, $4, $5, $6, $7);
+    INSERT INTO actor.org_address (org_unit, street1, street2, city, state, county, country, post_code)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
     
-    IF $8 IS NULL THEN
+    IF $9 IS NULL THEN
 	UPDATE actor.org_unit SET holds_address = currval('actor.org_address_id_seq'), ill_address = currval('actor.org_address_id_seq'), billing_address = currval('actor.org_address_id_seq'), mailing_address = currval('actor.org_address_id_seq') WHERE id = $1;
     END IF;
-    IF $8 ~ 'holds' THEN
+    IF $9 ~ 'holds' THEN
 	UPDATE actor.org_unit SET holds_address = currval('actor.org_address_id_seq') WHERE id = $1;
     END IF;
-    IF $8 ~ 'interlibrary' THEN
+    IF $9 ~ 'interlibrary' THEN
 	UPDATE actor.org_unit SET ill_address = currval('actor.org_address_id_seq') WHERE id = $1;
     END IF;
-    IF $8 ~ 'billing' THEN
+    IF $9 ~ 'billing' THEN
 	UPDATE actor.org_unit SET billing_address = currval('actor.org_address_id_seq') WHERE id = $1;
     END IF;
-    IF $8 ~ 'mailing' THEN
+    IF $9 ~ 'mailing' THEN
 	UPDATE actor.org_unit SET mailing_address = currval('actor.org_address_id_seq') WHERE id = $1;
     END IF;
 END
