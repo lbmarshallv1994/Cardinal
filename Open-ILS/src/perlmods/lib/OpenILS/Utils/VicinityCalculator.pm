@@ -232,11 +232,12 @@ sub new {
 }
 
 sub hub_matrix {
-    my ($self, $origin_hub, @dest_hubs) = @_;
+    my ($self, $origin_hub, $dest_hubs_ref) = @_;
+    my @dest_hubs = @{$dest_hubs_ref};
     my @d = $self->{editor}->json_query({
         select => {'aoushd' => [{column => 'dest_hub'},{column => 'distance'}]},
         from => 'aoushd',
-        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>@dest_hubs},
+        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>[@dest_hubs]},
         order_by => [
             {class => 'aoushd', field => 'distance', direction => 'ASC'},
         ]
@@ -247,6 +248,12 @@ sub hub_matrix {
         for (@$ref){
             $matrix{$_->{'dest_hub'}}=$_->{distance};
         }
+    }
+    # hub matrix will be undefined if any destination hubs are missing from the return list.
+    for my $hub (@dest_hubs){
+        next if $matrix{$hub};
+        $logger->error("OU $origin_hub has no calculation to OU $hub. open-ils.vicinity-calculator.build-distance-matrix must be run before vicinity based hold targeting can continue!");
+        return undef;
     }
     return %matrix; 
 }
