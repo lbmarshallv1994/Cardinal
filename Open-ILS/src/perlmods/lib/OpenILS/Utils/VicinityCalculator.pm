@@ -222,6 +222,7 @@ use OpenILS::Utils::Fieldmapper;
 use OpenSRF::Utils::SettingsClient;
 use OpenILS::Application::AppUtils;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
+use Data::Dumper;
 
 our $U = "OpenILS::Application::AppUtils";
 sub new {
@@ -306,11 +307,16 @@ my @sh = $self->{editor}->json_query({
 
 
 
-=begin work zone
+
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
     my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
     Fieldmapper->import(IDL => $idl);
-my $pc = OpenILS::Utils::VicinityCalculator->new("AosM-K7Hdbk-OMZ1jcJC1boNDGRpoYRL_bzgK6pqKNNVAc2-z0qbOVtc3itjfWj5");
+my $pc = OpenILS::Utils::VicinityCalculator::Matrix->new();
+my @hubs = (7,11,4);
+print Dumper($pc->hub_matrix(13,\@hubs));
+
+
+=begin work zone
 my @copy_id = (4007,3507,3807,3307,3707,3207,3607,3107, 4819);
 
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');

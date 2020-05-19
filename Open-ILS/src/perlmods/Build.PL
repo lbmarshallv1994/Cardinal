@@ -92,7 +92,7 @@ my $build = Module::Build->new(
         'XML::LibXML' => '0',
         'XML::LibXML::XPathContext' => '0',
         'XML::LibXSLT' => '0',
-        'XML::Simple' => '0',
+        'XML::Simple' => '0'
     }
 );
 
