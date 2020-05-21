@@ -836,6 +836,11 @@
 
     #-------------------------------------------------------------------------------
 
+    package config::tattler_ignore_list;
+    config::i18n_core->sequence( 'config.tattler_ignore_list_id_seq' );
+    config::i18n_core->table('config.tattler_ignore_list');
+
+    #-------------------------------------------------------------------------------
 
 }
 

@@ -139,6 +139,12 @@ __PACKAGE__->columns(Primary => 'id');
 __PACKAGE__->columns(Essential => qw/fq_field identity_value translation string/);
 #-------------------------------------------------------------------------------
 
+package config::tattler_ignore_list;
+use base qw/config/;
+__PACKAGE__->table('config_tattler_ignore_list');
+__PACKAGE__->columns(Primary => 'id');
+__PACKAGE__->columns(Essential => qw/report_name target_copy org_unit/);
+#-------------------------------------------------------------------------------
 
 1;
 

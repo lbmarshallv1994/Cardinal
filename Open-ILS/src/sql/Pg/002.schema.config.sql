@@ -1319,4 +1319,10 @@ CREATE TABLE config.copy_tag_type (
 CREATE INDEX config_copy_tag_type_owner_idx
     ON config.copy_tag_type (owner);
 
+CREATE TABLE config.tattler_ignore_list (
+    id SERIAL PRIMARY KEY,
+    org_unit BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE,
+    target_copy BIGINT NOT NULL REFERENCES asset.copy(id) ON DELETE CASCADE DEFERRABLE
+);
+
 COMMIT;

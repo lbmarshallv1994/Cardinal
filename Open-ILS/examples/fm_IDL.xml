@@ -12792,6 +12792,18 @@ SELECT  usr,
 				<delete permission="ADMIN_WORKSTATION_SETTING_TYPE" global_required="true"/>
 			</actions>
 		</permacrud>
+	</class> 
+    <class id="igl" controller="open-ils.cstore" oils_obj:fieldmapper="config::tattler_ignore_list" oils_persist:tablename="config.tattler_ignore_list" reporter:label="Tattler Ignore List">
+		<fields oils_persist:primary="id">
+			<field reporter:label="ID" name="id" reporter:datatype="id" />
+			<field reporter:label="Report Name" name="report_name" oils_persist:primitive="string"  reporter:datatype="text"/>
+			<field reporter:label="System" name="org_unit" reporter:datatype="link"/>
+			<field reporter:label="Asset" name="target_copy" reporter:datatype="link"/>
+		</fields>
+		<links>
+			<link field="target_copy" reltype="has_a" key="id" map="" class="acp"/>
+			<link field="org_unit" reltype="has_a" key="id" map="" class="aou"/>
+		</links>
 	</class>
 
 	<!-- no pcrud access is granted for now, because it's assumed these
