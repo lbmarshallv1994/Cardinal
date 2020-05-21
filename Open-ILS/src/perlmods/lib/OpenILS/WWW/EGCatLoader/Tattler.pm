@@ -9,6 +9,10 @@ use OpenILS::Application::AppUtils;
 my $U = 'OpenILS::Application::AppUtils';
 
 sub update_tattle_list {
+    my $self = shift;
+    my %kwargs = @_;
+    my $ctx = $self->ctx;
+    my $cgi = $self->cgi;
     return Apache2::Const::HTTP_BAD_REQUEST
             unless $cgi->request_method eq 'POST';
     foreach ($cgi->param) {
@@ -17,3 +21,5 @@ sub update_tattle_list {
         $logger->debug("$_ $val");
     }
 }
+
+1;
