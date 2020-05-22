@@ -13,13 +13,15 @@ sub update_tattle_list {
     my %kwargs = @_;
     my $ctx = $self->ctx;
     my $cgi = $self->cgi;
-    return Apache2::Const::HTTP_BAD_REQUEST
-            unless $cgi->request_method eq 'POST';
     foreach ($cgi->param) {
         my $val = $cgi->param($_);
         $self->inspect_register_value($_, $val);
         $logger->debug("$_ $val");
+        
     }
+    return Apache2::Const::HTTP_BAD_REQUEST
+            unless $cgi->request_method eq 'POST';
+
 }
 
 1;
