@@ -19,8 +19,8 @@ sub update_tattle_list {
     $dist->target_copy(2);
     $dist->report_name("test");
     $self->{editor}->xact_begin;
-        $self->{editor}->runmethod('create', 'config.tattler_ignore_list', 'igl', $dist);
-    $self->{editor}->xact_commit
+    $self->{editor}->runmethod('create', 'config.tattler_ignore_list', 'igl', $dist);
+    $self->{editor}->xact_commit;
     return Apache2::Const::HTTP_BAD_REQUEST
             unless $cgi->request_method eq 'POST';
     foreach ($cgi->param) {
