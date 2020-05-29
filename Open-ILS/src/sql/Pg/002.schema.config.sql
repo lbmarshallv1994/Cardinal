@@ -1321,6 +1321,7 @@ CREATE INDEX config_copy_tag_type_owner_idx
 
 CREATE TABLE config.tattler_ignore_list (
     id SERIAL PRIMARY KEY,
+    report_name TEXT,
     org_unit BIGINT NOT NULL, -- REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE,
     target_copy BIGINT NOT NULL -- REFERENCES asset.copy(id) ON DELETE CASCADE DEFERRABLE
 );
