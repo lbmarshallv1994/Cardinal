@@ -5,3 +5,4 @@
     ctx.page_title = l("Tattler List Updated");
     -%]
 Best practices report has been updated!
+[%- END; %]
