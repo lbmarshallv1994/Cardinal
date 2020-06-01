@@ -12794,7 +12794,7 @@ SELECT  usr,
 		</permacrud>
 	</class> 
     <class id="igl" controller="open-ils.cstore" oils_obj:fieldmapper="config::tattler_ignore_list" oils_persist:tablename="config.tattler_ignore_list" reporter:label="Tattler Ignore List">
-		<fields oils_persist:primary="id">
+		<fields oils_persist:primary="id" oils_persist:sequence="config.tattler_ignore_list_id_seq">
 			<field reporter:label="ID" name="id" reporter:datatype="id" />
 			<field reporter:label="Report Name" name="report_name" oils_persist:primitive="string"  reporter:datatype="text"/>
 			<field reporter:label="System" name="org_unit" reporter:datatype="link"/>
