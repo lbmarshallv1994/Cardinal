@@ -5,4 +5,13 @@
     ctx.page_title = l("Tattler List Updated");
     -%]
 Best practices report has been updated!
+[% CGI.param('systemID') %]
+[% FOREACH param IN CGI.param %]
+<p>[% param %] = [% CGI.param(param) %]</p>
+[% IF param == 'copyID[]' %]
+    [% FOREACH c IN CGI.param(param) %]
+    <p>[% c %]</p>
+    [% END %]
+[% END %]
+[% END %]
 [%- END; %]

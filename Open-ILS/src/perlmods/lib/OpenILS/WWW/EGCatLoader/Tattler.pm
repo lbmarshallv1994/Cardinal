@@ -13,21 +13,19 @@ sub update_tattle_list {
     my %kwargs = @_;
     my $ctx = $self->ctx;
     my $cgi = $self->cgi;
+    return Apache2::Const::HTTP_BAD_REQUEST unless $cgi->request_method eq 'POST';
     $self->{editor}->xact_begin;
-    my $dist = Fieldmapper::config::tattler_ignore_list->new;
-    $dist->org_unit(1);
-    $dist->target_copy(2);
-    $dist->report_name("test");
-   # $self->{editor}->runmethod('create', 'config.tattler_ignore_list', 'igl', $dist);
-   $self->{editor}->create_config_tattler_ignore_list($dist);
-    $self->{editor}->xact_commit;
-    return Apache2::Const::HTTP_BAD_REQUEST
-            unless $cgi->request_method eq 'POST';
-    foreach ($cgi->param) {
-        my $val = $cgi->param($_);
-        #$self->inspect_register_value($_, $val);
-        $logger->debug("$_ $val");       
+    my $sysID = $cgi->param('systemID');
+    my $report = $cgi->param('reportName');
+    $cgi->param('copyID');
+    foreach($cgi->param('copyID')){
+        my $dist = Fieldmapper::config::tattler_ignore_list->new;
+        $dist->org_unit($sysID);
+        $dist->target_copy($_);
+        $dist->report_name($report);
+        $self->{editor}->create_config_tattler_ignore_list($dist);
     }
+    $self->{editor}->xact_commit;
 }
 
 1;
