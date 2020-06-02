@@ -17,13 +17,13 @@ sub update_tattle_list {
     $self->{editor}->xact_begin;
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
-    $cgi->param('copyID');
-    foreach($cgi->param('copyID')){
-        my $dist = Fieldmapper::config::tattler_ignore_list->new;
-        $dist->org_unit($sysID);
-        $dist->target_copy($_);
-        $dist->report_name($report);
-        $self->{editor}->create_config_tattler_ignore_list($dist);
+    my $copy_array_ref = $cgi->param('copyID');
+    foreach(@$copy_array_ref){
+        my $rec = Fieldmapper::config::tattler_ignore_list->new;
+        $rec->org_unit($sysID);
+        $rec->target_copy($_);
+        $rec->report_name($report);
+        $self->{editor}->create_config_tattler_ignore_list($rec);
     }
     $self->{editor}->xact_commit;
 }
