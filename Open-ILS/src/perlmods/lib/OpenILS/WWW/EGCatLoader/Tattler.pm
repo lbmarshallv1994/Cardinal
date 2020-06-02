@@ -6,6 +6,7 @@ use OpenSRF::Utils::Logger qw/$logger/;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
 use OpenILS::Utils::Fieldmapper;
 use OpenILS::Application::AppUtils;
+
 my $U = 'OpenILS::Application::AppUtils';
 
 sub update_tattle_list {
@@ -17,12 +18,12 @@ sub update_tattle_list {
     $self->{editor}->xact_begin;
     $logger->info("!!TATTLER!!");
     $logger->info($cgi->param('reportName'));
-    $logger->info($cgi->param('copyID'));
+    $logger->info($cgi->param('copyID[]'));
     
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
 
-    my $copy_array_ref = $cgi->param('copyID');
+    my $copy_array_ref = $cgi->param('copyID[]');
     foreach(@$copy_array_ref){
         my $rec = Fieldmapper::config::tattler_ignore_list->new;
         $rec->org_unit($sysID);
