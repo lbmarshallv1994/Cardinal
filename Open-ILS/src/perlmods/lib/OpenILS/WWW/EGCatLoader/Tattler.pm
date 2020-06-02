@@ -18,9 +18,9 @@ sub update_tattle_list {
     return Apache2::Const::HTTP_BAD_REQUEST unless $cgi->request_method eq 'POST';
     $self->{editor}->xact_begin;
     $logger->info("!!TATTLER!!");
-    $logger->info($cgi->param('reportName'));
-    $logger->info(Dumper($cgi->param));
-    
+    foreach($cgi->param){
+    $logger->info($_);
+    }
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
 
