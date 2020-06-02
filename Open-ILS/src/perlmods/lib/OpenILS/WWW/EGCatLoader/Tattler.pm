@@ -26,7 +26,7 @@ sub update_tattle_list {
 
     my @copy_array = $cgi->param("copyID[]");
      $logger->info(@copy_array);
-     $logger->info(Dumper(\@copy_array_ref));
+     $logger->info(Dumper(\@copy_array));
     foreach(@copy_array){
         my $rec = Fieldmapper::config::tattler_ignore_list->new;
         $logger->info($_);
