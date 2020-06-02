@@ -18,7 +18,7 @@ sub update_tattle_list {
     $self->{editor}->xact_begin;
     $logger->info("!!TATTLER!!");
     $logger->info($cgi->param('reportName'));
-    $logger->info($cgi->param('copyID[]'));
+    $logger->info(Dumper($cgi->param));
     
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
