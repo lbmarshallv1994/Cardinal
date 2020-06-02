@@ -24,10 +24,10 @@ sub update_tattle_list {
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
 
-    my $copy_array_ref = $cgi->param("copyID[]");
-     $logger->info($copy_array_ref);
-     $logger->info(Dumper(\$copy_array_ref));
-    foreach(@$copy_array_ref){
+    my @copy_array = $cgi->param("copyID[]");
+     $logger->info(@copy_array);
+     $logger->info(Dumper(\@copy_array_ref));
+    foreach(@copy_array){
         my $rec = Fieldmapper::config::tattler_ignore_list->new;
         $logger->info($_);
         $rec->org_unit($sysID);
