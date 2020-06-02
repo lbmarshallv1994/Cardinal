@@ -15,8 +15,13 @@ sub update_tattle_list {
     my $cgi = $self->cgi;
     return Apache2::Const::HTTP_BAD_REQUEST unless $cgi->request_method eq 'POST';
     $self->{editor}->xact_begin;
+    $logger->info("!!TATTLER!!");
+    $logger->info($cgi->param('reportName'));
+    $logger->info($cgi->param('copyID'));
+    
     my $sysID = $cgi->param('systemID');
     my $report = $cgi->param('reportName');
+
     my $copy_array_ref = $cgi->param('copyID');
     foreach(@$copy_array_ref){
         my $rec = Fieldmapper::config::tattler_ignore_list->new;
