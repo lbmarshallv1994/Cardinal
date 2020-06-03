@@ -164,6 +164,7 @@ sub load {
     #  Everything below here requires SSL
     # ----------------------------------------------------------------
     return $self->redirect_ssl unless $self->cgi->https;
+    return $self->update_tattle_list if $path =~ m|opac/tattler|;
     return $self->load_password_reset if $path =~ m|opac/password_reset|;
     return $self->load_logout if $path =~ m|opac/logout|;
     return $self->load_patron_reg if $path =~ m|opac/register|;
@@ -232,7 +233,7 @@ sub load {
     return $self->load_myopac_prefs if $path =~ m|opac/myopac/prefs|;
     return $self->load_myopac_reservations if $path =~ m|opac/myopac/reservations|;
     return $self->load_sms_cn if $path =~ m|opac/sms_cn|;
-    return $self->update_tattle_list if $path =~ m|opac/tattler|;
+
 
     return Apache2::Const::OK;
 }
