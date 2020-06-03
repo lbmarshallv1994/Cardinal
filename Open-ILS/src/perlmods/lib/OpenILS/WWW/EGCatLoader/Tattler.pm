@@ -14,8 +14,12 @@ sub update_tattle_list {
     my %kwargs = @_;
     my $ctx = $self->ctx;
     my $cgi = $self->cgi;
+    my $usr = $ctx->{user};
     # only staff can update the list
-    return Apache2::Const::FORBIDDEN unless $ctx->{is_staff};
+    $logger->info($usr);
+    $logger->info("profile: ".$usr->profile);
+    $logger->info("staff: ".$ctx->{is_staff});
+    return Apache2::Const::FORBIDDEN unless $usr;
     if( $cgi->request_method eq 'POST'){
         $self->{editor}->xact_begin;
         my $sysID = $cgi->param('systemID');
