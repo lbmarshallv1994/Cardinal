@@ -15,13 +15,8 @@ sub update_tattle_list {
     my $ctx = $self->ctx;
     my $cgi = $self->cgi;
     my $usr = $ctx->{user};
-    # only staff can update the list
-    $logger->info("TATTLER");
-    $logger->info($usr);
-    $logger->info("profile: ".$usr->profile);
-    $logger->info("staff: ".$ctx->{is_staff});
-    $logger->info("permission: ".$self->{editor}->allowed('UPDATE_RECORD'));
-    return Apache2::Const::FORBIDDEN unless $usr;
+    my $permission = $self->{editor}->allowed('UPDATE_RECORD');
+    return Apache2::Const::FORBIDDEN unless $usr && $permission == 1;
     if( $cgi->request_method eq 'POST'){
         $self->{editor}->xact_begin;
         my $sysID = $cgi->param('systemID');
