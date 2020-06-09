@@ -14,7 +14,8 @@ Template for printing a transit slip. Fields include:
 * author
 -->
 <div>
-  <div>[% l('This item needs to be routed to [_1]', '<b>{{dest_location.shortname}}</b>') %]</div>
+  <div>[% l('This item needs to be routed to [_1]', '<h2>{{dest_courier_code}}</h2>') %]</div>
+  <div>[% l('<h4>Branch: [_1]', '{{dest_location.shortname}}</h4>') %]</div>
   <div>{{dest_location.name}}</div>
   <div ng-if="dest_address">
     <div>{{dest_address.street1}}</div>

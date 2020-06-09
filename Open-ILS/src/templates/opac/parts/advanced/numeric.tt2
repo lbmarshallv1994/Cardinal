@@ -11,6 +11,7 @@
                     <option value="identifier|isbn">[% l('ISBN') %]</option>
                     <option value="identifier|upc">[% l('UPC') %]</option>
                     <option value="identifier|issn">[% l('ISSN') %]</option>
+                    <option value="identifier|scn">[% l('035 (e.g., OCLC)') %]</option> <!-- NCC customization -->
                     <option value="cnbrowse">[% l('Call Number (Shelf Browse)') %]</option>
                     <option value="identifier|lccn">[% l('LCCN') %]</option>
                     <option value="identifier|tcn">[% l('TCN') %]</option>

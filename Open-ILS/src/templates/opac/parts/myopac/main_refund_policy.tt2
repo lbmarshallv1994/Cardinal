@@ -1,11 +1,13 @@
 <tr>
     <td colspan="3">
         <br />
-        [% l('Important! You must have a printed receipt ' _
+	<!--        
+	[% l('Important! You must have a printed receipt ' _
              'to be eligible for a refund on lost items ' _
              '(regulations allow for no exceptions).')
         %]
-        <br />
+        <br /> 
+	-->
         <strong>
         [% l('To ensure your necessary receipt information ' _
              'is not lost, enter your email address above ' _

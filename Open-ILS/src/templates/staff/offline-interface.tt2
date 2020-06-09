@@ -33,6 +33,7 @@
           ng-click="reprintLast()">
             [% l('Reprint Last Receipt') %]
         </button>
+        <!-- removing this until blocked list infrastructure is repaired
         <button
           class="btn btn-default"
           ng-disabled="buildingBlockList"
@@ -40,6 +41,7 @@
           ng-click="downloadBlockList()">
             [% l('Download block list') %]
         </button>
+        -->
         <button
           class="btn btn-default"
           ng-disabled="pending_xacts.length == 0"

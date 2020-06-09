@@ -1,16 +1,14 @@
 [% IF !ctx.is_staff %]
 <div id="footer-wrap">
 <div id="footer">
+    <a href="/">[% l('Home') %]</a> &nbsp;|&nbsp; <!-- NCC customization -->
     [% IF ctx.get_org_setting(
         ctx.physical_loc || ctx.aou_tree.id, 'opac.allow_pending_user') %]
     <a href="[% mkurl(ctx.opac_root _ '/register') %]">[% 
         l('Request Library Card') %]</a> &nbsp;|&nbsp;
-    [% ELSE %]
-    <a href="http://example.com">[% l('Bottom Link 2') %]</a> &nbsp;|&nbsp;
     [% END %]
-    <a href="http://example.com">[% l('Bottom Link 3') %]</a> &nbsp;|&nbsp;
-    <a href="http://example.com">[% l('Bottom Link 4') %]</a> &nbsp;|&nbsp;
-    <a href="http://example.com">[% l('Bottom Link 5') %]</a>
+    <a href="http://open-ils.org/dokuwiki/doku.php?id=evergreen-user:opac_help">[% l('Help') %]</a> &nbsp;|&nbsp;
+    <a href="http://www.nclive.org/">[% l('NC LIVE') %]</a>
     [% IF ctx.timing %]
     <div id="timing">
         [% FOR event IN ctx.timing %]
@@ -31,6 +29,13 @@
             />
         </a>
     </div>
+	<br/>
+    <div style="color:white">
+   NC Cardinal is supported by the Institute of Museum and Library Services under the provisions
+    of the federal Library Services and Technology Act (LSTA), as administered by the
+    <a href='https://statelibrary.ncdcr.gov/' style='text-decoration: underline;'>State Library of North Carolina</a>, a division of the
+    <a href='https://www.ncdcr.gov/' style='text-decoration: underline;'>Department of Natural and Cultural Resources</a>.
+  </div>
 </div>
 </div>
 [% END %]

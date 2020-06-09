@@ -58,8 +58,8 @@ END;
         <hr/>
 
         [% IF ctx.register.success %]
-            <h3>[% l('Registration successful!') %]<h3>
-            <h4>[% l('Please see library staff to complete your registration.') %]</h4>
+            <h3>[% l('Pre-registration successful!') %]<h3> <!-- NCC customization -->
+            <h4>[% l('Please visit your local library in person to complete your registration.  Bring picture ID and proof of local address.') %]</h4>  <!-- NCC customization -->
 
             [% IF ctx.register.username_taken %]
             <p>

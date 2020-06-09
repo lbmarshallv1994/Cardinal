@@ -1,11 +1,10 @@
 <div id="gold-links-holder">
     <div id="gold-links">
         <div id="header-links">
-            <a href="http://example.com">[% l('Link 1') %]</a>
-            <a href="http://example.com">[% l('Link 2') %]</a>
-            <a href="http://example.com">[% l('Link 3') %]</a>
-            <a href="http://example.com">[% l('Link 4') %]</a>
-            <a href="http://example.com">[% l('Link 5') %]</a>
+            <a href="/">[% l('Home') %]</a>
+            <a href="http://open-ils.org/dokuwiki/doku.php?id=evergreen-user:opac_help">[% l('Help') %]</a>
+            <a href="http://www.nclive.org/">[% l('NC LIVE') %]</a>
+            <a href="https://nckids.overdrive.com">[% l('NC Kids Digital') %]</a>
         </div>
     </div>
 </div>

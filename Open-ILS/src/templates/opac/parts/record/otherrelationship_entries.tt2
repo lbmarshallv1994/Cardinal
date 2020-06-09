@@ -1,0 +1,85 @@
+[% 
+    syscns = [
+        {
+            label => l('Related Item: '),
+            xpath => '//*[@tag="787" and @ind2 = " " and (contains(string(),"ocm") or contains(string(),"ocn") or contains(string(),"OCoLC"))]',
+	    subfields => '[w]'
+        }, {
+            label => l(' '),
+            xpath => '//*[@tag="787" and @ind2 = "8" and (contains(string(),"ocm") or contains(string(),"ocn") or contains(string(),"OCoLC"))]',
+            subfields => '[w]'
+            }
+    ];
+
+    BLOCK render_scn;
+        xpath = s.xpath;
+        FOR node IN ctx.marc_xml.findnodes(xpath);
+            '<span property="about">';
+            all_terms = [];
+            graphics = [];
+            label = node.findnodes('./*[@code="t"]');
+            FOR subfield IN node.childNodes;
+                NEXT UNLESS subfield.nodeName == "subfield";
+		NEXT UNLESS subfield.textContent.match('ocm|ocn|OCoLC');
+                code = subfield.getAttribute('code');
+
+                # at this point, we actually have a partial term to use.
+                raw_term = subfield.textContent;
+                single_term = raw_term | html;
+
+                # facets should be used as-is
+                IF !s.facet; raw_term = raw_term.replace('\(|\)', ' ').replace('[#"^$\+,:;&|\[\]()]', ''); END;
+		
+                all_terms.push(raw_term);
+
+                IF s.facet;
+                    total_term = s.facet _ '[' _ all_terms.join(s.joiner).replace('\s+$', '') _ ']';
+                ELSE;
+                    total_term = all_terms.join(" ").replace('\s+$', '');
+                END;
+
+                IF label.textContent.length > 0;
+                        link_text = label.textContent;
+                ELSE;
+                        link_text = single_term;
+                END;
+
+                %]<a href="[%-
+                       mkurl(ctx.opac_root _ '/results', {qtype=>'identifier|scn', query=>total_term}, stop_parms.merge(expert_search_parms, general_search_parms, browse_search_parms, facet_search_parms))
+                -%]">[% link_text %]</a> [%-
+
+            END;
+            IF all_terms.size; "<br/>"; END;
+            FOREACH link880 IN graphics;
+                '<div class="graphic880"' _ link880.dir _ '>';
+                link880.value | html;
+                '</div>';
+            END;
+            '</span>';
+        END;
+    END 
+%]
+
+[%  BLOCK render_all_scns;
+    FOREACH sc IN syscns;
+        content = PROCESS render_scn(s=sc);
+        IF content.match('\S');
+%]
+        <table class='rdetail_scn'>
+            <tbody>
+                <tr>
+                    <td class='rdetail_scn_type'>[% sc.label %]</td>
+                    <td class='rdetail_scn_value'>[% content %]</td>
+                </tr>
+            </tbody>
+        </table>
+        [%- END; %]
+    [%- END; %]
+[%- END %]
+
+[%-  otherrel_html = PROCESS render_all_scns;
+    IF otherrel_html.length > 0;
+%]
+<h2 class='rdetail_related_scns'>[% l('Other Relationship Titles') %]</h2>
+[%- otherrel_html %]
+[%- END %]

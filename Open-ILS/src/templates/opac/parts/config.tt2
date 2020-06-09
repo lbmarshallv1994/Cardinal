@@ -47,8 +47,8 @@ openurl.baseurl = 'http://sfx.example.com/instance';
 # You can enable Google Analytics support in Evergreen by entering a
 # valid Google Analytics code and changing 'false' to 'true'
 ##############################################################################
-google_analytics.enabled = 'false';
-google_analytics.code = 'UA-9999999-99';
+google_analytics.enabled = 'true';
+google_analytics.code = 'UA-35258224-1';
 
 ##############################################################################
 # Ebook API integration
@@ -87,7 +87,7 @@ allow_phone_notifications = 'true';
 # Set to true to use radio buttons for parts selection on the Place Holds
 # screen. The default behavior is to to display them in a select menu.
 #############################################################################
-enable.radio.parts = 'false';
+enable.radio.parts = 'true';
 
 ##############################################################################
 # Misc. UI Settings
@@ -97,7 +97,7 @@ enable.radio.parts = 'false';
 # Setting this to 'true' shows full details by default but allows the link
 # to appear for 'Show Fewer Details'. The 'hide' option shows full details
 # and also suppresses the link from displaying at all.
-show_more_details.default = 'false';
+show_more_details.default = 'true';
 
 ##############################################################################
 # Size of the jacket image to display on the record detail summary.
@@ -188,6 +188,7 @@ search.basic_config = {
 # Show Google Book Previews
 # Set to 1 or 'true' to enable
 ctx.google_books_preview = 0;
+ctx.expand_awards = 1;
 
 ##############################################################################
 
@@ -212,7 +213,7 @@ ctx.depth_sel_resultshint = l('Showing results from all libraries');
 # Exclude Electronic Resources Checkbox
 # One setting for both the advanced search page and the results bar.
 # Off by default; set to 1 to display.
-ctx.exclude_electronic_checkbox = 0;
+ctx.exclude_electronic_checkbox = 1;
 
 ##############################################################################
 # Metarecords configuration

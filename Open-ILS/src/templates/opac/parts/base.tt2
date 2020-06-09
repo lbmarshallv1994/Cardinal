@@ -37,6 +37,10 @@
         </style>
         [% END %]
 
+		<script src="[% mkurl(ctx.opac_root _ 'opac/skin/default/js/carousel/jquery-1.9.1.min.js').replace('eg\/opac', '')  %]" type="text/javascript"></script>
+		<script type="text/javascript">
+		jQuery.noConflict();
+		</script>
         [% IF !ctx.is_staff %]
             [% INCLUDE 'opac/parts/goog_analytics.tt2' %]
         [% END %]

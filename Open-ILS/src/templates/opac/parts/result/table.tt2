@@ -346,7 +346,7 @@ END;
                                                         [% FOR uri IN args.uris %]
                                                             <tr name='bib_uri_list' class='result_table_title_cell'>
                                                                 <td valign='top'>
-                                                                    <strong>[% l('Electronic resource') %]</strong>
+                                                                    <strong>[% l('Digital Content') %]</strong> <!-- NCC customization -->
                                                                 </td>
                                                                 <td><a href="[% uri.href %]" class="uri_link" target="_blank" rel="noopener">[% uri.link | html %]</a>[% ' - ' _ uri.note | html IF uri.note %]</td>
                                                             </tr>

@@ -29,7 +29,18 @@
     [% END; %]
     [% END; %]
 
-    [%- IF ctx.library.mailing_address; %]
+    [% IF ctx.library.shortname == 'DEQ_ELC'; %]
+    <div id="addresses">
+        <div id="mailing" property="location address" typeof="PostalAddress">
+            <h3 property="contactType">[% l('Mailing address') %]</h3>
+            <span property="streetAddress">[% ('Office of Environmental Education and Public Affairs') %]<br />
+					   [% ('North Carolina Department of Environmental Quality') %]<br />
+					   [% ('Mail Service Center 1601') %]<br />
+					   [% ('Raleigh, NC   27699-1601') %]
+            </span><br />
+        </div>
+    </div>
+    [%- ELSIF ctx.library.mailing_address %]
     <div id="addresses">
         <div id="mailing" property="location address" typeof="PostalAddress">
             <h3 property="contactType">[% l('Mailing address') %]</h3>

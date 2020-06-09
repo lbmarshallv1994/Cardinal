@@ -1,5 +1,6 @@
 <div class="login-help-box">
 
+<!--
     <div class="login-help-button">
         <a href="http://example.com" class="opac-button">[% l('Questions?') %]</a>
     </div>
@@ -13,5 +14,6 @@
         <a href="http://example.com">[% l('FAQs') %]</a>
 	</div>
     </div>
+-->
 
 </div>

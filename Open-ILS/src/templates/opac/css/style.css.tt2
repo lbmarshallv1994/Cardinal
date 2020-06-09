@@ -186,11 +186,9 @@ for now until a better color is picked - if needed.
 }
 
 #header-wrap {
-    background-color: [% css_colors.primary_fade %];
-    background-image: -moz-linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
-    background-image: -o-linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
-    background-image: -webkit-linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
-    background-image: linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
+    background-repeat: repeat-x;
+    background-image: url('/opac/images/nccardinal-header-bgslice.jpg');
+    /* NCC: This removes several lines from stock template re: background-color and background-image */
 }
 #header {
     color: [% css_colors.background %];
