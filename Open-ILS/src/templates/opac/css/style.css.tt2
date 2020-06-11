@@ -24,7 +24,7 @@ img {
 }
 
 #topnav_logo {
-    margin: 2em 0;
+    margin: 5px 0;
 }
 
 #homesearch_main_logo {
@@ -131,7 +131,8 @@ div.select-box-wrapper {
 }
 
 #dashboard, #dashboard_e {
-    margin-top: 1em;
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
     height: 3em;
 }
 
@@ -186,12 +187,12 @@ for now until a better color is picked - if needed.
 }
 
 #header-wrap {
-    background-repeat: repeat-x;
-    background-image: url('/opac/images/nccardinal-header-bgslice.jpg');
-    /* NCC: This removes several lines from stock template re: background-color and background-image */
+    background-image: linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
+    border-bottom: 1px solid [% css_colors.border_dark %];
 }
 #header {
     color: [% css_colors.background %];
+    display:flex;
     margin-left: 1em;
     margin-right: 1em;
     font-size: [% css_fonts.size_small %];
@@ -208,11 +209,22 @@ for now until a better color is picked - if needed.
 
 #header-links {
     color: [% css_colors.text_invert %];
-    font-size: [% css_fonts.size_small %];
+    font-size: [% css_fonts.size_big %];
     font-weight: bold;
     position: relative;
-    top:4px;
-    
+}
+
+#header-branch{
+    align-content: center;
+    align-items: center;
+    display: inline-flex;
+
+}
+
+#header-branch p{
+    font-size: [% css_fonts.size_huge %];
+    margin: auto;
+    font-weight: bold;
 }
 
 #header-links a {
@@ -230,8 +242,7 @@ for now until a better color is picked - if needed.
 
 #header-links a:hover {
     color: [% css_colors.text_invert %];
-    text-shadow: 0 0 0.2em [% css_colors.primary %], 0 0 0.2em [% css_colors.primary %];
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 #header #header-links2 {
@@ -250,7 +261,14 @@ for now until a better color is picked - if needed.
 }
 
 #your-acct-login {
-    padding-top:2em;
+    display:inline-flex;
+    align-items: center;
+}
+
+#header-login-wrapper{
+    display:inline-flex;
+    align-items: center;
+    margin-left: auto;
 }
 
 #gold-links {
@@ -273,8 +291,9 @@ for now until a better color is picked - if needed.
 }
 
 #gold-links-holder {
-    height: 24px;
-    background-color: [% css_colors.background_invert %];
+    align-content: center;
+    align-items: center;
+    display: inline-flex;
 }
 
 #util-bar {
@@ -1983,10 +2002,16 @@ button.opac-button::-moz-focus-inner, input.opac-button::-moz-focus-inner {
     border: 0;
 }
 
-.opac-button-header, #dash_wrapper .opac-button {
-    background-color: [% css_colors.control %];
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    font-size: [% css_fonts.size_base %];
+.opac-button-header{
+    font-size: [% css_fonts.size_big %];
+    font-weight: bold; 
+    text-decoration: none;
+    cursor: pointer !important;
+    border-radius: 5px;
+    border: 1px solid [% css_colors.accent_light %];
+    margin: 0.5em;
+    padding: 0.3em;
+    display: inline-block;
 }
 a.opac-button-header:hover, #dash_wrapper a.opac-button:hover {
     border-color: [% css_colors.control %];

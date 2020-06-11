@@ -1,2 +1,2 @@
        <div id="topnav_logo"> <a href="/"><img alt="[% l('Evergreen Logo') %]" 
-            src="[% ctx.media_prefix %]/opac/images/cardinal_small_logo.jpg" width=200 height=90 /></a></div>
+            src="[% ctx.media_prefix %]/opac/images/nccardinal-bird.png" /></a></div>
