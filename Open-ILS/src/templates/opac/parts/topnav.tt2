@@ -1,6 +1,3 @@
-[%- IF ctx.maintenance_message -%]
-<div id="maintenance_message">[% ctx.maintenance_message %]</div>
-[%- END -%]
 [% IF !ctx.is_staff %]
 <div id="header-wrap">
 <div id="header">
@@ -21,7 +18,7 @@
         </div>
         [% ELSE %]
         <div id="dash_wrapper">
-            <div id="dash_identity">
+            <div id="dash_identity" class="dash_div">
                 <span id="dash_user">
                     [%  l('[_1] [_2]', 
                       (ctx.user.pref_first_given_name || ctx.user.first_given_name), 
@@ -49,7 +46,7 @@
                     class="opac-button-header" id="logout_link">[% l('Logout') %]</a>
                 </span>
             </div>
-            <div id="dashboard">
+            <div id="dashboard" class="dash_div">
                 <span class="dash-align">
                     <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/circs', {}, 
                         ['limit','offset', 'single', 'message_id', 'sort','sort_type', 'hid'])
@@ -76,7 +73,7 @@
                         %]</span> [% l("Charges") %]</a>
                 </span>
             </div>
-            <div id="dashboard_e" class="hidden">
+            <div id="dashboard_e" class="hidden dash_div">
                 <span class="dash-align">
                     <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/ebook_circs')
                         %]"><span id="dash_e_checked">-</span> [% l("E-Items Checked Out") %]</a>
@@ -99,5 +96,11 @@
     <div class="common-no-pad"></div>
 </div>
 </div>
-
+[%- IF ctx.maintenance_message -%]
+<div id="maintenance_message">[% ctx.maintenance_message %]</div>
+[%- END -%]
+[%- ELSE -%]
+    [%- IF ctx.maintenance_message -%]
+    <div id="maintenance_message">[% ctx.maintenance_message %]</div>
+    [%- END -%]
 [% END %]

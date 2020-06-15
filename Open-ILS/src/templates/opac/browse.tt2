@@ -6,9 +6,10 @@
     WRAPPER "opac/parts/base.tt2";
     INCLUDE "opac/parts/topnav.tt2";
 
+    ctx.page = "browse";
     ctx.page_title = l("Browse the Catalog");
     blimit = CGI.param('blimit') || ctx.opac_hits_per_page || 10;
-
+    
     depart_list = ['blimit', 'bterm', 'bpivot'];
     ctx.metalinks.push('<meta name="robots" content="noindex,follow">');
     MACRO heading_use_label BLOCK;
@@ -31,19 +32,8 @@
     <div id="search-wrapper">
         [%# XXX TODO Give searchbar.tt2 more smarts so we can just do:
           # INCLUDE "opac/parts/searchbar.tt2" %]
-        <div id="search-box">
-            <span class="search_catalog_lbl"><a href="[% mkurl(ctx.opac_root _ '/home', {}, depart_list) %]">[% l('Basic Search') %]</a></span>
-            <span class="adv_search_catalog_lbl"><a href="[% mkurl(ctx.opac_root _ '/advanced', {}, depart_list) %]"
-                    id="home_adv_search_link">[%l('Advanced Search')%]</a></span>
-        
-            <span class="browse_the_catalog_lbl mobile_hide">[% l('Browse the Catalog') %]</span>
-            [% INCLUDE 'opac/parts/cart.tt2' %]
-        </div>
-    </div>
-    <div id="content-wrapper">
-        <div id="main-content">
-            <div id="browse-the-catalog">
-                <div id="browse-controls" class='searchbar'>
+                    [%- INCLUDE "opac/parts/searchnav.tt2" -%]
+                        <div id="browse-controls" class='searchbar'>
                     <form method="get" onsubmit="$('browse-submit-spinner').className = ''; return true">
                         <input type="hidden" name="blimit"
                             value="[% blimit | html %]" />
@@ -66,6 +56,11 @@
                         alt="[% l('Search in progress icon') %]" />
                     </form>
                 </div>
+    </div>
+    <div id="content-wrapper">
+        <div id="main-content">
+            <div id="browse-the-catalog">
+
 
                 [% BLOCK browse_pager %]
                 <div class="browse-pager">
