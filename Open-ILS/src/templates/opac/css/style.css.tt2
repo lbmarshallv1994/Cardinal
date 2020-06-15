@@ -1032,6 +1032,10 @@ tr.result_table_row > td.result_table_title_cell {
     vertical-align: top;
 }
 
+div.format_icon img, img.format_icon {
+    width: 48px;
+}
+
 .result_metadata {
     [% IF rtl == 't' -%]
     float: right;

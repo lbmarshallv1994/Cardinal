@@ -34,7 +34,7 @@
             <h2>[% attrs.author | html %]</h2>
             [% IF attrs.format_icon %]<p>
                 <strong>[% l('Format:') %]</strong>
-                <img src="[% attrs.format_icon %]" alt="[% attrs.format_label | html %]" title="[% attrs.format_label | html %]" />
+                <img src="[% attrs.format_icon %]" class="format_icon" alt="[% attrs.format_label | html %]" title="[% attrs.format_label | html %]" />
             </p>[% END %]
             <p>
                 <strong>[% l('Status') %]</strong>: [% hold.human_status %]

@@ -60,6 +60,7 @@
           [% FOR format IN attrs.all_formats %]
               <img title="[% format.label | html %]" 
                   alt="[% format.label | html %]" 
+                  class="format_icon"
                   src="[% format.icon %]" /> 
               [% format.label | html %]
           [% END %]
