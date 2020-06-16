@@ -11979,7 +11979,7 @@ SELECT  usr,
 	<!-- ********************************************************************************************************************* -->
 	<!-- What follows is a set of example extensions that are useful for PINES.  Comment out or remove if you don't want them. -->
 	<!-- ********************************************************************************************************************* -->
-	<class id="rccc" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_current_circ" oils_persist:tablename="reporter.classic_current_circ" reporter:core="true" reporter:label="Classic Circulation View">
+	<class id="rccc" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_current_circ" oils_persist:tablename="reporter.classic_current_circ" reporter:core="false" reporter:label="(DO NOT USE) Classic Circulation View">
 		<fields oils_persist:primary="id">
 			<field reporter:label="Circulation" name="id" reporter:datatype="id" />
 			<field reporter:label="Library Circulation Location Short (Policy) Name" name="circ_lib" reporter:datatype="text"/>
@@ -12048,7 +12048,7 @@ SELECT  usr,
 		</links>
 	</class>
 
-	<class id="rccbs" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_current_billing_summary" oils_persist:tablename="reporter.classic_current_billing_summary" reporter:core="true" reporter:label="Classic Open Transaction Summary">
+	<class id="rccbs" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_current_billing_summary" oils_persist:tablename="reporter.classic_current_billing_summary" reporter:core="false" reporter:label="(DO NOT USE) Classic Open Transaction Summary">
 		<fields oils_persist:primary="id">
 			<field reporter:label="Transaction ID" name="id" reporter:datatype="id" />
 
@@ -12327,7 +12327,7 @@ SELECT  usr,
 		</links>
 	</class>
 
-    <class id="rocit" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_item_list" oils_persist:tablename="reporter.classic_item_list" reporter:core="true" reporter:label="Classic Item List">
+    <class id="rocit" controller="open-ils.reporter-store" oils_obj:fieldmapper="reporter::classic_item_list" oils_persist:tablename="reporter.classic_item_list" reporter:core="false" reporter:label="(DO NOT USE) Classic Item List">
         <fields oils_persist:primary="id">
             <field reporter:label="Title" name="title" reporter:datatype="text"/>
             <field reporter:label="Author" name="author" reporter:datatype="text"/>
