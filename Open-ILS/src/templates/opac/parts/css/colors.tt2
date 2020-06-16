@@ -4,7 +4,7 @@
         background = "#fff", # white
         background_alert = "#ffcccc", # pink
         background_invert = "#252525", # charcoal
-        background_menu = "#eee", # light gray       
+        background_menu = "#f7f7f7", # light gray       
         text = "black", # black 
         text_alert = "red", # red
         text_attention = "#ffcc33", # pumpkin orange

@@ -1,6 +1,6 @@
 [%-
     css_fonts = {
-        size_base = "14px",
+        size_base = "15px",
         size_small = "92%",
         size_smaller = "83%",
         size_smallest = "75%",

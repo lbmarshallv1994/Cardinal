@@ -99,7 +99,11 @@ END;
         <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
             onclick='setTimeout(function(){$("search-submit-spinner").className=""; $("search-submit-go").className="hidden"; $("search-submit-go-depth").className="hidden";}, 2000)' title="[% ctx.depth_sel_tooltip | html %]">[% ctx.depth_sel_button_label | html %]</button>
         [%- END %]
-
+        [% IF (is_advanced AND NOT is_special) AND CGI.param('qtype') %]
+            <span id="refine_search_link" ><a class="opac-button" href="[% mkurl(ctx.opac_root _ '/advanced') %]">[%
+                l('Refine Search')
+            %]</a></span>
+        [% END %]
         [%- IF took_care_of_form && !search.no_highlight %]
         <div style="display: inline-block;">
         <label for="no_highlight">
@@ -169,11 +173,6 @@ END;
             [% stuff %]
         </div>
         [% END %]
-    [% END %]
-    [% IF (is_advanced AND NOT is_special) AND CGI.param('qtype') %]
-        <span id="refine_search_link" ><a class="opac-button" href="[% mkurl(ctx.opac_root _ '/advanced') %]">[%
-            l('Refine Search')
-        %]</a></span>
     [% END %]
 
     <script>

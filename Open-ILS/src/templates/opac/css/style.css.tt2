@@ -4,6 +4,41 @@
     rtl = ctx.get_i18n_l(ctx.eg_locale).rtl;
 %]
 
+@font-face {
+  font-family: 'Lato';
+  src:
+    url([% ctx.media_prefix %]/opac/extras/fonts/Lato-Regular.ttf) format('truetype')
+  ;
+  font-style: normal;
+  font-weight: normal;
+}
+@font-face {
+  font-family: 'Lato';
+  src:
+    url([% ctx.media_prefix %]/opac/extras/fonts/Lato-Italic.ttf) format('truetype')
+  ;
+  font-style: italic;
+  font-weight: normal;
+}
+
+/* Bold */
+@font-face {
+  font-family: 'Lato';
+  src:
+    url([% ctx.media_prefix %]/opac/extras/fonts/Lato-Bold.ttf) format('truetype')
+  ;
+  font-style: normal;
+  font-weight: 700;
+}
+@font-face {
+  font-family: 'Lato';
+  src:
+    url([% ctx.media_prefix %]/opac/extras/fonts/Lato-BoldItalic.ttf) format('truetype')
+  ;
+  font-style: italic;
+  font-weight: 700;
+}
+
 body {
     margin:0;
     font-family: Lato, Arial, Helvetica, sans-serif;
@@ -1039,12 +1074,11 @@ div.format_icon img, img.format_icon {
 .result_metadata {
     [% IF rtl == 't' -%]
     float: right;
-    padding-left: 2em;
+    padding-left: 3em;
     [% ELSE -%]
     float: left;
-    padding-right: 2em;
+    padding-right: 3em;
     [% END -%]
-    width: 30em;
 }
 
 tr.result_table_row:nth-child(n+2) > td {
@@ -1052,13 +1086,8 @@ tr.result_table_row:nth-child(n+2) > td {
 }
 
 tr.result_table_row > td.result_table_pic_header {
-    [% IF rtl == 't' -%]
-    padding-right: 1em;
-    [% ELSE -%]
-    padding-left: 1em;
-    [% END -%]
-    white-space: nowrap;
     width: 78px;
+    text-align: center;
 }
 
 /* styles for selecting records in the results set */
@@ -1629,11 +1658,14 @@ div#facet_sidebar {
 .facet_box_temp .header {
     height: 2.3em;
     background-color:[% css_colors.primary %];
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
     font-weight:bold;
     color:[% css_colors.text_invert %];
     padding-top:4px;
+}
+
+.facet_box_temp:first-child .header {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
 }
 
 .facet_box_temp.filter_box_temp .header {
@@ -1682,9 +1714,13 @@ div#facet_sidebar {
     border-top:1px solid [% css_colors.border_standard %];
     border-left:1px solid [% css_colors.border_standard %];
     border-right:1px solid [% css_colors.border_standard %];
+    background-color: [% css_colors.background_menu %];
     padding: 0 0.5em;
     width: 14em;
     overflow: hidden;
+}
+.facet_box_wrapper .facet_box_temp:last-child .box_wrapper .box{
+    border-bottom:1px solid [% css_colors.border_standard %];
 }
 
 .filter_box_wrapper {
@@ -2566,7 +2602,6 @@ a.preflib_change {
 
 #maintenance_message {
     padding: 5px;
-    width: 100%;
     background-color: [% css_colors.background_alert %];
     border: 1px solid [% css_colors.border_alert_dark %];
     color: [% css_colors.border_alert_dark %];
@@ -2695,6 +2730,20 @@ a.preflib_change {
     padding-bottom: 4px;
 }
 
+.result_table_format_cell {
+    padding-top: 4px;
+    padding-bottom: 4px;
+    display: flex;
+    align-content: center;
+    flex-direction: column;
+}
+
+.result_table_format_cell p{
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: [% css_fonts.size_smaller %];
+}
+
 .record_title {
     font-size: [% css_fonts.size_bigger %];
 }
@@ -2774,6 +2823,7 @@ a.preflib_change {
     }
     #topnav_logo img {
         width: 200px;
+        max-width: 10VW;
     }
     #locale_picker_form {
         display: none;
@@ -2986,6 +3036,11 @@ a.preflib_change {
         [% END -%]
         width: 0px !important;
         margin: 0px;
+    }
+    div.format_label{
+    margin-left: auto;
+    margin-right: auto;
+    
     }
     .result_table_pic {
         width: 55px;

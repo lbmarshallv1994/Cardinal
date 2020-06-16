@@ -118,6 +118,32 @@
                                                  <img alt="[% l('Book cover') %]"
                                                         name='item_jacket' class='result_table_pic' width="55"
                                                         src='[% ctx.media_prefix %]/opac/extras/ac/jacket/small/r/[% rec.bre_id | uri %]' /></a><br />
+                                                    <div class='result_table_format_cell'>
+                                                    [%- IF attrs.format_label; %]
+                                                        [% FOR format IN attrs.all_formats %]
+                                                            
+                                                            <img title="[% format.label | html %]"
+                                                                class="format_icon"
+                                                                alt="[% format.label | html %]" 
+                                                                src="[% format.icon %]"
+                                                                style="margin-left:auto;margin-right:auto;"
+                                                            class="format_icon"/>                                                            
+                                                            <p>[% format.label | html %]</p>
+                                                            
+                                                            
+                                                        [% END %]
+                                                    [%- END %]
+                                                    [%- UNLESS show_detail_view;
+                                                            IF attrs.pubdate;
+                                                                pubdate_clean = attrs.pubdate | html;
+                                                                l(" ([_1])", pubdate_clean);
+                                                            ELSIF attrs.copyright;
+                                                                copyright_clean = attrs.copyright | html;
+                                                                l(" ([_1])", copyright_clean);                                                                
+                                                            END;
+                                                        END
+                                                    -%]
+                                                    </div>
                                             </td>
                                             <td class='result_table_title_cell' name='result_table_title_cell'>
                                                <div class="result_metadata">
@@ -180,28 +206,6 @@ FOR entry IN attrs.graphic_authors;
 END;
 -%]
 
-                                                    </div>
-                                                    <div class='result_table_title_cell'>
-                                                    [%- IF attrs.format_label; %]
-                                                        [% FOR format IN attrs.all_formats %]
-                                                            <img title="[% format.label | html %]"
-                                                                class="format_icon"
-                                                                alt="[% format.label | html %]" 
-                                                                src="[% format.icon %]"
-								class="format_icon"/> 
-                                                            [% format.label | html %]
-                                                        [% END %]
-                                                    [%- END %]
-                                                    [%- UNLESS show_detail_view;
-                                                            IF attrs.pubdate;
-                                                                pubdate_clean = attrs.pubdate | html;
-                                                                l(" ([_1])", pubdate_clean);
-                                                            ELSIF attrs.copyright;
-                                                                copyright_clean = attrs.copyright | html;
-                                                                l(" ([_1])", copyright_clean);                                                                
-                                                            END;
-                                                        END
-                                                    -%]
                                                     </div>
                                                     [% IF rec.popularity > 0.0 AND ctx.hide_badge_scores != 'true' %]
                                                       <div>
