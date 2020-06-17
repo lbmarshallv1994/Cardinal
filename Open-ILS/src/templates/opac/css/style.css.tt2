@@ -245,7 +245,6 @@ for now until a better color is picked - if needed.
 
 #header-links {
     color: [% css_colors.text_invert %];
-    font-size: [% css_fonts.size_big %];
     font-weight: bold;
     position: relative;
 }
@@ -274,6 +273,7 @@ for now until a better color is picked - if needed.
     float:left;
     margin-right:22px;
     [%- END %]
+    font-size: [% css_fonts.size_base %];
 }
 
 #header-links a:hover {
@@ -391,6 +391,7 @@ for now until a better color is picked - if needed.
     padding-top: 0px;
     padding-bottom: 0px;
     display:flex;
+    flex-flow: row wrap;
 }
 
 #search-box-title {
@@ -2794,9 +2795,10 @@ a.preflib_change {
 }
 
 @media only screen and (max-width: 600px) {
-    input, select {
+    input, select, button, input {
         font-size: [% css_fonts.size_big %];
     }
+    
     span .nav_arrow_fix {
         display: none;
     }
@@ -2805,7 +2807,7 @@ a.preflib_change {
         margin: 0px;
     }
     #homesearch_main_logo img {
-        width:75%;
+        width:100%;
     }
     #format_selector {
         display:none;
@@ -3017,6 +3019,19 @@ a.preflib_change {
     .results_header_nav1 span.h1 {
         display: none;
     }
+    #record_basket {
+        margin-left: auto;
+        margin-right: 0em;
+        padding-top: 2px;
+        display: flex;
+    }
+    #search-box > span {
+    margin: 0 0.4em;
+    }
+    #do_basket_action{
+    margin: 0.1em;
+    }
+
     .preflib {
         display: none;
     }
@@ -3102,6 +3117,7 @@ a.preflib_change {
         width: 85%;
         padding-top: 5px;
         display:flex;
+        flex-flow: row wrap;
     }
     #main-content-home {
         padding: 0px;
