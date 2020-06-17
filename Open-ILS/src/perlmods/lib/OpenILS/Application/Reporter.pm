@@ -246,6 +246,23 @@ sub retrieve_template {
     return $t;
 }
 
+__PACKAGE__->register_method(
+    api_name => 'open-ils.reporter.template.export',
+    method => 'sql_export');
+sub sql_export {
+    my( $self, $conn, $auth, $id ) = @_;
+    my $e = new_rstore_editor(authtoken=>$auth);
+    return $e->die_event unless $e->checkauth;
+    return $e->die_event unless $e->allowed('RUN_REPORTS');
+    my $b = OpenILS::Reporter::SQLBuilder->new;
+    my $t = $e->retrieve_reporter_template($id)
+       or return $e->event;
+    # where are the params going to come from?
+	#   my $report_data = OpenSRF::Utils::JSON->JSON2perl( $t->{report}->{data} );
+	#   $b->register_params( $report_data );
+	$rs = $b->parse_report( OpenSRF::Utils::JSON->JSON2perl( $t->{data} ) );
+    return $rs->toSQL;
+}
 
 __PACKAGE__->register_method(
     api_name => 'open-ils.reporter.report.retrieve',
@@ -615,8 +632,6 @@ sub has_output {
     return 1 if @$outs;
     return 0;
 }
-
-
 
 __PACKAGE__->register_method(
     method => 'org_full_path',
