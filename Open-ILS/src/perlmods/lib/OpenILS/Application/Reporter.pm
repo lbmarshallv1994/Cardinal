@@ -6,6 +6,7 @@ use OpenSRF::Utils::Logger qw/$logger/;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
 use OpenILS::Utils::Fieldmapper;
 use OpenILS::Application::AppUtils;
+use OpenILS::Reporter::SQLBuilder;
 my $U = "OpenILS::Application::AppUtils";
 
 
