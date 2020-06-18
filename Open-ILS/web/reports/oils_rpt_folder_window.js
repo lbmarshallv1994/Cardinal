@@ -359,13 +359,13 @@ oilsRptFolderWindow.prototype.cloneTemplate = function(template) {
 }
 
 oilsRptFolderWindow.prototype.exportTemplate = function(template) {
-    var req2 = new Request(OILS_RPT_DELETE_FOLDER, 
+    var req2 = new Request(OILS_RPT_EXPORT_TEMPLATE, 
     SESSION, template);
 
     req2.callback( 
         function(r2) {
             var res = r2.getResultObject();
-            else alert(res);
+            alert(res);
         }
     );
 
