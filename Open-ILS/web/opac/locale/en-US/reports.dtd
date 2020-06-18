@@ -129,6 +129,7 @@
 
 <!ENTITY reports.oils_rpt_folder_window.new_report_from_template "Create a new report from selected template">
 <!ENTITY reports.oils_rpt_folder_window.clone_template "Clone selected template">
+<!ENTITY reports.oils_rpt_folder_window.export_template "Export selected template">
 <!ENTITY reports.oils_rpt_folder_window.delete_template "Delete selected template(s)">
 <!ENTITY reports.oils_rpt_folder_window.clone_report "Clone report">
 <!ENTITY reports.oils_rpt_folder_window.schedule_report "Schedule report">
