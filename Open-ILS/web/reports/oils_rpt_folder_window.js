@@ -307,6 +307,11 @@ oilsRptFolderWindow.prototype.doFolderAction = function() {
 
 		case 'clone_template':
 			this.cloneTemplate(objs[0]);
+            break;
+        
+        case 'export_template':
+            this.exportTemplate(objs[0]);
+            break;
 	}
 }
 
@@ -353,6 +358,19 @@ oilsRptFolderWindow.prototype.cloneTemplate = function(template) {
 	);
 }
 
+oilsRptFolderWindow.prototype.exportTemplate = function(template) {
+    var req2 = new Request(OILS_RPT_DELETE_FOLDER, 
+    SESSION, template);
+
+    req2.callback( 
+        function(r2) {
+            var res = r2.getResultObject();
+            else alert(res);
+        }
+    );
+
+    req2.send();
+}
 
 oilsRptFolderWindow.prototype.changeFolderList = function(list, type, folderid, idx, callback, errid) {
 	if( idx >= list.length ) return callback(errid);
