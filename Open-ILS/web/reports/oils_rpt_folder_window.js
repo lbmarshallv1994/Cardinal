@@ -365,7 +365,16 @@ oilsRptFolderWindow.prototype.exportTemplate = function(template) {
     req2.callback( 
         function(r2) {
             var res = r2.getResultObject();
-            alert(res);
+            var blob = new Blob([res], { type: "text/sql" });
+              var a = document.createElement('a');
+              a.download = "report_template.sql";
+              a.href = URL.createObjectURL(blob);
+              a.dataset.downloadurl = ["text/sql", a.download, a.href].join(':');
+              a.style.display = "none";
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(function() { URL.revokeObjectURL(a.href); }, 1500);
         }
     );
 
