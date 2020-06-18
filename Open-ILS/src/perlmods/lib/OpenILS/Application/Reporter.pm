@@ -260,7 +260,7 @@ sub sql_export {
     # where are the params going to come from?
 	#   my $report_data = OpenSRF::Utils::JSON->JSON2perl( $t->{report}->{data} );
 	#   $b->register_params( $report_data );
-	$rs = $b->parse_report( OpenSRF::Utils::JSON->JSON2perl( $t->{data} ) );
+	my $rs = $b->parse_report( OpenSRF::Utils::JSON->JSON2perl( $t->{data} ) );
     return $rs->toSQL;
 }
 
