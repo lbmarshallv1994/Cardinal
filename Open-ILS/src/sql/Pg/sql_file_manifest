@@ -64,6 +64,7 @@ FTS_CONFIG_FILE
 
 990.schema.unapi.sql
 
+tattle-tale-reports.sql
 reporter-schema.sql
 extend-reporter.sql
 

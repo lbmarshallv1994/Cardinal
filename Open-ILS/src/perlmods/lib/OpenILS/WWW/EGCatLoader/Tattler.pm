@@ -23,12 +23,12 @@ sub update_tattle_list {
         my $report = $cgi->param('reportName');
         my @copy_array = $cgi->param("copyID[]");
         foreach(@copy_array){
-            my $rec = Fieldmapper::config::tattler_ignore_list->new;
+            my $rec = Fieldmapper::tattler::ignore_list->new;
             $logger->info("Adding Copy ".$_." to tattler ignore list for ".$report." at system ".$sysID);
             $rec->org_unit($sysID);
             $rec->target_copy($_);
             $rec->report_name($report);
-            $self->{editor}->create_config_tattler_ignore_list($rec);
+            $self->{editor}->create_tattler_ignore_list($rec);
         }
         $self->{editor}->xact_commit;
     }

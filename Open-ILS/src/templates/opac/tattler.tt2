@@ -3,7 +3,7 @@
   ctx.page_app = "TattlerUpdate";
 %]
 [% WRAPPER base.tt2 %]
-<div style="color:white;">
+<div style="color:black;">
     The following copies will be ignored the next time the tattle-tale report is executed:
     <ul>
         [% FOREACH c IN CGI.param('copyID[]') %]
