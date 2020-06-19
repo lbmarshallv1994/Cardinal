@@ -21,6 +21,8 @@ sub update_tattle_list {
         $self->{editor}->xact_begin;
         my $sysID = $cgi->param('systemID');
         my $report = $cgi->param('reportName');
+        $ctx->{report} = $report;
+        $ctx->{copies} = [];
         my @copy_array = $cgi->param("copyID[]");
         foreach(@copy_array){
             my $rec = Fieldmapper::tattler::ignore_list->new;
@@ -29,6 +31,7 @@ sub update_tattle_list {
             $rec->target_copy($_);
             $rec->report_name($report);
             $self->{editor}->create_tattler_ignore_list($rec);
+            push($ctx->[copies],$_);
         }
         $self->{editor}->xact_commit;
     }
