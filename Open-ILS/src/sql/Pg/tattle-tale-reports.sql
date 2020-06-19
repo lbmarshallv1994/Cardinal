@@ -1,0 +1,12 @@
+DROP SCHEMA IF EXISTS tattler CASCADE;
+
+BEGIN;
+CREATE SCHEMA tattler;
+CREATE TABLE tattler.ignore_list (
+    id SERIAL PRIMARY KEY,
+    report_name TEXT,
+    org_unit BIGINT NOT NULL REFERENCES actor.org_unit(id) ON DELETE CASCADE DEFERRABLE,
+    target_copy BIGINT NOT NULL REFERENCES asset.copy(id) ON DELETE CASCADE DEFERRABLE
+);
+
+COMMIT;
