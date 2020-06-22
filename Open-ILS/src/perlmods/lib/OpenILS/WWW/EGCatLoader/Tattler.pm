@@ -24,7 +24,7 @@ sub update_tattle_list {
         $ctx->{report} = $report;
         $ctx->{copies} = [];
         my @copy_array = $cgi->param("copyID[]");
-        $ctx->{copies} = @copy_array;
+        $ctx->{copies} = [@copy_array];
         foreach(@copy_array){
             my $rec = Fieldmapper::tattler::ignore_list->new;
             $logger->info("Adding Copy ".$_." to tattler ignore list for ".$report." at system ".$sysID);
