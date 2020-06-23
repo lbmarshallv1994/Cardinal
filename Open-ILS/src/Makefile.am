@@ -210,6 +210,10 @@ uninstall-hook:
 	$(do_subst) @srcdir@/extras/import/parallel_pg_loader.pl.in > "$@"
 	chmod 755 "$@"
 
+$(supportscr)/tattler.pl: Makefile $(supportscr)/tattler.pl.in
+	$(do_subst) $(supportscr)/tattler.pl.in > "$@"
+	chmod 755 "$@"
+
 $(supportscr)/action_trigger_runner.pl: Makefile $(supportscr)/action_trigger_runner.pl.in
 	$(do_subst) $(supportscr)/action_trigger_runner.pl.in > "$@"
 	chmod 755 "$@"
