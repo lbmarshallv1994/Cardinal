@@ -283,13 +283,11 @@ ilscore-install:
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/purge_pending_users.srfsh'
 	sed -i 's|LOCALSTATEDIR|@localstatedir@|g' '$(DESTDIR)@bindir@/oils_ctl.sh'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/oils_ctl.sh'
+	cp -r '$(supportscr)/tattle-tale-scripts' '$(DESTDIR)@bindir@/tattle-tale-scripts'
 
 reporter-install:
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/clark-kent.pl'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/find_orphaned_reports.pl'
-
-tattler-install:
-	cp -r '$(supportscr)/tattle-tale-scripts' '$(DESTDIR)@bindir@/tattle-tale-scripts'
 
 docs-install: gen_docs
 	$(MKDIR_P) $(DESTDIR)$(docdir)
