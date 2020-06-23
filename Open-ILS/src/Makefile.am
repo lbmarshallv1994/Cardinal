@@ -60,7 +60,6 @@ core_data = @srcdir@/extras/ils_events.xml \
 core_scripts =   $(examples)/oils_ctl.sh \
 		 $(supportscr)/fine_generator.pl \
 		 $(supportscr)/tattler.pl \
-		 $(supportscr)/tattle-tale-scripts \
 		 $(supportscr)/hold_targeter.pl \
 		 $(supportscr)/hold_targeter_legacy.pl \
 		 $(supportscr)/reshelving_complete.srfsh \
@@ -288,6 +287,9 @@ ilscore-install:
 reporter-install:
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/clark-kent.pl'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/find_orphaned_reports.pl'
+    
+tattler-install:
+    cp -r '$(supportscr)/tattle-tale-scripts' '$(DESTDIR)@bindir@/tattle-tale-scripts'
 
 docs-install: gen_docs
 	$(MKDIR_P) $(DESTDIR)$(docdir)
