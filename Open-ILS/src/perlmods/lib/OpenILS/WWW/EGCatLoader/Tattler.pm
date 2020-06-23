@@ -15,8 +15,8 @@ sub update_tattle_list {
     my $ctx = $self->ctx;
     my $cgi = $self->cgi;
     my $usr = $ctx->{user};
-    my $permission = $self->{editor}->allowed('UPDATE_RECORD');
-    return Apache2::Const::FORBIDDEN unless $usr && $permission == 1;
+    my $permission = $usr && $self->{editor}->allowed('UPDATE_RECORD');
+    return Apache2::Const::FORBIDDEN unless  $permission == 1;
     if( $cgi->request_method eq 'POST'){
         $self->{editor}->xact_begin;
         my $sysID = $cgi->param('systemID');
