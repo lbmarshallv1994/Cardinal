@@ -51,9 +51,9 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/catalog/search"
+            <a href="./cat/catalog/index" target="_self"
               eg-accesskey="[% l('f3') %]" 
-              eg-accesskey-desc="[% l('Catalog') %]">
+              eg-accesskey-desc="[% l('OPAC') %]">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
               <span>[% l('Search the Catalog') %]</span>
             </a>
@@ -174,12 +174,6 @@
               [% l('User Buckets') %]
             </a>
           </li>
-          <li>
-            <a href="./cat/bucket/batch_hold/list" target="_self">
-              <span class="glyphicon glyphicon-list-alt"></span>
-              [% l('Hold Groups') %]
-            </a>
-          </li>
           <li class="divider"></li>
           <li>
             <a href="./circ/patron/credentials" target="_self">
@@ -223,7 +217,7 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/cat/item/missing_pieces">
+            <a href="./cat/item/missing_pieces" target="_self">
               <span class="glyphicon glyphicon-th" aria-hidden="true"></span>
               <span>[% l('Scan Item as Missing Pieces') %]</span>
             </a>
@@ -244,13 +238,6 @@
               <span>[% l('Offline Circulation') %]</span>
             </a>
           </li>
-          <li ng-if="enableCurbside" class="divider"></li>
-          <li ng-if="enableCurbside">
-            <a href="./circ/curbside/index" target="_self" ng-class="{disabled : curbsideDisabled()}">
-              <span class="glyphicon glyphicon-road"></span>
-              <span>[% l('Curbside Pickup') %]</span>
-            </a>
-          </li>
         </ul>
       </li><!-- circ -->
 
@@ -260,16 +247,19 @@
           aria-hidden="true"></b>
         </a>
         <ul uib-dropdown-menu>
-          <li> 
-            <a href="/eg2/staff/catalog/search">
-              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-              <span>[% l('Search the Catalog') %]</span>
-            </a>
-          </li>
           <li>
             <a href="./cat/catalog/index" target="_self">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-              [% l('Search the Catalog (Traditional)') %]
+              [% l('Search the Catalog') %]
+            </a>
+          </li>
+          <!--
+            Link to experimental Angular staff catalog.
+          -->
+          <li ng-if="showAngularCatalog">
+            <a href="/eg2/staff/catalog/search">
+              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+              <span>[% l('Staff Catalog (Experimental)') %]</span>
             </a>
           </li>
           <li>
@@ -293,14 +283,13 @@
           </li>
           <li class="divider"></li>
           <li>
-            <a href="/eg2/staff/cat/bib-from/id">
+            <a href="./cat/catalog/retrieve_by_id" target="_self">
               <span class="glyphicon glyphicon-file" aria-hidden="true"></span>
               [% l('Retrieve Bib Record by ID') %]
             </a>
           </li>
           <li>
-
-            <a href="/eg2/staff/cat/bib-from/tcn"
+            <a href="./cat/catalog/retrieve_by_tcn" target="_self"
               eg-accesskey="[% l('shift+f3') %]" 
               eg-accesskey-desc="[% l('Retrieve Last Bib Record') %]">
               <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
@@ -335,7 +324,7 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/cat/marcbatch">
+            <a href="./cat/catalog/batchEdit" target="_self">
               <span class="glyphicon glyphicon-edit" aria-hidden="true"></span>
               [% l('MARC Batch Edit') %]
             </a>
@@ -349,7 +338,7 @@
           </li>
           <li class="divider"></li>
           <li>
-            <a href="/eg2/staff/cat/authority/browse">
+            <a href="./cat/catalog/manageAuthorities" target="_self">
               <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
               [% l('Manage Authorities') %]
             </a>
@@ -370,22 +359,16 @@
         </a>
         <ul uib-dropdown-menu>
           <li>
-            <a href="/eg2/staff/acq/search" target="_self">
+            <a href="./acq/legacy/search/unified" target="_self">
               <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
               [% l('General Search') %]
-            </a>
-          <li class="divider"></li>
-          <li>
-            <a href="/eg2/staff/acq/provider" target="_self">
-              <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
-              [% l('Provider Search') %]
             </a>
           </li>
           <li class="divider"></li>
           <li>
-            <a href="/eg2/staff/acq/search/selectionlists" target="_self">
+            <a href="./acq/legacy/search/unified?ca=pl" target="_self">
               <span class="glyphicon glyphicon-list" aria-hidden="true"></span>
-              [% l('Selection Lists') %]
+              [% l('My Selection Lists') %]
             </a>
           </li>
           <li>
@@ -420,7 +403,7 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/acq/search/purchaseorders" target="_self">
+            <a href="./acq/legacy/search/unified?ca=po" target="_self">
               <span class="glyphicon glyphicon-shopping-cart" aria-hidden="true"></span>
               [% l('Purchase Orders') %]
             </a>
@@ -439,9 +422,9 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/acq/search/invoices" target="_self">
+            <a href="./acq/legacy/search/unified?ca=inv" target="_self">
               <span class="glyphicon glyphicon-usd" aria-hidden="true"></span>
-              [% l('Invoices') %]
+              [% l('Open Invoices') %]
             </a>
           </li>
           <li>
@@ -472,7 +455,7 @@
             </a>
           </li>
           <li>
-            <a href="/eg2/staff/booking/capture" target="_self">
+            <a href="./booking/legacy/booking/capture" target="_self">
               <span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span>
               [% l('Capture Resources') %]
             </a>
