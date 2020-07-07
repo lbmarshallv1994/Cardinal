@@ -103,20 +103,19 @@
                             is_selected = ctx.mylist.grep('^' _ rec.id _ '$').size;
                         %]
                         <tr class="result_table_row [% IF is_selected %]result_table_row_selected[% END %]">
-                                            <td class="results_row_count" name="results_row_count">
+                                            <td>
+                                            <div class="result_flex_grid" >
+                                            <div class="result_flex_row">
+                                            <div class="results_row_count" name="results_row_count">
                                                 [% IF !ctx.is_meta; %]
-                                                <input type="checkbox" id="select-[% rec.bre_id %]" name="selected_record"
-                                                    [% IF is_selected %] checked="checked" [% END %]
-                                                    title="[% l('Add to Basket') %]"
-                                                    aria-label="[% l('Add to Basket') %]"
-                                                    class="result_record_selector hidden" value="[% rec.bre_id %]"></input>
+
                                                 [% END %]
                                                 [% result_count; result_count = result_count + 1 %].
-                                            </td>
-                                            <td class='result_table_pic_header'>
+                                            </div>
+                                            <div class='result_table_pic_header'>
                                                 <a href="[% mkurl(record_url_path, add_parms, del_parms); %]">
                                                  <img alt="[% l('Book cover') %]"
-                                                        name='item_jacket' class='result_table_pic' width="55"
+                                                        name='item_jacket' class='result_table_pic'
                                                         src='[% ctx.media_prefix %]/opac/extras/ac/jacket/small/r/[% rec.bre_id | uri %]' /></a><br />
                                                     <div class='result_table_format_cell'>
                                                     [%- IF attrs.format_label; %]
@@ -144,8 +143,8 @@
                                                         END
                                                     -%]
                                                     </div>
-                                            </td>
-                                            <td class='result_table_title_cell' name='result_table_title_cell'>
+                                            </div>
+                                            <div class='result_table_title_cell' name='result_table_title_cell'>
                                                <div class="result_metadata">
                                                     [% IF rec.mmr_id %]
                                                     <abbr class="unapi-id" 
@@ -156,6 +155,12 @@
                                                       title='tag:[% ctx.hostname %],[% date.format(date.now, '%Y') %]:biblio-record_entry/[% rec.bre_id %]'>
                                                     </abbr>
                                                     [% END %]
+                                                    
+                                                    <input type="checkbox" id="select-[% rec.bre_id %]" name="selected_record"
+                                                    [% IF is_selected %] checked="checked" [% END %]
+                                                    title="[% l('Add to Basket') %]"
+                                                    aria-label="[% l('Add to Basket') %]"
+                                                    class="result_record_selector hidden" value="[% rec.bre_id %]"></input>
                                                     <a class='record_title search_link' name='record_[% rec.id %]'
                                                         href="[% mkurl(record_url_path, add_parms, del_parms); %]"
                                                         [% html_text_attr('title', l('Display record details for "[_1]"', attrs.title)) %]>
@@ -426,7 +431,10 @@ END;
                                                         [% END %]
                                                     [% END %]
                                                 </div>
-                                                <div class="result_table_utils_cont">
+                                            </div>
+                                            </div>
+                                            <div class="result_flex_row">
+                                                                                            <div class="result_table_utils_cont">
                                                     <div class="result_table_utils">
 [%- search_ou = ctx.search_ou;
     num_holdable_copies = attrs.marc_xml.findnodes('//*[local-name()="holdings" and @has_holdable="true"]').size || 0;
@@ -527,9 +535,9 @@ END;
                                                         [% END %]
                                                     </div>
                                                 </div>
-
-                                            </td>
-
+                                            </div>
+                                            </div>
+                                        </td>
                                         </tr>
                                         [%- IF ENV.OILS_CHILIFRESH_ACCOUNT %]
                                         <tr>

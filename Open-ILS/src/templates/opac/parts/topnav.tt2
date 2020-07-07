@@ -1,7 +1,7 @@
 [% IF !ctx.is_staff %]
 <div id="header-wrap">
 <div id="header">
-    <div class="">
+    <div id="topnav_logo_wrapper">
         [% INCLUDE "opac/parts/topnav_logo.tt2" %]
     </div>
     [%- IF ctx.branch_name -%]
@@ -26,7 +26,7 @@
                     ) | html %]
                 </span>
                 <span class="dash_divider">|</span>
-                <span class="">
+                <span id="dash_button_wrapper">
                 <div id="dash_user_message_button_container">
                     <a href="[% mkurl(ctx.opac_root _ '/myopac/messages', {}, ['single', 'message_id', 'hid']) %]" class="opac-button-header">
                         [% l('Messages') %]
@@ -38,40 +38,44 @@
                         </div>
                     [% END %]
                 </div>
-                <a href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]"
-                    class="opac-button-header">[% l('My Account') %]</a>
                 <a href="[% mkurl(ctx.opac_root _ '/myopac/lists', {}, ['single', 'message_id', 'hid', 'from_basket']) %]"
-                    class="opac-button-header">[% l('My Lists') %]</a>
+                    class="opac-button-header">[% l('Lists') %]</a>
+                <a href="#hold-wrapper" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="hold-wrapper" 
+                    class="opac-button-header">[% l('Holds') %]</a>
+                <a href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]"
+                    class="opac-button-header">[% l('Account') %]</a>
                 <a href="[% mkurl(ctx.opac_root _ '/logout', {}, 1) %]"
                     class="opac-button-header" id="logout_link">[% l('Logout') %]</a>
                 </span>
             </div>
-            <div id="dashboard" class="dash_div">
-                <span class="dash-align">
-                    <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/circs', {}, 
-                        ['limit','offset', 'single', 'message_id', 'sort','sort_type', 'hid'])
-                        %]"><span id="dash_checked">[% ctx.user_stats.checkouts.total_out
-                        %]</span> [% l("Checked Out") %]</a>
-                </span>
-                <span class="dash_divider">|</span>
-                <span class="dash-align">
-                    <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/holds', {}, 
-                        ['available', 'single', 'message_id', 'sort','sort_type', 'hid'])
-                        %]"><span id="dash_holds">[% ctx.user_stats.holds.total
-                        %]</span> [% l("On Hold") %]</a>
-                </span>
-                <span class="dash_divider">|</span>
-                <span class="dash-align">
-                    <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/holds',
-                        {available => 1}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]"><span id="dash_pickup">[%
-                        ctx.user_stats.holds.ready %]</span> [% l("Ready for Pickup") %]</a>
-                </span>
-                <span class="dash_divider">|</span>
-                <span class="dash-align">
-                    <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid'])
-                        %]"><span id="dash_fines">[% money(ctx.user_stats.fines.balance_owed)
-                        %]</span> [% l("Charges") %]</a>
-                </span>
+            <div id="hold-wrapper" class="collapse">
+                <div id="dashboard" class="dash_div">
+                    <span class="dash-align">
+                        <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/circs', {}, 
+                            ['limit','offset', 'single', 'message_id', 'sort','sort_type', 'hid'])
+                            %]"><span id="dash_checked">[% ctx.user_stats.checkouts.total_out
+                            %]</span> [% l("Checked Out") %]</a>
+                    </span>
+                    <span class="dash_divider">|</span>
+                    <span class="dash-align">
+                        <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/holds', {}, 
+                            ['available', 'single', 'message_id', 'sort','sort_type', 'hid'])
+                            %]"><span id="dash_holds">[% ctx.user_stats.holds.total
+                            %]</span> [% l("On Hold") %]</a>
+                    </span>
+                    <span class="dash_divider">|</span>
+                    <span class="dash-align">
+                        <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/holds',
+                            {available => 1}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]"><span id="dash_pickup">[%
+                            ctx.user_stats.holds.ready %]</span> [% l("Ready for Pickup") %]</a>
+                    </span>
+                    <span class="dash_divider">|</span>
+                    <span class="dash-align">
+                        <a class="dash-link" href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid'])
+                            %]"><span id="dash_fines">[% money(ctx.user_stats.fines.balance_owed)
+                            %]</span> [% l("Charges") %]</a>
+                    </span>
+                </div>
             </div>
             <div id="dashboard_e" class="hidden dash_div">
                 <span class="dash-align">

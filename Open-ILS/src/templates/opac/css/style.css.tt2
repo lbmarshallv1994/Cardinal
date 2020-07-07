@@ -61,6 +61,18 @@ img {
     border: none;
 }
 
+#topnav_logo_wrapper{
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    justify-content: center;
+}
+
+#topnav_logo_wrapper a{
+    width: 54px;
+    height: 66px;
+}
+
 #topnav_logo {
     margin: 5px 0;
 }
@@ -152,6 +164,15 @@ div.select-box-wrapper {
     [%- ELSE %]
     margin-left: 0.5em;
     [%- END %]
+}
+
+.page-link {
+    color: [% css_colors.primary %];
+}
+
+.page-item.active .page-link {
+    background-color: [% css_colors.primary %];
+    border-color: [% css_colors.primary %];
 }
 
 .dash_div {
@@ -247,13 +268,15 @@ for now until a better color is picked - if needed.
     color: [% css_colors.text_invert %];
     font-weight: bold;
     position: relative;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 #header-branch{
     align-content: center;
     align-items: center;
     display: inline-flex;
-
+    text-align: center;
 }
 
 #header-branch p{
@@ -265,14 +288,9 @@ for now until a better color is picked - if needed.
 #header-links a {
     color: [% css_colors.text_invert %];
     display: block;
+    text-align: center;
     text-decoration: none;
-    [% IF rtl == 't' -%]
-    float: right;
-    margin-left: 22px;
-    [%- ELSE %]
-    float:left;
-    margin-right:22px;
-    [%- END %]
+    margin-left: 8px;
     font-size: [% css_fonts.size_base %];
 }
 
@@ -664,7 +682,6 @@ span#rdetail_hold_counts p {
 }
 
 div.place_hold {
-    border-bottom: 1px dotted [% css_colors.accent_light %];
     padding-top: 10px;
 }
 
@@ -717,7 +734,6 @@ div.format_icon {
 }
 
 .result_util {
-    border-bottom: 1px dotted [% css_colors.accent_light %];
     padding-top: 6px;
     [% IF rtl == 't' -%]
     padding-right: 1em;
@@ -941,7 +957,6 @@ margin-top: 25px;
     padding:10px 10px 0px 13px;
     [% END -%]
     width:167px;
-    height:29px;
 }
 
 .login-help-box {
@@ -1091,6 +1106,17 @@ tr.result_table_row > td.result_table_pic_header {
     text-align: center;
 }
 
+tr.result_table_row .result_flex_grid{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+
+tr.result_table_row .result_flex_row{
+    display: flex;
+    width: 100%;
+}
+
 /* styles for selecting records in the results set */
 .result_table_row_selected {
     background-color: [% css_colors.item_selected %];
@@ -1150,13 +1176,13 @@ tr.result_table_row > td.result_table_pic_header {
 }
 
 div.result_table_utils_cont {
-    [% IF rtl == 't' -%]
-    text-align: right;
-    float: right;
-    [% ELSE -%]
-    text-align:left;
-    float: left;
-    [% END -%]
+    text-align: center;
+    width: 100%;
+}
+
+.result_table_utils{
+    margin-bottom: 0.2em;
+    display: inline-block;
 }
 
 #myopac_summary_div p {
@@ -2433,11 +2459,41 @@ table.result_holdings_table {
     margin-top: 1em;
     margin-bottom: 1em;
 }
+
+table.result_holdings_table tbody{
+    max-height: 20vh;
+    overflow-y: scroll;
+    display: block;
+    background-color: [% css_colors.background_menu %];
+}
+
+table.result_holdings_table tbody::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 3px;
+}
+
+table.result_holdings_table tbody::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, .5);
+  box-shadow: 0 0 1px rgba(255, 255, 255, .5);
+}
+
+table.result_holdings_table td,  table.result_holdings_table th{
+    width: 120px;
+    word-break: break-word;
+    font-size: [% css_fonts.size_small %]
+}
 table.result_holdings_table thead tr {
     background-color: [% css_colors.table_heading %];
 }
 table.result_holdings_table thead tr th {
     font-weight: bold;
+}
+table.result_holdings_table tr{
+    display: table;
+}
+table.result_holdings_table thead{
+    display: block;
 }
 span.preflib {
     margin: 0 2em 0 2em;
@@ -2589,6 +2645,7 @@ a.preflib_change {
 
 .record_title {
     font-weight: bold;
+    padding-left: 0.3em;
 }
 
 .record_author {
@@ -2780,6 +2837,7 @@ a.preflib_change {
         display: none;
     }
     .facet_sidebar_visible, .result_block_visible {
+        margin-left: 0;
         display: inline ! important;
     }
     #acct_select, #acct_prefs_select {
@@ -2799,12 +2857,24 @@ a.preflib_change {
         font-size: [% css_fonts.size_big %];
     }
     
+    .opac-button-header {
+        margin: 0.2em;
+    }
+    
     span .nav_arrow_fix {
         display: none;
     }
     #header {
         padding: 0px;
         margin: 0px;
+        display: flex;
+        flex-direction: column;
+    }
+    #header-login-wrapper {
+        margin: 0;
+        margin-top: 0.6em;
+        width: 100VW;
+        text-align: center;        
     }
     #homesearch_main_logo img {
         width:100%;
@@ -2817,7 +2887,6 @@ a.preflib_change {
         padding-top: 5px;
     }
     #your-acct-login a {
-        margin: 0px;
         padding: 5px;
     }
     #topnav_logo {
@@ -2835,6 +2904,9 @@ a.preflib_change {
     }
     #simple-detail-view-links {
         display: none;
+    }
+    #your-acct-login{
+        margin: auto;
     }
     #acct_tabs a, #acct_fines_tabs a {
        [% IF rtl == 't' -%]
@@ -2968,19 +3040,42 @@ a.preflib_change {
         float:right;
         [% END -%]
     }
+    #header-branch p{
+    font-size: [% css_fonts.size_biggest %];
+    }
+    #dash_user{
+        text-align:center;
+    }
     #dash_wrapper div {
         background-color: transparent;
         padding: 0px;
     }
     #dash_wrapper {
-        position: static;
-        top: auto;
+        margin: auto;
+        text-align: center;
+        width: 100%;
+        background-color: [% css_colors.accent_darker %]F7;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
     }
     #dash_wrapper .opac-button {
         top: 0px;
+        margin: 0.2em;
+        text-align: center;
+    }
+    #dash_button_wrapper{
+        display:inline-flex;
+        flex-wrap: wrap;
+        justify-content: center;
     }
     .small_view_only, #filter_hits {
-        display: inline !important;
+        display: inline-block !important;
+        margin: auto;
+    }
+
+    .dash-align{
+    margin-left: 0.2em;
+    margin-right: 0.2em;
     }
     #dash_identity a {
         [% IF rtl == 't' -%]
@@ -2989,8 +3084,9 @@ a.preflib_change {
         float:left;
         [% END -%]
     }
-    #dashboard, #dashboard_e {
-        display: none;
+    #dashboard, #dashboard_e:not(.hidden) {
+        display:inline-flex;
+ 
     }
     #holds_box form blockquote {
         [% IF rtl == 't' -%]
@@ -3013,11 +3109,34 @@ a.preflib_change {
     #list_description, #list_create_name {
         width: 170px;
     }
+    #results_header_inner{
+    display: flex;
+    }
+    .refine_search{
+    display: flex !important;
+    align-content: center;
+    align-items: center;
+    }
+    .results_header_btns {
+    float: none;
+    text-align: center;
+    }
     .results_header_lbl {
         display: none;
     }
     .results_header_nav1 span.h1 {
         display: none;
+    }
+    .results_header_nav1 {
+    padding: 5px 0px 6px 0px;
+    }
+    .results_header_nav1 nav {
+    display: inline-flex;
+    width: 100%;
+    font-size: [% css_fonts.size_big %];
+    }
+    .results_header_nav1 nav ul{
+        margin: auto;
     }
     #record_basket {
         margin-left: auto;
@@ -3049,7 +3168,6 @@ a.preflib_change {
         padding-left: 0px !important;
         padding-right: 5px;
         [% END -%]
-        width: 0px !important;
         margin: 0px;
     }
     div.format_label{
@@ -3116,6 +3234,7 @@ a.preflib_change {
     #search-wrapper #search-box {
         width: 85%;
         padding-top: 5px;
+        padding-bottom: 5px;
         display:flex;
         flex-flow: row wrap;
     }
@@ -3159,6 +3278,7 @@ a.preflib_change {
     }
     .result_metadata {
         width: inherit;
+        padding-right: 0.6em;
     }
     div#rdetail_actions_div {
         float: none;
@@ -3203,7 +3323,16 @@ a.preflib_change {
     .dash_account_buttons {
         display: block;
     } 
-    .searchbar { line-height: 1.5em; }
+    
+    .searchbar { 
+    line-height: 1.5em;
+    margin-left: 0;
+    align-items: center;
+    justify-content: center;
+    display:flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    }
     #browse-controls { line-height: 1.5em; }
     #search_query_label, #search_qtype_label, #search_itype_label, #search_locg_label {
         display: block;
@@ -3240,15 +3369,8 @@ a.preflib_change {
                 display: block;
         }
 
-        /* Hide table headers (but not display: none;, for accessibility) */
         thead tr {
-                position: absolute;
-                top: -9999px;
-                [% IF rtl == 't' -%]
-                right: -9999px;
-                [% ELSE -%]
-                left: -9999px;
-                [% END -%]
+
         }
 
         table#acct_checked_main_header, table#acct_holds_main_header, table#acct_checked_hist_header, table#acct_holds_hist_header, table#ebook_circs_main_table, table#ebook_holds_main_table, table#acct_reservations_main_header {

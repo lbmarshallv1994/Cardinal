@@ -104,6 +104,7 @@ END;
                 l('Refine Search')
             %]</a></span>
         [% END %]
+        </span>
         [%- IF took_care_of_form && !search.no_highlight %]
         <div style="display: inline-block;">
         <label for="no_highlight">
@@ -113,8 +114,7 @@ END;
               onchange="search_modifier_onchange('no_highlight', this, true)"
               [% CGI.param('no_highlight').size ? ' checked="checked"' : '' %] />
         </div>
-        [%- END %]
-      </span>
+        [%- END %]    
     </div>
     [% IF ctx.bookbag %]
     <div id="search-only-bookbag-container">
@@ -161,7 +161,7 @@ END;
     [% END %]
     [% IF fcount > 0 %]
       <div class="refine_search result_block_visible">
-        <span id="filter_hits">[ <a href="#" onclick="getAdvLimits();return false;">[% l('[quant,_1,filter,filters] applied', fcount) %]</a> ]</span>
+        <div id="filter_hits">[ <a href="#" onclick="getAdvLimits();return false;">[% l('[quant,_1,filter,filters] applied', fcount) %]</a> ]</div>
       </div>
     [% END %]
     [% IF ctx.query_struct.filters.size > 0 %]

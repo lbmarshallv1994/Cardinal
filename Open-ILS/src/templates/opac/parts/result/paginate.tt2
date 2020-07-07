@@ -16,16 +16,16 @@
                 </span>
     </span>
     [%- INCLUDE "opac/parts/pref_lib_display.tt2" %]
-    <span>
-                <span class='start_end_links_span'>
-
-                    [%- class = 'search_page_nav_link';
+    
+                <nav aria-label="search navigation">
+                    <ul class="pagination">
+                    [%- class = 'page-link';
                         href = '#';
                         IF page > 0;
                             href = mkurl('', {page => page - 1});
                     -%]
-                    <a class='[% class %]' href='[% href %]' 
-                        title='[% l("Previous page") %]'><span class="nav_arrow_fix">&#9668;</span> [% l('Previous') %] </a>
+                    <li class="page-item"><a class='[% class %]' href='[% href %]' 
+                        title='[% l("Previous page") %]'><span aria-hidden="true">&laquo;</span></a></li>
                     [%- END;
 
                         # show links to 4 previous pages, the current page, and 3 more pages.
@@ -33,31 +33,35 @@
                         pageitr = page - 5; 
                         IF page_count > 1; # no need to paginate 1 page
                     -%]
-                    <span class='results-paginator-list'>
+                    
                     [%-
                                 WHILE (pageitr = pageitr + 1) < page_count;
                                     IF pageitr < 0; NEXT; END;
                                     IF pageitr == page; %]
-                                        <span class='results-paginator-selected'>[% pageitr + 1%]</span>
+                                        <li class="page-item active"><a class="page-link" href="[% mkurl('', {page => pageitr}) %]">[% pageitr + 1%]</a></li>
                                     [% ELSE %]
-                                        <a href="[% mkurl('', {page => pageitr}) %]">[% pageitr + 1%]</a>
+                                        <li class="page-item"><a class="page-link" href="[% mkurl('', {page => pageitr}) %]">[% pageitr + 1%]</a></li>
                                 [%  END;
                                     added = added + 1;
                                     IF added == 8; LAST; END;
                                 END;
                     -%]
-                    </span>
+                    
                     [%- END;
 
-                        class = 'search_page_nav_link';
+                        class = 'page-link';
                         href = '#';
                         IF (page + 1) < page_count;
                             href = mkurl('', {page => page + 1});
                     -%]
+                    <li class="page-item">
                     <a class='[% class %]' href='[% href %]' 
-                        title='[% l("Next page") %]'> [% l('Next') %] <span class="nav_arrow_fix">&#9658;</span></a>
+                        title='[% l("Next page") %]'><span aria-hidden="true">&raquo;</span></a>
+                    </li>
                     [%- END; -%]
-                </span>
+                    </ul>
+                    </nav>
+                
     </span>
 </div>
 [% END %]
