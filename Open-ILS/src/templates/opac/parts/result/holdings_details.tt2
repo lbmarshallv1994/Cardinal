@@ -1,0 +1,28 @@
+<table title="[% l('Record Holdings Details') %]"
+                                                                           class='result_holdings_table'>
+                                                                        <thead><tr>
+                                                                            <th>[% l('Library') %]</th>
+                                                                            <th>[% l('Shelving location') %]</th>
+                                                                            <th>[% l('Call number') %]</th>
+                                                                            [%- IF has_parts == 'true'; %]
+                                                                            <th>[% l('Part') %]</th>
+                                                                            [%- END %]
+                                                                            <th>[% l('Status') %]</th>
+                                                                        </tr></thead>
+                                                                        <tbody>
+                                                                [% FOR copy IN args.holdings %]
+                                                                        <tr>
+                                                                            <td>
+[%- copy_info = copy;
+    INCLUDE "opac/parts/library_name_link.tt2"; %]
+                                                                            </td>
+                                                                            <td>[% copy.location | html %]</td>
+                                                                            <td>[% copy.label | html %]</td>
+                                                                            [%- IF has_parts == 'true'; %]
+                                                                            <td>[% copy.part_label %]</td>
+                                                                            [%- END %]
+                                                                            <td>[% copy.status | html %]</td>
+                                                                        </tr>
+                                                                [% END %]
+                                                                        </tbody>
+                                                                    </table>

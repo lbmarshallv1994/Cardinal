@@ -187,6 +187,70 @@ div.select-box-wrapper {
     display:inline-block;
 }
 
+.label {
+    min-width: 2em;
+    min-height: 2em;
+    padding: .5em!important;
+    line-height: 1em;
+    text-align: center;
+    border-radius: 500rem;
+    background-color: [% css_colors.primary %] !important;
+    border-color: [% css_colors.primary %] !important;
+    color: #fff!important;   
+    display: inline-block;
+    vertical-align: baseline;
+    margin: 0 .14285714em;
+    background-image: none;
+    text-transform: none;
+    font-weight: 700;
+    border: 0 solid transparent;
+    -webkit-transition: background .1s ease;
+    transition: background .1s ease;
+}
+
+[class*="top left attached"].label {
+    width: auto;
+    margin-top: 0!important;
+    border-radius: .21428571rem 0 .28571429rem 0;
+}
+.attached.label, [class*="top attached"].label {
+    width: auto;
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 0;
+    padding: .75em 1em;
+}
+
+.corner.label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    border-color: [% css_colors.primary %];
+    width: 4em;
+    height: 4em;
+    z-index: 1;
+    background-color: transparent!important;
+    -webkit-transition: border-color .1s ease;
+    transition: border-color .1s ease;
+}
+
+.left.corner.label, .left.corner.label:after {
+    right: auto;
+    left: 0;
+}
+
+.left.corner.label:after {
+    border-top: 4em solid transparent;
+    border-right: 4em solid transparent;
+    border-bottom: 0 solid transparent;
+    border-left: 0 solid transparent;
+    border-top-color: inherit;
+}
+
 #dashboard, #dashboard_e {
     margin-top: 0.25em;
     margin-bottom: 0.25em;
@@ -1076,6 +1140,17 @@ collapse correctly when the window width decreases */
 #result_table_div {
     margin-top: 1em;
 }
+.result_table_pic_header{
+    position: relative;
+    max-width: 96px;
+}
+
+.result_table_pic_header a{
+    margin: auto;
+    display: table;
+    padding-top: 0.5em;
+    margin-top: 1em;
+}
 
 tr.result_table_row > td.results_row_count,
 tr.result_table_row > td.result_table_pic_header,
@@ -1247,6 +1322,9 @@ div.result_table_utils_cont {
     [% ELSE -%]
     padding-right: 10px;
     [% END-%]
+}
+.results_info_table{
+   width: 100%;
 }
 
 #myopac_holds_main_table {
@@ -3186,6 +3264,9 @@ a.preflib_change {
     tr.result_table_title_cell[name=bib_cn_list] .result_holdings_table th:nth-child(4),
     tr.result_table_title_cell[name=bib_cn_list] .result_holdings_table td:nth-child(4) {
         display:none;
+    }
+    table.result_holdings_table td, table.result_holdings_table th {
+    width: 25vw;
     }
     .results_info_table td {
         padding: 0px;

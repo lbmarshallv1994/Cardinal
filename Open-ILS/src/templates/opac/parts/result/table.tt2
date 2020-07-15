@@ -106,13 +106,10 @@
                                             <td>
                                             <div class="result_flex_grid" >
                                             <div class="result_flex_row">
-                                            <div class="results_row_count" name="results_row_count">
-                                                [% IF !ctx.is_meta; %]
-
-                                                [% END %]
-                                                [% result_count; result_count = result_count + 1 %].
-                                            </div>
                                             <div class='result_table_pic_header'>
+                                            <div class="top left attached label" name="results_row_count">
+                                                [% result_count; result_count = result_count + 1 %]
+                                            </div>
                                                 <a href="[% mkurl(record_url_path, add_parms, del_parms); %]">
                                                  <img alt="[% l('Book cover') %]"
                                                         name='item_jacket' class='result_table_pic'
@@ -217,7 +214,33 @@ END;
                                                         <span><strong>[% l('Popularity:') %]</strong> [% rec.popularity %] / 5.0</span>
                                                       </div>
                                                     [% END %]
-                                                    <table 
+
+                                                    [% 
+                                                        IF ebook_api.enabled == 'true';
+                                                            INCLUDE "opac/parts/ebook_api/avail.tt2";
+                                                        END;
+                                                    %]
+                                                    [% UNLESS rec.mmr_id;
+                                                            PROCESS "opac/parts/result/copy_counts.tt2";
+                                                        END; %]
+                                                    [% IF rec.user_circulated %]
+                                                    <div class="result_item_circulated">
+                                                        <img src="[% ctx.media_prefix %]/images/green_check.png[% ctx.cache_key %]" alt="[% l('Checked Out Before') %]"/>
+                                                        <span>[% l('I have checked this item out before') %]</span>
+                                                    </div>
+                                                    [% END %]
+                                                    [% IF ctx.bookbag;
+                                                        rec_id = rec.id;
+                                                        FOR note IN ctx.bookbag_items_by_bre_id.$rec_id.notes %]
+                                                    <div class="result-bookbag-item-note">
+                                                        [% note.note | html %]
+                                                    </div>
+                                                        [% END %]
+                                                    [% END %]
+                                                </div>
+
+                                            <br>
+                                               <table 
                                                        role="presentation"
                                                        title="[% l('Record Holdings Summary') %]"
                                                        class="table_no_border_space table_no_cell_pad table_no_border results_info_table">
@@ -363,7 +386,13 @@ END;
                                                             </tr>
                                                             [% END %]
                                                          [% END %]
-                                                            [%- IF args.holdings.size > 0;
+
+                                                        [% END %] <!-- END detail_record_view -->
+                                                    </table>
+                                                                                                </div>
+                                            </div>
+                                            <div class="result_flex_row">
+                                                                                                        [%- IF args.holdings.size > 0;
                                                                 FOREACH copy IN args.holdings;
                                                                     IF copy.part_label != '';
                                                                         has_parts = 'true';
@@ -371,67 +400,10 @@ END;
                                                                     END;
                                                                 END;
                                                             %]
-                                                            <tr name='bib_cn_list' class='result_table_title_cell'>
-                                                                <td colspan='2'>
-                                                                    <table title="[% l('Record Holdings Details') %]"
-                                                                           class='result_holdings_table'>
-                                                                        <thead><tr>
-                                                                            <th>[% l('Library') %]</th>
-                                                                            <th>[% l('Shelving location') %]</th>
-                                                                            <th>[% l('Call number') %]</th>
-                                                                            [%- IF has_parts == 'true'; %]
-                                                                            <th>[% l('Part') %]</th>
-                                                                            [%- END %]
-                                                                            <th>[% l('Status') %]</th>
-                                                                        </tr></thead>
-                                                                        <tbody>
-                                                                [% FOR copy IN args.holdings %]
-                                                                        <tr>
-                                                                            <td>
-[%- copy_info = copy;
-    INCLUDE "opac/parts/library_name_link.tt2"; %]
-                                                                            </td>
-                                                                            <td>[% copy.location | html %]</td>
-                                                                            <td>[% copy.label | html %]</td>
-                                                                            [%- IF has_parts == 'true'; %]
-                                                                            <td>[% copy.part_label %]</td>
-                                                                            [%- END %]
-                                                                            <td>[% copy.status | html %]</td>
-                                                                        </tr>
-                                                                [% END %]
-                                                                        </tbody>
-                                                                    </table>
-                                                                </td>
-                                                            </tr>
+                                                            [% PROCESS "opac/parts/result/holdings_details.tt2" %] 
                                                             [%- has_parts = 'false';
                                                                 END;
                                                              %]
-                                                        [% END %] <!-- END detail_record_view -->
-                                                    </table>
-                                                    [% 
-                                                        IF ebook_api.enabled == 'true';
-                                                            INCLUDE "opac/parts/ebook_api/avail.tt2";
-                                                        END;
-                                                    %]
-                                                    [% UNLESS rec.mmr_id;
-                                                            PROCESS "opac/parts/result/copy_counts.tt2";
-                                                        END; %]
-                                                    [% IF rec.user_circulated %]
-                                                    <div class="result_item_circulated">
-                                                        <img src="[% ctx.media_prefix %]/images/green_check.png[% ctx.cache_key %]" alt="[% l('Checked Out Before') %]"/>
-                                                        <span>[% l('I have checked this item out before') %]</span>
-                                                    </div>
-                                                    [% END %]
-                                                    [% IF ctx.bookbag;
-                                                        rec_id = rec.id;
-                                                        FOR note IN ctx.bookbag_items_by_bre_id.$rec_id.notes %]
-                                                    <div class="result-bookbag-item-note">
-                                                        [% note.note | html %]
-                                                    </div>
-                                                        [% END %]
-                                                    [% END %]
-                                                </div>
-                                            </div>
                                             </div>
                                             <div class="result_flex_row">
                                                                                             <div class="result_table_utils_cont">
