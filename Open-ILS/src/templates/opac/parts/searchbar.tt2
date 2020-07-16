@@ -28,7 +28,6 @@ END;
     ctx.query_struct.filters = trimmed_filters;
 
  %]
-
 <div id="search-wrapper">
 [%- INCLUDE "opac/parts/searchnav.tt2" -%]
     [% UNLESS took_care_of_form -%]
@@ -91,13 +90,13 @@ END;
               id='search_org_selector' show_loc_groups=1
         -%]
         </label>
-      <span>
+      <span id="search_bar_submit_buttons" >
         <input id="detail" type="hidden" name="detail_record_view" value="[% show_detail_view %]"/>
         <input id='search-submit-go' type="submit" value="[% l('Search') %]" class="opac-button"
-            onclick='setTimeout(function(){$("search-submit-spinner").className=""; $("search-submit-go").className="hidden";[% IF ctx.depth_sel_button AND NOT took_care_of_form %] $("search-submit-go-depth").className="hidden";$("homesearch_main_logo").className="hidden"[% END %]}, 1)'/>
+            onclick='setTimeout(hideSearchButtons, 1)'/>
         [%- IF ctx.depth_sel_button AND NOT took_care_of_form %]
         <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
-            onclick='setTimeout(function(){$("search-submit-spinner").className=""; $("search-submit-go").className="hidden"; $("search-submit-go-depth").className="hidden";}, 2000)' title="[% ctx.depth_sel_tooltip | html %]">[% ctx.depth_sel_button_label | html %]</button>
+            onclick='setTimeout(hideSearchButtons,1)' title="[% ctx.depth_sel_tooltip | html %]">[% ctx.depth_sel_button_label | html %]</button>
         [%- END %]
         [% IF (is_advanced AND NOT is_special) AND CGI.param('qtype') %]
             <span id="refine_search_link" ><a class="opac-button" href="[% mkurl(ctx.opac_root _ '/advanced') %]">[%
@@ -105,6 +104,7 @@ END;
             %]</a></span>
         [% END %]
         </span>
+        <img id='search-bar-submit-spinner' src='[% ctx.media_prefix %]/opac/images/progressbar_green.gif[% ctx.cache_key %]' style='height:16px;width:16px;margin:auto;' class='hidden' alt='[% l("Search In Progress") %]'/>
         [%- IF took_care_of_form && !search.no_highlight %]
         <div style="display: inline-block;">
         <label for="no_highlight">
@@ -176,6 +176,26 @@ END;
     [% END %]
 
     <script>
+    function hideSearchButtons(){
+       
+        $("search_bar_submit_buttons").className="hidden";
+        [% IF ctx.depth_sel_button AND NOT took_care_of_form %] 
+        $("search-submit-go-depth").className="hidden";
+        var logo = $("homesearch_main_logo");
+        if(logo){
+            logo.className="hidden";
+        }
+        [% END %]
+        var logoSpinner = $("search-submit-spinner"); 
+        var barSpinner = $("search-bar-submit-spinner");
+        if(logoSpinner){
+            logoSpinner.className = "";
+        }
+        if(barSpinner){
+            barSpinner.className = "";
+        }
+    }
+    
     function getAdvLimits() {
         var AdvLimitsClass = document.getElementById('adv_filter_results_block').classList;
         if (AdvLimitsClass.contains("adv_filter_results_hide")) {

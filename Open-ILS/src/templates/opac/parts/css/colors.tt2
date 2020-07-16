@@ -36,6 +36,7 @@
         table_heading = "#d8d8d8", # grey-blue
         mobile_header_text = "#fff", # white
         item_selected = "#ddd", # grey (lighter)
+        result_selected = "#d8ebed", # light blue
     };
     
 %]

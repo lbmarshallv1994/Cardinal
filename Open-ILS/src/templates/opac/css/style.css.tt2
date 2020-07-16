@@ -1142,7 +1142,7 @@ collapse correctly when the window width decreases */
 }
 .result_table_pic_header{
     position: relative;
-    max-width: 96px;
+    width: 120px;
 }
 
 .result_table_pic_header a{
@@ -1150,6 +1150,12 @@ collapse correctly when the window width decreases */
     display: table;
     padding-top: 0.5em;
     margin-top: 1em;
+    display: flex;
+}
+
+.result_table_pic_header a img{
+max-width: 90%;
+margin: auto;
 }
 
 tr.result_table_row > td.results_row_count,
@@ -1159,7 +1165,7 @@ tr.result_table_row > td.result_table_title_cell {
 }
 
 div.format_icon img, img.format_icon {
-    width: 48px;
+    width: 60px;
 }
 
 .result_metadata {
@@ -1194,7 +1200,7 @@ tr.result_table_row .result_flex_row{
 
 /* styles for selecting records in the results set */
 .result_table_row_selected {
-    background-color: [% css_colors.item_selected %];
+    background-color: [% css_colors.result_selected %];
 }
 #selected_records_summary, #clear_basket {
     margin-left: 5em;
@@ -2536,6 +2542,7 @@ table.bookbag-specific {
 table.result_holdings_table {
     margin-top: 1em;
     margin-bottom: 1em;
+    margin-left: 1em;
 }
 
 table.result_holdings_table tbody{
@@ -2557,7 +2564,7 @@ table.result_holdings_table tbody::-webkit-scrollbar-thumb {
 }
 
 table.result_holdings_table td,  table.result_holdings_table th{
-    width: 120px;
+    width: 190px;
     word-break: break-word;
     font-size: [% css_fonts.size_small %]
 }
@@ -2862,8 +2869,9 @@ a.preflib_change {
 }
 
 .result_table_title_cell {
-    padding-top: 4px;
-    padding-bottom: 4px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    padding-left: 2rem;
 }
 
 .result_table_format_cell {
@@ -3254,7 +3262,6 @@ a.preflib_change {
     
     }
     .result_table_pic {
-        width: 55px;
         padding: 0px;
         margin: 0px;
     }
@@ -3267,6 +3274,9 @@ a.preflib_change {
     }
     table.result_holdings_table td, table.result_holdings_table th {
     width: 25vw;
+    }
+    table.result_holdings_table{
+    margin-left: 0em;
     }
     .results_info_table td {
         padding: 0px;
