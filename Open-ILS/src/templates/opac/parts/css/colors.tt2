@@ -13,8 +13,11 @@
         text_greatnews = "green", # green
         text_invert = "#ffffff", # white
         text_match = "#c00c00", # deep red
+        text_input = "#495057", # dark grey
         primary = "#00593d", # dark green
-        primary_fade = "#007a54", # medium green
+        primary_alert = "#590000", # dark red
+        primary_fade = "#007a54", # medium green 
+        primary_fade_alert = "#b31919", # medium red
         primary_offset = "#e0f6e0", # light_green
         control = "#69A088", # lighter green
         accent_light = "#cccccc", #  grey (light)
@@ -26,6 +29,7 @@
         accent_mediumdark = "#888888", # gun metal grey (medium dark)
         accent_dark = "#666666", # gun metal grey (dark)
         accent_darker = "#333333", # gun metal grey (darker)
+        border_input = "#ced4da", # light grey
         border_standard = "#e9ebf3", # light grey-blue
         border_dark = "black", # black
         border_alert = "red", # red

@@ -35,6 +35,7 @@
     # Wait until these are used to pass them through l() for i18n.
 
     EVENT_MSG_MAP = {
-        "PATRON_EXCEEDS_FINES" => l("Patron has reached the maximum fine amount")
+        "PATRON_EXCEEDS_FINES" => l("Patron has reached the maximum fine amount"),
+        "PATRON_EXCEEDS_CHECKOUT_COUNT" => l("Patron has reached the maximum number of items checked out")
     };
 %]

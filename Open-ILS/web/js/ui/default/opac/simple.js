@@ -54,9 +54,17 @@ window.addSearchRow = addSearchRow;
 window.addExpertRow = addExpertRow;
 })($);
 function killRowIfAtLeast(min, link) {
-    var row = link.parentNode.parentNode;
-    if (row.parentNode.getElementsByTagName("tr").length > min)
-        row.parentNode.removeChild(row);
+    var row = link;
+    var tbody = link;
+    while(row.tagName != 'TR'){
+        row = row.parentNode;
+        console.log(row.tagName);
+    }
+    while(tbody.tagName != 'TBODY'){
+        tbody = tbody.parentNode;
+    }
+    if (tbody.getElementsByTagName("tr").length > min)
+        tbody.removeChild(row);
     return false;
 }
 function print_node(node_id) {

@@ -50,8 +50,10 @@ body {
      * but leave some narrow gutters along the side, much 
      * narrower than the default Bootstrapp container gutters.
      */
-    width: 95%;
+    width: 100%;
     padding-top: 70px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 

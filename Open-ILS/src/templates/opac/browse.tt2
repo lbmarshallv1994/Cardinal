@@ -28,13 +28,13 @@
     END;
 %]
 
-    <h2 class="sr-only">[% l('Catalog Browse') %]</h2>
+    [%- INCLUDE "opac/parts/searchnav.tt2" -%]
     <div id="search-wrapper">
         [%# XXX TODO Give searchbar.tt2 more smarts so we can just do:
           # INCLUDE "opac/parts/searchbar.tt2" %]
-                    [%- INCLUDE "opac/parts/searchnav.tt2" -%]
+                   
                         <div id="browse-controls" class='searchbar'>
-                    <form method="get" onsubmit="$('browse-submit-spinner').className = ''; return true">
+                    <form class="pc-only" method="get" onsubmit="$('browse-submit-spinner').className = ''; return true">
                         <input type="hidden" name="blimit"
                             value="[% blimit | html %]" />
 
@@ -43,11 +43,35 @@
 
                         [% control_bterm = BLOCK %]<input type="text" name="bterm" id="browse-term"
                             aria-label="[% l('Browse term') %]"
-                            value="[% CGI.param('bterm') | html %]" />[% END %]
+                            value="[% CGI.param('bterm') | html %]" class="form-control" />[% END %]
                         [% control_locg = INCLUDE build_org_selector id='browse-context'
                             show_loc_groups=1
                             arialabel=l('Select holding library') %]
                         [% l('Browse for [_1] starting with [_2] in [_3]', control_qtype, control_bterm, control_locg) %]
+
+			<input id='search-submit-go' type="submit" value="[% l('Browse') %]" alt="[% l('Browse') %]" class="opac-button"/>
+                        <img id="browse-submit-spinner" 
+                        src="[% ctx.media_prefix %]/opac/images/progressbar_green.gif[% ctx.cache_key %]"
+                        class="hidden" style="width: 16px; height: 16px;" 
+                        alt="[% l('Search in progress icon') %]" />
+                    </form>
+                        <form class="mobile-only" method="get" onsubmit="$('browse-submit-spinner').className = ''; return true">
+                        <input type="hidden" name="blimit"
+                            value="[% blimit | html %]" />
+
+                        [% control_qtype = INCLUDE "opac/parts/qtype_selector.tt2"
+                            id="browse-search-class" browse_only=1 plural=1 %]
+
+                        [% control_bterm = BLOCK %]<input class="form-control" type="text" name="bterm" id="browse-term"
+                            aria-label="[% l('Browse term') %]"
+                            value="[% CGI.param('bterm') | html %]" />[% END %]
+                        [% control_locg = INCLUDE build_org_selector id='browse-context'
+                            show_loc_groups=1
+                            arialabel=l('Select holding library') %]
+
+                        <div>Browse for [% control_qtype %]</div>
+                        <div>Starting with [% control_bterm %]</div>
+                        <div>In [% control_locg %]</div>
 
 			<input id='search-submit-go' type="submit" value="[% l('Browse') %]" alt="[% l('Browse') %]" class="opac-button"/>
                         <img id="browse-submit-spinner" 

@@ -7,36 +7,34 @@
 
     ctx.metalinks.push('<meta name="robots" content="noindex,follow">');
 -%]
-    <h2 class="sr-only">[% l('Advanced Search') %]</h2>
-    <div id="search-wrapper">
-        [%- INCLUDE "opac/parts/searchnav.tt2" -%]
-
-    </div>
+    [%- INCLUDE "opac/parts/searchnav.tt2" -%]
     <div id="content-wrapper">
         <div id="adv_search_parent">
-            <div id="adv_search_tabs">
-                <a href="[% mkurl('', {pane => 'advanced'}) %]"
-                    [% IF pane == 'advanced' %]class="on" [% END %]
-                    id="adv_search">[% l('Advanced Search') %]</a>
-                <a href="[% mkurl('', {pane => 'numeric'}) %]"
-                    [% IF pane == 'numeric' %]class="on" [% END %]
-                    id="num_search">[% l('Numeric Search') %]</a>
-                <a href="[% mkurl('', {pane => 'expert'}) %]"
-                    [% IF pane == 'expert' %]class="on" [% END %]
-                    id="expert_search">[% l('Expert Search') %]</a>
-            </div>
+
+            <ul class="nav nav-tabs" id="adv_search_tabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <a class="nav-link active" id="advanced-tab" data-toggle="tab" href="#advanced-pane" role="tab" aria-controls="advanced-pane" aria-selected="true">Advanced Search</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="numeric-tab" data-toggle="tab" href="#numeric-pane" role="tab" aria-controls="numeric-pane" aria-selected="false">Numeric Search</a>
+          </li>
+          <li class="nav-item" role="presentation">
+            <a class="nav-link" id="expert-tab" data-toggle="tab" href="#expert-pane" role="tab" aria-controls="expert-pane" aria-selected="false">Expert Search</a>
+          </li>
+        </ul>
         </div>
         <div id="main-content">
-            <div class="advanced_div">
-            [% IF pane == 'advanced' %]
-            [% INCLUDE "opac/parts/advanced/search.tt2" %]
-            [% ELSIF pane == 'numeric' %]
-            [% INCLUDE "opac/parts/advanced/numeric.tt2" %]
-            [% ELSIF pane == 'expert' %]
-            [% INCLUDE "opac/parts/advanced/expert.tt2" %]
-            [% END %]
-            </div>
-            <div class="common-full-pad"></div>	
+        <div class="tab-content" id="myTabContent">
+          <div class="tab-pane fade show active" id="advanced-pane" role="tabpanel" aria-labelledby="advanced-tab">
+          [% INCLUDE "opac/parts/advanced/search.tt2" %]
+          </div>
+          <div class="tab-pane fade" id="numeric-pane" role="tabpanel" aria-labelledby="numeric-tab">
+          [% INCLUDE "opac/parts/advanced/numeric.tt2" %]
+          </div>
+          <div class="tab-pane fade" id="expert-pane" role="tabpanel" aria-labelledby="expert-tab">
+          [% INCLUDE "opac/parts/advanced/expert.tt2" %]
+          </div>
+        </div>
         </div>
     </div>
 [% END %]

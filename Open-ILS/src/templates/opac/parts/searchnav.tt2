@@ -1,20 +1,24 @@
-<h2 id="search-box-title"> [% l('Search The Catalog') %] </h2>
-<div id="search-box">
-    <span class="search_catalog_lbl">
-    [%- IF ctx.page == "home" OR ctx.page == "rresult"  -%]
-    &#x25BA;
-    [%- END -%]
-    <a href="[% mkurl(ctx.opac_root _ '/home', {}, depart_list) %]">[% l('Basic') %]</a></span>
-    <span class="adv_search_catalog_lbl">
-    [%- IF ctx.page == "advanced" -%]
-    &#x25BA;
-    [%- END -%]
-    <a href="[% mkurl(ctx.opac_root _ '/advanced', {}, depart_list) %]"
-            id="home_adv_search_link">[%l('Advanced')%]</a></span>      
-    <span class="browse_the_catalog_lbl">
-    [%- IF ctx.page == "browse" -%]
-    &#x25BA;
-    [%- END -%]
-    <a href="[% mkurl(ctx.opac_root _ '/browse', {}, expert_search_parms.merge(general_search_parms, facet_search_parms, ['fi:has_browse_entry'])) %]">[% l('Browse') %]</a></span>
-    [% INCLUDE 'opac/parts/cart.tt2' %]
+<div id="search-nav-wrapper">
+    <h2 id="search-box-title"> [% l('Search The Catalog') %] </h2>
+    <div id="search-box">
+        <div id="search-nav-links">
+            <span class="search_catalog_lbl">
+            [%- IF ctx.page == "home" OR ctx.page == "rresult"  -%]
+            &#x25BA;
+            [%- END -%]
+            <a href="[% mkurl(ctx.opac_root _ '/home', {}, depart_list) %]">[% l('Basic') %]</a></span>
+            <span class="adv_search_catalog_lbl">
+            [%- IF ctx.page == "advanced" -%]
+            &#x25BA;
+            [%- END -%]
+            <a href="[% mkurl(ctx.opac_root _ '/advanced', {}, depart_list) %]"
+                    id="home_adv_search_link">[%l('Advanced')%]</a></span>      
+            <span class="browse_the_catalog_lbl">
+            [%- IF ctx.page == "browse" -%]
+            &#x25BA;
+            [%- END -%]
+            <a href="[% mkurl(ctx.opac_root _ '/browse', {}, expert_search_parms.merge(general_search_parms, facet_search_parms, ['fi:has_browse_entry'])) %]">[% l('Browse') %]</a></span>
+        </div>
+        [% INCLUDE 'opac/parts/cart.tt2' %]
+    </div>
 </div>

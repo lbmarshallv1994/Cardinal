@@ -16,15 +16,94 @@
 
     <!-- new list creation -->
     <form action="[% mkurl(ctx.opac_root _ '/myopac/list/update') %]" method="post" id="create_form">
+        <div class="opac-menu">
         <h1>[% l('Create New List') %]</h1><a name="createnewlist"></a>
-        <table class="table_no_cell_pad" id="list_create_table">
+        <table class="mobile-only table_no_cell_pad">
+            <tr>
+                <td class="list_create_table_label">
+                    <label for="list_create_name">[% l('Enter the name of the new list:') %]</label>
+                </td>
+            </tr>
+            <tr>
+                <td class="list_create_table_label">
+                    [%- INCLUDE "opac/parts/preserve_params.tt2"; %]
+                    <input id="list_create_name" class="form-control" type="text" name="name" />
+                    <input type="hidden" name="action" value="create" />
+                    [% IF ctx.add_rec %]
+                    <input type="hidden" name="add_rec" value="[% ctx.add_rec %]" />
+                    [% END %]
+                    [% IF ctx.where_from %]
+                    <input type="hidden" name="where_from" value="[% ctx.where_from %]" />
+                    [% END %]
+                </td>
+            </tr>
+            <tr>
+                <td class="list_create_table_label">
+                    <label for="list_description">[% l("List description (optional):") %]</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <textarea class="form-control" name="description" id="list_description"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td class="list_create_table_label">
+                    <label for="list_create_shared">[% l('Share this list?') %]</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select class="form-control" name="shared" id="list_create_shared">
+                        <option value="0">[% l('No') %]
+                        <option value="1">[% l('Yes') %]
+                    </select>
+                    <a href="javascript:void(0);" 
+                        onclick="alert('[% bb_publish_text %]')">
+                        <img alt="[% l('Sharing Help') %]"
+                            [% html_text_attr('title', bb_publish_text) %]
+                            src="[% ctx.media_prefix %]/images/question-mark.png[% ctx.cache_key %]" />
+                    </a>
+                </td>
+            </tr>
+            [% IF ctx.mylist.size %]
+            <tr>
+                <td class="list_create_table_label">
+                    <label for="list_move_cart">[% l('Move contents of basket to this list?') %]</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <select name="move_cart" id="list_move_cart">
+                        <option value="0">[% l('No') %]
+                        <option value="1" [% IF CGI.param('move_cart_by_default') %]selected="selected"[% END%]>[% l('Yes') %]
+                    </select>
+                </td>
+            </tr>
+            [% END %]
+            <tr>
+                <td class="list-create-table-buttons" colspan="2">
+                    <input type="reset"
+                        value="[% l('Cancel') %]"
+                        alt="[% l('Cancel') %]"
+                        class="opac-button" />
+                    &nbsp;&nbsp;&nbsp;
+                    <input type="submit"
+                        value="[% l('Submit') %]"
+                        alt="[% l('Submit') %]"
+                        class="opac-button"/>
+                </td>
+            </tr>
+        </table>
+        
+        <table class="pc-only table_no_cell_pad" id="list_create_table">
             <tr>
                 <td class="list_create_table_label">
                     <label for="list_create_name">[% l('Enter the name of the new list:') %]</label>
                 </td>
                 <td>
                     [%- INCLUDE "opac/parts/preserve_params.tt2"; %]
-                    <input id="list_create_name" type="text" name="name" />
+                    <input id="list_create_name" class="form-control" type="text" name="name" />
                     <input type="hidden" name="action" value="create" />
                     [% IF ctx.add_rec %]
                     <input type="hidden" name="add_rec" value="[% ctx.add_rec %]" />
@@ -39,7 +118,7 @@
                     <label for="list_description">[% l("List description (optional):") %]</label>
                 </td>
                 <td>
-                    <textarea name="description" id="list_description"></textarea>
+                    <textarea class="form-control" name="description" id="list_description"></textarea>
                 </td>
             </tr>
             <tr>
@@ -47,7 +126,7 @@
                     <label for="list_create_shared">[% l('Share this list?') %]</label>
                 </td>
                 <td>
-                    <select name="shared" id="list_create_shared">
+                    <select class="form-control" name="shared" id="list_create_shared">
                         <option value="0">[% l('No') %]
                         <option value="1">[% l('Yes') %]
                     </select>
@@ -65,7 +144,7 @@
                     <label for="list_move_cart">[% l('Move contents of basket to this list?') %]</label>
                 </td>
                 <td>
-                    <select name="move_cart" id="list_move_cart">
+                    <select class="form-control" name="move_cart" id="list_move_cart">
                         <option value="0">[% l('No') %]
                         <option value="1" [% IF CGI.param('move_cart_by_default') %]selected="selected"[% END%]>[% l('Yes') %]
                     </select>
@@ -73,8 +152,7 @@
             </tr>
             [% END %]
             <tr>
-                <td>&nbsp;</td>
-                <td class="list-create-table-buttons">
+                <td class="list-create-table-buttons" colspan="2">
                     <input type="reset"
                         value="[% l('Cancel') %]"
                         alt="[% l('Cancel') %]"
@@ -87,6 +165,7 @@
                 </td>
             </tr>
         </table>
+        </div>
     </form>
 
     [% IF CGI.param('from_basket'); %]

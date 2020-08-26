@@ -6,7 +6,7 @@
 <h3 class="sr-only">[% l('Account Preferences') %]</h3>
 <div id="acct_info_main">
 
-    <table width='70%' title="[% l('Account preference') %]"
+    <table title="[% l('Account preference') %]"
         class='light_border data_grid'>
         <tbody id='myopac_summary_tbody'>
             <tr>

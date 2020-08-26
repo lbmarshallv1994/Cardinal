@@ -194,7 +194,7 @@ ctx.expand_awards = 1;
 
 # Set a maintenance message to display in the catalogue
 #
-ctx.maintenance_message = "Due to the Covid-19 Pandemic, all mini-pool rentals have been canceled. We apologize for your dryness.";
+#ctx.maintenance_message = "Due to the Covid-19 Pandemic, all mini-pool rentals have been canceled. We apologize for your dryness.";
 
 # Branch name that appears on top nav
 ctx.branch_name = "NC Cardinal";

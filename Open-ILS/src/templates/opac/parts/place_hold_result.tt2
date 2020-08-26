@@ -103,6 +103,7 @@ function disable_submit() {
                                 <div>
                                     <span class='hold-items-list-problem'>[% l('Problem:') %]</span>
                                     <span title="[% hdata.hold_failed_event.textcode | html %]">
+                                        <script>console.log("[% hdata.hold_failed_event.textcode %] [% hdata.hold_failed_event.payload.fail_part %]");</script>
                                         <em>[%
                                                 fail_part_key = hdata.hold_failed_event.payload.fail_part;
                                                 event_key = hdata.hold_failed_event.textcode;

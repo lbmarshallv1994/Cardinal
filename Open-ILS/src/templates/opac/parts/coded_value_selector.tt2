@@ -16,7 +16,7 @@
     IF size AND size < 1; size = all_values.size; END;
 -%]
 
-<select id='[% id %]' name='[% name %]'[%
+<select id='[% id %]' class='form-control' name='[% name %]'[%
     multiple ? ' multiple="multiple"' : '';
     size ? (' size="' _ size _ '"') : '';
 %] title="[% filter_label || l('Select item type:') %]">

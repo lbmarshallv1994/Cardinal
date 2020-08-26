@@ -1,12 +1,16 @@
 [% IF !ctx.is_staff %]
+[%- IF ctx.maintenance_message -%]
+<div id="maintenance_message">[% ctx.maintenance_message %]</div>
+[%- END -%]
 <div id="header-wrap">
 <div id="header">
     <div id="topnav_logo_wrapper">
         [% INCLUDE "opac/parts/topnav_logo.tt2" %]
-    </div>
-    [%- IF ctx.branch_name -%]
-    <div id="header-branch"><p>[% ctx.branch_name %]</p></div>
+            [%- IF ctx.branch_name -%]
+        <div id="header-branch"><p>[% ctx.branch_name %]</p></div>
     [%- END -%]
+    </div>
+
     [% INCLUDE "opac/parts/topnav_links.tt2" %]
     <div id="header-login-wrapper">
         [% IF !ctx.user %]
@@ -100,9 +104,7 @@
     <div class="common-no-pad"></div>
 </div>
 </div>
-[%- IF ctx.maintenance_message -%]
-<div id="maintenance_message">[% ctx.maintenance_message %]</div>
-[%- END -%]
+
 [%- ELSE -%]
     [%- IF ctx.maintenance_message -%]
     <div id="maintenance_message">[% ctx.maintenance_message %]</div>

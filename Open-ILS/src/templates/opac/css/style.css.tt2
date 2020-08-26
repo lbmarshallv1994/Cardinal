@@ -61,6 +61,28 @@ img {
     border: none;
 }
 
+input{
+    display: inline-block;
+}
+
+select{
+    display: inline-block;
+}
+
+.form-control{
+    display: inline-block;
+    width: auto;
+    border-color: [% css_colors.border_input %];
+    color: [% css_colors.text_input %];
+    font-size: [% css_fonts.size_base %];
+    margin-left: 0.1em;
+    margin-right: 0.1em;
+}
+
+.form-check-inline{
+    margin-right: 0;
+}
+
 #topnav_logo_wrapper{
     display: inline-flex;
     justify-content: center;
@@ -87,13 +109,17 @@ a {
     color: [% css_colors.primary %];
 }
 
+#search-nav-wrapper{
+    background-color: [% css_colors.background_menu %];
+    padding-bottom: 0.5em;
+    display: grid;
+}
+
 #search-wrapper input[type=text] {
-    margin:0;
     padding:0;
 }
 
 #search-wrapper select, .results_header_lbl select {
-    margin:0;
     padding:0;
     width: 12em;
 }
@@ -462,16 +488,15 @@ for now until a better color is picked - if needed.
     font-size: [% css_fonts.size_smaller %];
 }
 
-#search-wrapper #search-box {
+#search-box {
     [% IF rtl == 't' -%]
-    margin-right: 1em;
     padding-right: 0px;
     [%- ELSE %]
-    margin-left: 1em;
     padding-left: 0px;
     [%- END %]
     padding-top: 0px;
     padding-bottom: 0px;
+    align-items: center;
     display:flex;
     flex-flow: row wrap;
 }
@@ -488,7 +513,7 @@ for now until a better color is picked - if needed.
     [%- ELSE %]
     margin-left: 2px;
     [%- END %]
-    overflow: auto;
+    overflow: hidden;
 }
 
 #adv_search_tabs a, #acct_tabs a, #acct_fines_tabs a, #acct_checked_tabs a, #acct_holds_tabs a, #acct_prefs_tabs a {
@@ -529,21 +554,21 @@ for now until a better color is picked - if needed.
     border-bottom: none;
 }
 .adv_filter_block {
-    [% IF rtl == 't' -%]
-    float: right;
-    [%- ELSE %]
-    float: left;
-    [%- END %]
     padding: 15px;
     clear: both;
+    display:flex;
+    flex-wrap: wrap;
 }
 .adv_filter_block_item {
-    [% IF rtl == 't' -%]
-    float: right;
-    [%- ELSE %]
-    float: left;
-    [%- END %]
     padding: 5px;
+}
+
+.adv_global_row:first-of-type select[name="bool"]{
+display: none;
+}
+
+.adv_global_row div{
+display: inline-block;
 }
 
 #adv_special_block {
@@ -612,7 +637,13 @@ for now until a better color is picked - if needed.
 }
 
 #mobile_acct_search_links {
-      background-color: [% css_colors.primary_fade %];
+      background-color: [% css_colors.background_menu %];
+      color: [% css_colors.text %];
+      
+}
+
+#mobile_acct_search_links a{
+    color: [% css_colors.primary_fade %];
 }
 
 .rdetail_header {
@@ -689,12 +720,14 @@ div.rdetail_show_copies {
 
 div#rdetail_actions_div {
     background-color: [% css_colors.background %];
-    [% IF rtl == 't' -%]
-    float: left;
-    [%- ELSE %]
-    float: right;
-    [%- END %]
+    float: none;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
 }
+
 
 span#rdetail_copy_counts {
     display: inline-block;
@@ -732,28 +765,18 @@ span#rdetail_hold_counts p {
     [%- END %]
 }
 
-.rdetail_aux_utils {
-    padding-bottom: 6px;
-    [% IF rtl == 't' -%]
-    border-right: 1px dotted [% css_colors.accent_light %];
-    padding-right:17px;
-    padding-left:70px;
-    [%- ELSE %]
-    border-left:1px dotted [% css_colors.accent_light %];
-    padding-left: 17px;
-    padding-right: 70px;
-    [%- END %]
+#copy_hold_counts{
+padding-top: 1em;
 }
 
 div.place_hold {
-    padding-top: 10px;
+
 }
 
-div.toggle_list { padding-top: 6px; }
+div.toggle_list { }
 
 div.share_record {
-    padding-top: 6px;
-    border-top: 1px dotted [% css_colors.accent_light %];
+
 }
 
 div.format_icon {
@@ -791,6 +814,10 @@ div.format_icon {
 
 .metarecord_population_all {
     padding-top:10px;
+}
+
+tbody.copy_details_table{
+    background-color: [%- css_colors.background_menu -%];
 }
 
 .results_aux_utils {
@@ -931,7 +958,7 @@ div.format_icon {
 
 #content-wrapper {
     background-color: [% css_colors.background %];
-    min-height: 260px;
+    min-height: 50VH;
     border-bottom: 1px solid [% css_colors.border_dark %];
 }
 
@@ -1208,18 +1235,35 @@ tr.result_table_row .result_flex_row{
 
 /* styles for the basket */
 #record_basket {
-    margin-left: auto;
-    margin-right: 5em;
     display:flex;
 }
-#record_basket_icon {
-    [% IF rtl == 't' -%]
-    margin-left: 2em;
-    [% ELSE; %]
-    margin-right: 2em;
-    [% END; %]
-    position: relative;
+
+#record_basket_wrap{
+margin-left: auto;
+margin-right: 1em;
 }
+
+#record_basket_icon {
+    background-color: [% css_colors.primary_fade %];
+    color: white;   
+    display: flex;
+    padding:0.2em;
+    border-radius: 5px 0px 0px 5px;
+    margin-left: 1em;
+}
+
+#record_basket_icon a{
+    margin-top: auto;
+    margin-bottom: auto;
+    display: table;
+}
+
+#record_basket_icon p{
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 0.2em;
+}
+
 #record_basket_count_floater {
     background-color: [% css_colors.accent_lighter %];
     position: absolute;
@@ -1233,6 +1277,20 @@ tr.result_table_row .result_flex_row{
 }
 #basket_actions {
 
+}
+#basket_actions{
+    display: flex;
+}
+#basket_actions select{
+    font-size: [% css_fonts.size_base %];
+    height:100%;
+    width: 80%;
+}    
+#basket_actions .opac-button{
+    margin: 0;
+    border-radius: 0 5px 5px 0;
+    width: 20%;
+    height: 100%;
 }
 #basket_actions select {
     border-color: rgb(169, 169, 169);
@@ -1364,20 +1422,23 @@ div.result_table_utils_cont {
     [% END -%]
     background-color:[% css_colors.accent_ultralight %];
     border-bottom:3px solid [% css_colors.background %];
+    overflow-wrap: anywhere;
 }
 
 .header_middle {
     [% IF rtl == 't' -%]
-    padding: 0px 0px 0px 7px;
+    padding: 0px 0px 7px 7px;
     [% ELSE -%]
-    padding: 0px 7px 0px 0px;
+    padding: 0px 7px 7px 0px;
     [% END -%]
-    height:22px;
+    margin-bottom: 0.25em;
     font-size: [% css_fonts.size_bigger %];
     font-weight:bold;
     color:[% css_colors.primary_fade %];
     border-bottom: 1px dotted [% css_colors.accent_light %];
     clear: both;
+    padding-bottom: 0.01em;
+    margin-top: 0.2em;
 }
 
 .header_middle a {
@@ -1629,7 +1690,13 @@ div.result_table_utils_cont {
     padding: 10px; border: 1px solid [% css_colors.accent_medium_dark %];
     text-align: center;
 }
-#adv_search_input { width: 100%; }
+#adv_search_filters_block_wrapper{
+    display:flex;
+}
+#adv_search_input { 
+    width: 100%; 
+    margin-bottom: 0.2em;
+}
 #adv_search_parent {
     margin-bottom:0px;
 }
@@ -1827,7 +1894,6 @@ div#facet_sidebar {
     border-right:1px solid [% css_colors.border_standard %];
     background-color: [% css_colors.background_menu %];
     padding: 0 0.5em;
-    width: 14em;
     overflow: hidden;
 }
 .facet_box_wrapper .facet_box_temp:last-child .box_wrapper .box{
@@ -1905,13 +1971,13 @@ div#facet_sidebar {
 
 .advanced_div { padding-top: 15px; }
 #adv_global_search { width: 100%; }
-#adv_global_search select { width: 13em; }
+.adv_filter_block_item select{ width: 13em; }
 #adv_global_addrow td { padding-top: 7px; }
 [% IF rtl == 't' -%]
 #adv_global_addrow.td-search-left{text-align:right;}
 [% END -%]
 #adv_global_input_table { width: 100%; }
-#adv_global_input_table select { width: 7em; }
+
 .adv_adv_link {
     font-size: [% css_fonts.size_smaller %];
     color: [% css_colors.text_alert %];
@@ -1954,7 +2020,6 @@ div#facet_sidebar {
     background-color: [% css_colors.accent_lighter2 %];
     margin: 2ex 0;
 }
-.row-remover { position: relative; top: 1px; vertical-align: middle; }
 .subtle-button {
     background-color: [% css_colors.background %];
     color: [% css_colors.primary %]; text-decoration: none;
@@ -1979,17 +2044,31 @@ div#facet_sidebar {
 a.dash-link:hover { text-decoration: underline !important; }
 #list_create_table td { vertical-align: middle; padding: 0 8px; }
 #list_create_table {
-    background-color: [% css_colors.accent_light %];
-    padding-bottom: 4px;
+    background-color: [% css_colors.background_menu %];
+    padding-bottom: 1em;
+    padding-top: 1em;
     margin-bottom: 10px;
-    border-bottom: 1px dotted [% css_colors.accent_medium %];
     width: 100%;
+}
+div.opac-menu{
+ background-color: [% css_colors.background_menu %];
+ padding: 0.4em;
+ border: 1px solid [% css_colors.border_menu %];
+ border-radius: 0.1em;
+ display: inline-block;
+ max-width: 100%;
 }
 .list_create_table_label {
     width: 30%;
 }
+#list_create_table .list-create-table-buttons{
+    display:flex;
+}
 #list_description, #list_create_name {
         width: 500px;
+}
+#myopac_bookbag_div #create_form{
+padding-top: 1em;
 }
 .list-create-table-buttons input[type=image] { margin-top: 2px; }
 .result_table_format_cell { padding: 0px 10px; text-align: center; }
@@ -2123,7 +2202,7 @@ a.dash-link:hover { text-decoration: underline !important; }
  */
 
 .opac-multiline-button > a,
-.opac-button, .results_header_btns a, #simple-detail-view-links a, .dash_account_buttons a {
+.opac-button:not(.hidden), .opac-buttons:not(.hidden) a, .results_header_btns a, #simple-detail-view-links a, .dash_account_buttons a {
     color: [% css_colors.button_text %];
     font-weight: bold; 
     text-decoration: none;
@@ -2139,6 +2218,23 @@ a.dash-link:hover { text-decoration: underline !important; }
     display: inline-block;
 }
 
+.opac-button.square
+{
+    padding-bottom: 0.3em;
+    padding-top: 0.3em;
+    padding-left: 0.6em;
+    padding-right: 0.6em;
+}
+
+.opac-button.alert
+{
+    background-color:  [% css_colors.primary_fade_alert %];
+}
+
+.opac-button.alert:hover {
+    background-color:  [% css_colors.primary_alert %];
+}
+
 .opac-multiline-button > a:hover,
 .opac-button:hover, .results_header_btns a:hover, #simple-detail-view-links a:hover, #dash_wrapper a.opac-button:hover {
     background-color: [% css_colors.primary %];
@@ -2149,6 +2245,10 @@ a.dash-link:hover { text-decoration: underline !important; }
     cursor: pointer !important;
     border: 1px solid [% css_colors.accent_light %];
     background-color: [% css_colors.accent_lighter %];
+}
+
+.opac-button a{
+color: [% css_colors.button_text %];
 }
 
 /* Firefox adds its own special space to inputs; this gets us closer */
@@ -2751,7 +2851,7 @@ a.preflib_change {
     text-align: center;
 }
 
-#search-box > span {
+#search-nav-links > span {
     margin: 0 1em;
 }
 
@@ -2918,6 +3018,12 @@ a.preflib_change {
     white-space: pre-wrap;
 }
 
+@media only screen and (min-width: 600px) {
+    .mobile-only{
+    display: none !important;
+    }
+}
+
 @media only screen and (max-width: 800px) {
     .facet_sidebar_hidden, .result_block_hidden {
         display: none;
@@ -2939,8 +3045,14 @@ a.preflib_change {
 }
 
 @media only screen and (max-width: 600px) {
+    .pc-only{
+    display: none !important;
+    }
     input, select, button, input {
         font-size: [% css_fonts.size_big %];
+    }
+    .mobile-grid{
+    display: grid;    
     }
     
     .opac-button-header {
@@ -2973,7 +3085,8 @@ a.preflib_change {
         padding-top: 5px;
     }
     #your-acct-login a {
-        padding: 5px;
+        padding: 8px;
+        margin-bottom: 0.5em;
     }
     #topnav_logo {
         margin: 0;
@@ -3186,6 +3299,19 @@ a.preflib_change {
     #holds_box form blockquote select {
         width: 100%;
     }
+    #myopac_tabs{
+    padding: 0.5em;
+    display: flex;
+    width: 100%;
+    }
+    #myopac_tabs label{
+    font-weight: bold;
+    color: [% css_colors.text_invert %];
+    margin: 0;
+    }
+    #myopac_tabs select{
+    margin-left: 0.5em;
+    }
     #myopac_sum_fines_placehold {
         display:none;
     }
@@ -3224,19 +3350,35 @@ a.preflib_change {
     .results_header_nav1 nav ul{
         margin: auto;
     }
+    #record_basket_icon{
+    margin-left: auto;
+    }
+    #search-nav-links{
+    margin-bottom: 0.1em;
+    }
+    #record_basket_wrap{
+    margin-left:auto;
+    margin-right:auto;
+    }
+    #basket_actions{
+    width: 70VW;
+    margin-right:auto;
+    }
     #record_basket {
         margin-left: auto;
         margin-right: 0em;
         padding-top: 2px;
         display: flex;
+        font-size: [% css_fonts.size_base %];
     }
+        
     #search-box > span {
     margin: 0 0.4em;
     }
-    #do_basket_action{
-    margin: 0.1em;
+    #browse-search-class::after {
+    content: "\A";
+    white-space: pre;
     }
-
     .preflib {
         display: none;
     }
@@ -3287,6 +3429,17 @@ a.preflib_change {
     .results_header_btns a {
         margin: 0.3em;
     }
+    .adv_filter_block_item{
+        width:100%;
+    }
+    .adv_filter_block_item select{
+        width:98%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .adv_global_input_container{
+    width: 100%;
+    }
     .adv_filter_results_hide {
         display: none;
     }
@@ -3300,7 +3453,14 @@ a.preflib_change {
         display: block;
     }
     #main-content {
-        margin: 0 1px;
+        margin: 0 0.8vw;
+    }
+    #rdetail_image_div{
+    margin: 0;
+    width: auto;
+    }
+    #rdetail_image_div a{
+    margin: auto;
     }
     #rdetails_status thead {
         display: none;
@@ -3322,12 +3482,15 @@ a.preflib_change {
     select#pickup_lib.search-wrapper-locg {
         width: 100%;
     }
-    #search-wrapper #search-box {
-        width: 85%;
+    #search-box {
+        width: 100VW;
         padding-top: 5px;
         padding-bottom: 5px;
         display:flex;
         flex-flow: row wrap;
+    }
+    #adv_search_tabs li{
+        font-size: [% css_fonts.size_base %];
     }
     #main-content-home {
         padding: 0px;
@@ -3349,12 +3512,15 @@ a.preflib_change {
     #facet_sidebar {
         margin-top: 0.5em;
     }
+    .adv_first_row select{
+    width:50VW;
+    }
     #adv_search_parent {
+        overflow: hidden;
         font-size: [% css_fonts.size_smaller %];
     }
-    #adv_search_filters {                                                                                                                             
-        position: relative;                                                                                                                           
-        width: 300px;
+    #adv_search_filters {                                                                                                                        
+        position: relative;
     }
     #format_actions {
         [% IF rtl == 't' -%]
@@ -3371,9 +3537,7 @@ a.preflib_change {
         width: inherit;
         padding-right: 0.6em;
     }
-    div#rdetail_actions_div {
-        float: none;
-    }
+
     h2.rdetail_uris {
         clear: both;
     }
@@ -3394,9 +3558,60 @@ a.preflib_change {
         [% END -%]
 	white-space: nowrap;
     }
+    .adv_global_row td{
+        display:flex;
+        flex-direction: column
+    }
+    .adv_global_row:first-of-type .qtype_selector_margin,.adv_global_row:first-of-type select[name="contains"]{
+        width:50% !important;
+        height: 100% !important;
+    }
+    .adv_global_row:first-of-type select[name="qtype"]{
+        width:100% !important;
+        height: 100% !important;
+    }
+    .adv_global_row .qtype_selector_margin,.adv_global_row select[name="contains"]{
+        width:40% !important;
+        height: 100% !important;
+    }
+    .adv_global_row select[name="qtype"]{
+        width:100% !important;
+        height: 100% !important;
+    }
+    .adv_global_row select[name="bool"]{
+        width:20% !important;
+        height: 100% !important;
+    }
+    .adv_global_row input[name="query"]{
+    width:90% !important;   
+    height:100%;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    margin-right: 0;
+    }
+    .adv_global_row .row-remover{
+    width:10% !important;
+    margin: 0;
+    border-bottom-left-radius: 0px;    
+    border-top-left-radius: 0px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;    
+    }     
+    .adv_global_row div{
+        width:100%;
+        height: 3em;
+        display:flex;
+    }
+    .adv_global_row td{
+    padding-bottom: 0.25em;
+    }
     .adv_search_catalog_lbl { 
         margin-top: 0;
 	white-space: nowrap;
+    }
+    .form-control{
+    padding:0.1em 0.1em 0.1em 0.1em;
     }
     .browse_the_catalog_lbl {
         white-space: nowrap;
@@ -3404,6 +3619,9 @@ a.preflib_change {
     .mobile_hide {
 	display: none;
     } 
+    #topnav_logo_wrapper{
+        padding-top: 0.2em;
+    }
     #dash_user {
         display: block;
         padding: 0.5em;
@@ -3413,8 +3631,87 @@ a.preflib_change {
     }
     .dash_account_buttons {
         display: block;
-    } 
+    }
+    #homesearch_main_logo{
+    width: 90%;
+    }        
+    #search-wrapper{
+        padding-bottom: 0.20em;
+        padding-top: 0.25em;
+        display:grid;
+    }
+    #search-icon{
+        width: auto;
+        height: 100%;
+    }
+    #search-submit-go-depth{
+        margin: 0;
+        margin-right: 1VW;
+        width:14VW;
+        height: 6VH;
+        border-radius: 0px 5px 5px 0px;
+        padding: 0.1em;
+    }
+    #search-wrapper form{
+        
+        width:100VW;
+    }   
+   #search-box-title {
+    margin-top: 4px;
+    margin-bottom: 0px;
+    margin-left: 4px;
+    font-size: [% css_fonts.size_base %]
+    }
+    .qtype_selector_margin {
+        margin-right: 0 !important;
+    }
     
+    #search-basic-options{
+    display: flex;
+    width:100%;
+    }
+    #search-nav-mobile{
+    margin-left:1VW;
+    margin-right:1VW;
+    }
+    #search_itype_selector {
+        margin: 0;
+        padding: 0;
+        width: 34VW !important;
+        font-size: [% css_fonts.size_base %];
+        border-style: solid;
+        border-width: 1px;
+        margin-left: 1VW !important;
+        padding-left: 0.2em !important;
+        border-radius: 5px 0px 0px 5px;       
+        height: 6VH;
+        background-color: [% css_colors.background %];
+    }
+    #search-wrapper #search_box{
+        margin: 0;
+        padding: 0;
+        padding-left:0.3em;
+        width: 50VW;
+        font-size: [% css_fonts.size_base %];
+        border-color: [% css_colors.border_input %];
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 0;
+    }
+    #search-nav-wrapper{
+    padding-bottom: 0;
+    }
+    #search-more-options .wrapper{
+    padding: 0.5em;
+    }
+    #search-more-options label{
+        margin-bottom: 0.1em;
+        margin-top: 0.1em;
+        font-size: [% css_fonts.size_big %];
+    }
+    #search-nav-wrapper span{
+        font-size: [% css_fonts.size_base %];
+    }
     .searchbar { 
     line-height: 1.5em;
     margin-left: 0;
@@ -3425,6 +3722,11 @@ a.preflib_change {
     flex-direction: column;
     }
     #browse-controls { line-height: 1.5em; }
+    #browse-controls div { padding-top: 0.2em; padding-bottom: 0.2em; }
+    #browse-controls form.mobile-only{
+    padding-left: 0.4em;
+    padding-right: 0.4em; 
+    }
     #search_query_label, #search_qtype_label, #search_itype_label, #search_locg_label {
         display: block;
     }
@@ -3436,10 +3738,10 @@ a.preflib_change {
 	display: block;
     }
     #lowhits_help { width: inherit; }
-    #adv_search_tabs a{                                                                                                                           
+    #adv_search_tabs a{                                                                                                                      
         font-size: [% css_fonts.size_small %];
         margin: 2px 2px 0px 2px;
-        padding: 2px 2px 5px 2px; 
+        padding: 9px 3px 5px 3px; 
         [% IF rtl == 't' -%]
         border-radius: 7px 0px 0px 7px;
         [% ELSE -%]
@@ -3550,17 +3852,52 @@ a.preflib_change {
         table#ebook_holds_main_table td:nth-of-type(4):before { content: "[% l('Actions') %]"; }
 
 
-
        /*Want to see these in mobile ONLY */
        .mobile_view{
           display:block;
        }
 
        .mobile_search_lbl_clr{
-          color:[% css_colors.mobile_header_text %];
+          margin-right: 0.2em;
        }
+      
 }
 
+/* extra small phone mode */
+@media only screen and (max-width: 360px) {
+
+#dash_identity a {
+    float: none;
+    margin: 0.1em;
+}
+    
+#record_basket_icon {
+    margin-right: 0em;
+    width: 17VW;
+}
+.results_header_nav1 nav{
+    font-size: [% css_fonts.size_small %];
+}
+
+#adv_search_tabs li{
+    font-size: 14px;
+}
+
+.page-link {
+    padding: .5rem .7rem;
+}
+
+.opac-multiline-button > a,
+.opac-button:not(.hidden, .square), .opac-buttons:not(.hidden) a, .results_header_btns a, #simple-detail-view-links a, .dash_account_buttons a {
+    margin: 0.5em;
+    padding-bottom: 0.2em;
+    padding-top: 0.2em;
+    padding-left: 0.35em;
+    padding-right: 0.35em;
+    display: inline-block;
+}
+
+}
 
 /* 
 For text which is visible only to screen readers.

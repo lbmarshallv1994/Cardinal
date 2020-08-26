@@ -227,7 +227,7 @@ END; # FOREACH bib
 
         [% IF copy_info.notes; %]
             [% FOREACH note IN copy_info.notes; %]
-                <tr><td>&nbsp;</td><td class="copy_note" colspan="4" property="description"><strong>[% note.title | html %]:</strong> [% note.value | html %]</td></tr>
+                <tr class="copy_note_row"><td>&nbsp;</td><td class="copy_note" colspan="4" property="description"><strong>[% note.title | html %]:</strong> [% note.value | html %]</td></tr>
             [% END %]
         [% END %]
 
@@ -242,9 +242,9 @@ END; # FOREACH bib
             [% END %]
         [% END %]
 
-<tr><td>
+
 [%- IF copy_info.peer_bib_marc.size > 0;
-'<ul>';
+'<tr><td><ul>';
     FOREACH bib IN copy_info.peer_bib_marc;
         attrs = {marc_xml => bib};
         PROCESS get_marc_attrs args=attrs %]
@@ -258,10 +258,9 @@ END; # FOREACH bib
     </li>
 [%- END; # IF attrs.bibid %]
 [%- END; # FOREACH bib in copy_info.peer_bib_marc
-'</ul>';
+'</ul></td></tr>';
     END # IF copy_info.peer_bib_marc.size
 %]
-</td></tr>
 [%- END; # FOR copy_info
 %]
         <tr>

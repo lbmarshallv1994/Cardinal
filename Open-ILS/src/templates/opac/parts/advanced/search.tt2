@@ -2,7 +2,7 @@
     PROCESS "opac/parts/misc_util.tt2";
     PROCESS get_library;
 %]
-<form action="[% ctx.opac_root %]/results" method="get">
+<form action="[% ctx.opac_root %]/results" class="form-check form-check-inline" method="get">
 <div id='adv_global_search' class='data_grid data_grid_center'>
     <div id='adv_search_rows'>
         <!-- Contains the user-addable(?) rows to define search class, containment and text -->
@@ -47,7 +47,7 @@
 
     <div id='adv_search_filters'>
         <div class="header_middle">[% l('Search Filters') %]</div>
-
+<div class="adv_search_filters_block_wrapper">
 [%
     in_row = 0;
     FOR adv_chunk IN search.adv_config;
@@ -79,6 +79,7 @@
 [%
                 CASE "pub_year"; %]
                             <select name='pubdate'
+                                class = 'form-control'
                                 id="[% adv_chunk.id %]"
                                 onchange='if(this.selectedIndex == 3)
                                     unHideMe($("adv_global_pub_date_2_span"));
@@ -97,8 +98,8 @@
                             <div id='adv_special_block'>
                             [% END %]
                                 <input title="[% l('Search date') %]" aria-label="[% l('Search date') %]"
-                                  name='date1' type='text' size='4' maxlength='4' value="[% CGI.param('date1') | html %]" />
-                                <span id='adv_global_pub_date_2_span' class='[% CGI.param("pubdate") == "between" ? "" : "hide_me" %]'>
+                                  name='date1' type='text' maxlength='4' value="[% CGI.param('date1') | html %]" class='form-control' />
+                                <span id='adv_global_pub_date_2_span' class='form-control [% CGI.param("pubdate") == "between" ? "" : "hide_me" %]'>
                                    [% l("and") %] <input name='date2' aria-label="[% l('Secondary search date') %]"
                                     title="[% l('Secondary search date') %]" type='text' size='4' maxlength='4' value="[% CGI.param('date2') | html %]" />
                                 </span>
@@ -124,7 +125,7 @@
                     END;
                     INCLUDE "opac/parts/filtersort.tt2"
                         id=adv_chunk.id
-                        value=default_sort class='results_header_sel';
+                        value=default_sort class='form-control results_header_sel';
                     %]
 
                     [% IF NOT metarecords.disabled %]
@@ -141,7 +142,7 @@
                     [% END %]
 
                 [% CASE "copy_location" %]
-                    <select id="adv_copy_location_selector"
+                    <select id="adv_copy_location_selector" class="form-control"
                         title="[% l('Select Shelving Location') %]"
                         name="fi:locations" size="4" multiple="multiple">
                     </select>
@@ -167,7 +168,7 @@
 [%
         END;
     END; %]
-
+        </div>
         </div>
     </div>
 </div>

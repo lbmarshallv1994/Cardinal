@@ -28,8 +28,9 @@ END;
     ctx.query_struct.filters = trimmed_filters;
 
  %]
-<div id="search-wrapper">
 [%- INCLUDE "opac/parts/searchnav.tt2" -%]
+<div id="search-wrapper" class="pc-only">
+
     [% UNLESS took_care_of_form -%]
     <form action="[% ctx.opac_root %]/results" method="get">
     [%- END %]
@@ -45,7 +46,7 @@ END;
             [%- # autosuggest breaks accessibility, as the aria-label
                 # attribute is removed when the Dijit is created. :(  %]
             <label id="search_box_label" for="search_box">[% l('Search: ') %]
-            <input type="text" id="search_box" name="query" aria-label="[%
+            <input type="text" class="form-control" id="search_box" name="query" aria-label="[%
                     l('Enter search query:');
                 %]" value="[% is_advanced ? ctx.naive_query_scrub(ctx.user_query) : CGI.param('query') | html %]"
                 class="search-box"
@@ -175,41 +176,7 @@ END;
         [% END %]
     [% END %]
 
-    <script>
-    function hideSearchButtons(){
-       
-        $("search_bar_submit_buttons").className="hidden";
-        [% IF ctx.depth_sel_button AND NOT took_care_of_form %] 
-        $("search-submit-go-depth").className="hidden";
-        var logo = $("homesearch_main_logo");
-        if(logo){
-            logo.className="hidden";
-        }
-        [% END %]
-        var logoSpinner = $("search-submit-spinner"); 
-        var barSpinner = $("search-bar-submit-spinner");
-        if(logoSpinner){
-            logoSpinner.className = "";
-        }
-        if(barSpinner){
-            barSpinner.className = "";
-        }
-    }
-    
-    function getAdvLimits() {
-        var AdvLimitsClass = document.getElementById('adv_filter_results_block').classList;
-        if (AdvLimitsClass.contains("adv_filter_results_hide")) {
-           AdvLimitsClass.remove("adv_filter_results_hide");
-        } else {
-           AdvLimitsClass.add("adv_filter_results_hide");
-        }
-        if (AdvLimitsClass.contains("adv_filter_results_show")) {
-           AdvLimitsClass.remove("adv_filter_results_show");
-        } else {
-           AdvLimitsClass.add("adv_filter_results_show");
-        }
-     }
-     </script>
+
     <!-- Canonicalized query:
 
     [% ctx.canonicalized_query | html %]
@@ -222,3 +189,128 @@ END;
     -->
     <div class="clear-both"></div>
 </div>
+<div id="search-wrapper" class="mobile-only">
+    [% UNLESS took_care_of_form -%]
+    <form action="[% ctx.opac_root %]/results" method="get">
+    [%- END %]
+    <div id = "search-basic-options">
+    [% IF ctx.page == 'rresult' && ctx.metarecord && search.metarecord_default %]
+    <input type="hidden" name="modifier" value="metabib"/>
+    [% END %]
+    [% IF (ctx.page == 'place_hold' || ctx.page == 'myopac' || ctx.page == 'home' || ctx.page == 'record') && search.metarecord_default %]
+    <input type="hidden" name="modifier" value="metabib"/>
+    [% END %]
+    [%-
+    IF search.basic_config.type == 'attr';
+        INCLUDE "opac/parts/coded_value_selector.tt2"
+            attr=search.basic_config.group none_ok=1 
+            id='search_itype_selector'
+            none_label=search.basic_config.none_label;
+    ELSIF search.basic_config.type == 'filter';
+        INCLUDE "opac/parts/filter_group_selector.tt2"
+            filter_group=search.basic_config.group none_ok=1 
+            id='search_itype_selector'
+            none_label=search.basic_config.none_label;
+    END;
+    -%]
+    <input type="text" id="search_box" name="query" aria-label="[%
+        l('Enter search query:');
+    %]" value="[% is_advanced ? ctx.naive_query_scrub(ctx.user_query) : CGI.param('query') | html %]"
+    class="search-box"
+    [%- IF use_autosuggest.enabled == "t" %]
+    dojoType="openils.widget.AutoSuggest" type_selector="'qtype'"
+    submitter="this.textbox.form.submit();"
+    [%-     IF use_autosuggest.value.search('opac_visible') %]
+    store_args='{"org_unit_getter": function() { return [% ctx.search_ou %]; }}'
+    [%-     END # opac_visible -%]
+    [%- ELSE -%]
+        [% IF basic_search != "f" AND is_home_page %] autofocus [% END %] x-webkit-speech
+    [%- END # autosuggest enabled %] />
+    
+    
+    <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
+        onclick='setTimeout(hideSearchButtons,1)' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
+    </button>
+    </div>
+    <div id="search-more-options" class="collapse">
+        <div class="wrapper">
+            <label id="search_qtype_label" for="qtype">
+            [%- 
+                l('Search Type');
+                
+            -%]
+            </label>
+            [%- INCLUDE "opac/parts/qtype_selector.tt2" id="qtype"; -%]
+            <label id="search_locg_label" for="search_org_selector">
+            [%- 
+                l('Library'); -%]
+            </label>
+            [%-
+                select_lib_label = l("Select search library");
+                INCLUDE build_org_selector arialabel=select_lib_label 
+                  id='search_org_selector' show_loc_groups=1
+            -%]
+        </div>
+    </div>
+       <div id="search-filters" class="collapse">
+        [% IF fcount > 0 %]
+      <div class="refine_search result_block_visible">
+        <div id="filter_hits">[ <a href="#" onclick="getAdvLimits();return false;">[% l('[quant,_1,filter,filters] applied', fcount) %]</a> ]</div>
+      </div>
+    [% END %]
+    [% IF ctx.query_struct.filters.size > 0 %]
+        [% stuff = INCLUDE 'opac/parts/result/adv_filter.tt2' %]
+        [% IF stuff %]
+        <h3 class="sr-only">[% l('Search Results filters') %]</h3>
+        <div id="adv_filter_results_block" class="adv_filter_results_hide">
+        <span class="adv_filter_results_block_label">[% l('Filtered by:') %]</span>
+            [% stuff %]
+        </div>
+        [% END %]
+    [% END %]
+    </div>
+    <div id="search-nav-mobile">
+            [% IF fcount > 0 %]
+    <a href="#search-filters" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-filters">[% l('Filters') %]</a>/
+    [% END %]
+        <a href="#search-more-options" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-more-options">[% l('More Options') %]</a>
+    </div>
+    [% UNLESS took_care_of_form -%]
+    </form>
+    [% END %]
+</div>
+<script>
+function hideSearchButtons(){
+   
+    $("search_bar_submit_buttons").className="hidden";
+    [% IF ctx.depth_sel_button AND NOT took_care_of_form %] 
+    $("search-submit-go-depth").className="hidden";
+    var logo = $("homesearch_main_logo");
+    if(logo){
+        logo.className="hidden";
+    }
+    [% END %]
+    var logoSpinner = $("search-submit-spinner"); 
+    var barSpinner = $("search-bar-submit-spinner");
+    if(logoSpinner){
+        logoSpinner.className = "";
+    }
+    if(barSpinner){
+        barSpinner.className = "";
+    }
+}
+
+function getAdvLimits() {
+    var AdvLimitsClass = document.getElementById('adv_filter_results_block').classList;
+    if (AdvLimitsClass.contains("adv_filter_results_hide")) {
+       AdvLimitsClass.remove("adv_filter_results_hide");
+    } else {
+       AdvLimitsClass.add("adv_filter_results_hide");
+    }
+    if (AdvLimitsClass.contains("adv_filter_results_show")) {
+       AdvLimitsClass.remove("adv_filter_results_show");
+    } else {
+       AdvLimitsClass.add("adv_filter_results_show");
+    }
+ }
+ </script>

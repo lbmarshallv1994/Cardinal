@@ -29,7 +29,7 @@ BLOCK build_org_selector;
 
     <select [% IF id %] id='[% id %]' [% END -%]
             title='[% arialabel || l("Select Library") %]' 
-            name='[% name %]'>
+            name='[% name %]' class='form-control'>
     [%- 
         WHILE node_stack.size > 0; 
             node = node_stack.pop();
