@@ -168,7 +168,7 @@
             [%- IF ctx.is_staff %]
             <div class="rdetail_aux_utils clear_addedcontent_cache">
                 <a href="[% ctx.media_prefix %]/opac/extras/ac/clearcache/all/r/[% ctx.bre_id | uri %]" class="no-dec opac-button" target="_blank">
-                     [% l('Clear AddedContent Cache') %]
+                     [% l('Clear Added Content Cache') %]
                 </a>
             </div>
             [%- END %]

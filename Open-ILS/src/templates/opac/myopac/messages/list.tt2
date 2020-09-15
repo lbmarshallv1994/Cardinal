@@ -1,24 +1,39 @@
 <div id="myopac_messages_div">
     <div class="header_middle">
-        <span id="acct_messages_header" style="float:left;">[% l("Messages") %]</div>
-        <span class='float-left' style='padding-left: 10px;'>
-            <a href='[% mkurl('messages', { limit => limit, offset => (offset - limit)} ) %]'
-                [% IF offset <= 0 %] class='invisible' [% END %]><span class="nav_arrow_fix">&#9668;</span>[% l('Previous') %]</a>
+        <span id="acct_messages_header">[% l("Messages") %]</div>               
+        <nav aria-label="search navigation">
+            <ul class="pagination">
+            [% UNLESS offset <= 0 %]
+            <li class="page-item">
+                <a class="page-link" href='[% mkurl('messages', { limit => limit, offset => (offset - limit)} ) %]'><span aria-hidden="true">&laquo;</span></a>
+            </li>
+            [% END %]
             [% IF offset > 0 || count > limit;
                 curpage = 0;
                 WHILE curpage * limit < count;
                     IF curpage * limit == offset;
-            %]
-            [% curpage + 1 %]
+            %]           
+            <li class="page-item active">        
+                <a class="page-link" href='[% mkurl('messages', {limit => limit, offset => (curpage * limit)}) %]'>[% curpage + 1 %]</a>
+            </li>
                     [%- ELSE %]
-            <a href='[% mkurl('messages', {limit => limit, offset => (curpage * limit)}) %]'>[% curpage + 1 %]</a>
+            <li class="page-item">        
+                <a class="page-link" href='[% mkurl('messages', {limit => limit, offset => (curpage * limit)}) %]'>[% curpage + 1 %]</a>
+            </li>
                     [%- END;
                     curpage = curpage + 1;
                 END;
             END %]
-            <a href='[% mkurl('messages', {limit => limit, offset => (offset + limit)}) %]'
-               [% IF count <= limit + offset %] class='invisible' [% END %] >[% l('Next') %]<span class="nav_arrow_fix">&#9658;</span></a>
-        </span>
+            [% UNLESS count <= limit + offset %]
+            <li class="page-item">
+                <a class="page-link" href='[% mkurl('messages', {limit => limit, offset => (offset + limit)}) %]'><span aria-hidden="true">&raquo;</span></a>
+            </li>
+            [% END %]
+            </ul>
+        </nav>
+        
+        
+        
     </div>
     <div class="clear-both"></div>
     [% IF ctx.message_update_action.defined %]
@@ -51,9 +66,9 @@
     <div id="messages_main">
         <form method="post" id="messages-form"
          onsubmit="if (document.getElementById('acct_messages_actions').value == 'mark_deleted') { return confirm('[% l("Are you sure you wish to permanently delete the selected message(s)?") %]') } else { return true; }">
-            <div>
+            <div class="action-dropdown">
                 <span>
-                    <select name="action" id="acct_messages_actions"
+                    <select name="action" class="form-control" id="acct_messages_actions"
                         title="[% l('Select your action for the selected messages') %]">
                         <option id="acct_messages_actions_none" value="">
                             -- [% l('Actions for selected messages') %] --
@@ -63,13 +78,13 @@
                         <option value="mark_deleted">[% l('Delete') %]</option>
                     </select>
                 </span>
-                <span style="padding-left:9px;">
+                <span>
                     <input type="submit"
                         value="[% l('Go') %]"
                         title="[% l('Go') %]"
                         class="opac-button" />
                 </span>
-                <span style="padding-left:5px;">
+                <span>
                     <a href="#"><img
                         alt="[% l('Messages Help') %]"
                         title="[% l('Actions for messages') %]"
@@ -80,7 +95,7 @@
             <div class="warning_box">[% l('No messages found.') %]</div>
             [% ELSE %]
             <table id="acct_messages_main_header" title="[% l('Messages') %]"
-                class="table_no_border_space table_no_cell_pad">
+                class="table_striped table_no_border_space table_no_cell_pad">
                 <thead>
                 <tr>
                     <th align="center">

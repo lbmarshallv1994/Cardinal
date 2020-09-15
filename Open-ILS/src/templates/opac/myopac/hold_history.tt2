@@ -6,6 +6,11 @@
     limit = ctx.hold_history_limit;
     offset = ctx.hold_history_offset;
     count = ctx.hold_history_ids.size;
+    hold_items = ctx.holds;
+    # Shorten the hold_items list per offset/limit/count 
+    hi = offset + limit - 1;
+    hi = hi > hold_items.max ? hold_items.max : hi;
+    hold_items = hold_items.slice(offset, hi);
 %]
 
 <h3 class="sr-only">[% l('Holds History') %]</h3>
@@ -29,29 +34,41 @@
     </div>
 
     <div class="header_middle">
-        <span style="float:left;">[% l("Previously Held Items") %]</span>
-        <span class='float-left' style='padding-left: 10px;'>
-            <a href='[% mkurl('hold_history', {limit => limit,offset => (offset - limit)}) %]'
-                [% IF offset == 0 %] class='invisible' [% END %]><span class="nav_arrow_fix">&#9668;</span>[% l('Previous') %]</a>
-            [% IF offset > 0 || count > limit;
-                curpage = 0;
-                WHILE curpage * limit < count;
-                    IF curpage * limit == offset;
-            %]
-            [% curpage + 1 %]
-                    [%- ELSE %]
-            <a href='[% mkurl('hold_history', {limit => limit, offset => (curpage * limit)}) %]'>[% curpage + 1 %]</a>
-                    [%- END;
-                    curpage = curpage + 1;
-                END;
-            END %]
-            <a href='[% mkurl('hold_history', {limit => limit, offset => (offset + limit)}) %]'
-               [% IF count <= limit + offset %] class='invisible' [% END %] >[% l('Next') %]<span class="nav_arrow_fix">&#9658;</span></a>
-        </span>
+        <span>[% l("Previously Held Items") %]</span>
         <span style="float:right;">
             <a class="hide_me" href="#">[% l('Export List') %]</a>
         </span>
-    </div>
+        </div>
+
+    <nav aria-label="search navigation">
+            <ul class="pagination">
+                [% IF offset > 0 %]
+                <li class="page-item">
+                  <a class="page-link" href='[% mkurl('hold_history', {limit => limit,offset => (offset - limit)}) %]'><span aria-hidden="true">&laquo;</span></a>
+                </li>
+                [% END %]
+                [% IF offset > 0 || count > limit;
+                    curpage = 0;
+                    WHILE curpage * limit < count;
+                        IF curpage * limit == offset;
+                %]
+                <li class="page-item active"><a class="page-link">[% curpage + 1 %]</a></li>
+                        [%- ELSE %]
+                <li class="page-item">       
+                <a class="page-link" href='[% mkurl('hold_history', {limit => limit, offset => (curpage * limit)}) %]'>[% curpage + 1 %]</a></li>
+                        [%- END;
+                        curpage = curpage + 1;
+                    END;
+                END %]
+                [% IF count > limit + offset %]
+                <li class="page-item">
+                    <a class="page-link" href='[% mkurl('hold_history', {limit => limit, offset => (offset + limit)}) %]'>
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                [% END %]
+            </ul>
+    </nav>
     <div class="clear-both"></div>
 
     <div id='holds_main'>
@@ -60,18 +77,18 @@
             <big><strong>[% l('No holds found.') %]</strong></big>
         </div>
         [% ELSE %]
-        <table id='acct_holds_hist_header' class='table_no_border_space table_no_cell_pad' title="[% l('History of items on hold') %]">
-            <thead>
+        <table id='acct_holds_hist_header' class='table_striped table_no_border_space table_no_cell_pad' title="[% l('History of items on hold') %]">
+            <thead class="pc-only">
                 <tr>
-                    <td><span>[% l('Title') %]</span></td>
-                    <td><span>[% l('Author') %]</span></td>
-                    <td> <span>[% l('Format') %]</span></td>
-                    <td><span>[% l('Pickup Location') %]</span> </td>
-                    <td><span>[% l('Status') %]</span></td>
+                    <th><span>[% l('Title') %]</span></th>
+                    <th><span>[% l('Author') %]</span></th>
+                    <th> <span>[% l('Format') %]</span></th>
+                    <th><span>[% l('Pickup Location') %]</span> </th>
+                    <th><span>[% l('Status') %]</span></th>
                 </tr>
             </thead>
             <tbody id='holds_temp_parent'>
-                [% FOR hold IN ctx.holds;
+                [% FOR hold IN hold_items;
                     attrs = {marc_xml => hold.marc_xml};
                     PROCESS get_marc_attrs args=attrs;
                     ahr = hold.hold.hold %]

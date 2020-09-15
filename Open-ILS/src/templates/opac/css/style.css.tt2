@@ -69,6 +69,10 @@ select{
     display: inline-block;
 }
 
+h3 {
+    font-size: [% css_fonts.size_big %];
+}
+
 .form-control{
     display: inline-block;
     width: auto;
@@ -82,6 +86,13 @@ select{
 .form-check-inline{
     margin-right: 0;
 }
+
+.flexbox{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
 
 #topnav_logo_wrapper{
     display: inline-flex;
@@ -116,7 +127,7 @@ a {
 }
 
 #search-wrapper input[type=text] {
-    padding:0;
+    
 }
 
 #search-wrapper select, .results_header_lbl select {
@@ -322,10 +333,11 @@ for now until a better color is picked - if needed.
     padding-left: 0.2em;
     padding-right: 0.2em;
     display: inline-block;
-    font-size: 95%;
-    border-radius: 0;
+    font-size: 90%;
+    border-radius: 3px;
     z-index: 2;
-    margin-top: 0.2em;
+    margin-top: 0.1em;
+    filter: drop-shadow(.1rem .1rem .1rem black);
     [% IF rtl == 't' -%]
     margin-right: -1.5em;
     [%- ELSE %]
@@ -535,6 +547,7 @@ for now until a better color is picked - if needed.
     background-color: [% css_colors.control %];
     font-weight: bold;
     text-decoration: none;
+    margin-bottom: -2px;
 }
 
 #adv_search_tabs a, #acct_tabs a, #acct_fines_tabs a {
@@ -623,13 +636,17 @@ display: inline-block;
 }
 
 #acct_checked_tabs div.selected a, #acct_holds_tabs div.selected a, #acct_prefs_tabs div.selected a {
-    background-color: [% css_colors.accent_lightest %];
-    color: [% css_colors.accent_darker %];
+    background-color: [% css_colors.background %];
+    border: 1px solid [% css_colors.accent_lightest %];
+    border-bottom: 0px;
+    color: [% css_colors.accent_light %];
 }
 
 #acct_checked_tabs, #acct_holds_tabs, #acct_prefs_tabs {
-    padding-bottom: 12px;
+    padding-bottom: 0;
+    margin-bottom: 0.8em;
     color: [% css_colors.accent_medium %];
+    border-bottom: 1px solid [% css_colors.accent_lightest %];
 }
 
 #acct_select, #acct_prefs_select {
@@ -980,6 +997,7 @@ tbody.copy_details_table{
     padding-left: 0px;
     [%- END %]
     margin: 0 1em;
+    padding-top: 0.5em;
     clear: both;
 }
 
@@ -1048,6 +1066,17 @@ margin-top: 25px;
     padding:10px 10px 0px 13px;
     [% END -%]
     width:167px;
+}
+
+#login-form-box {
+    float: left;
+    margin-top: 25px;
+    [% IF rtl == 't' -%]
+    padding-right: 28px;
+    [% ELSE -%]
+    padding-left:28px;
+    [% END -%]
+    padding-top:25px;
 }
 
 .login-help-box {
@@ -1671,6 +1700,8 @@ div.result_table_utils_cont {
 .myopac_payments_table tbody tr:nth-child(odd) { background-color: [% css_colors.accent_lighter %]; }
 .myopac_payments_table form { display: inline; }
 .myopac_payments_table input[type="submit"] { padding: 1px; }
+/*striped table rows*/
+table.table_striped tr:nth-of-type(odd) td{background-color: [% css_colors.background_menu %] !important;}
 
 .cc_header
 {
@@ -1997,6 +2028,11 @@ div#facet_sidebar {
     padding-left: 1em;
     [% END -%]
 }
+
+nav ul.pagination{
+    margin-bottom: 0.5em;
+}
+
 #opac.result.sort { width: 160px; }
 .renew-summary, .message-update-summary { font-size: [% css_fonts.size_bigger %]; font-style: italic; margin: 0.5ex 0; }
 .failure-text {
@@ -2052,14 +2088,14 @@ a.dash-link:hover { text-decoration: underline !important; }
 }
 div.opac-menu{
  background-color: [% css_colors.background_menu %];
- padding: 0.4em;
+ padding: 0.5em;
  border: 1px solid [% css_colors.border_menu %];
  border-radius: 0.1em;
  display: inline-block;
  max-width: 100%;
 }
 .list_create_table_label {
-    width: 30%;
+    
 }
 #list_create_table .list-create-table-buttons{
     display:flex;
@@ -2068,7 +2104,7 @@ div.opac-menu{
         width: 500px;
 }
 #myopac_bookbag_div #create_form{
-padding-top: 1em;
+padding-bottom: 1em;
 }
 .list-create-table-buttons input[type=image] { margin-top: 2px; }
 .result_table_format_cell { padding: 0px 10px; text-align: center; }
@@ -2264,7 +2300,7 @@ button.opac-button::-moz-focus-inner, input.opac-button::-moz-focus-inner {
     cursor: pointer !important;
     border-radius: 5px;
     border: 1px solid [% css_colors.accent_light %];
-    margin: 0.5em;
+    margin: 0.2em;
     padding: 0.3em;
     display: inline-block;
 }
@@ -2349,7 +2385,11 @@ a.opac-button-header:hover, #dash_wrapper a.opac-button:hover {
     padding-left: 1em;
     [% END -%]
 }
-.bookbag-controls-holder { width: 100%; }
+.bookbag-controls-holder { 
+    width: 100%;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+
+}
 .bookbag-controls-holder:nth-child(odd) { background-color: [% css_colors.accent_lighter2 %]; }
 .bookbag-controls-holder:nth-child(even) { background-color: [% css_colors.accent_lightest %]; }
 .bookbag-controls-holder .most {
@@ -2361,29 +2401,22 @@ a.opac-button-header:hover, #dash_wrapper a.opac-button:hover {
     margin-right: 5em;
     [% END -%]
 }
+.bookbag-controls-holder form{
+    display: inline-flex;
+}
 .bookbag-controls-title-block {
-    [% IF rtl == 't' -%]
-    float:right;
-    [% ELSE -%]
-    float:left;
-    [% END -%]
     width:40%;
 }
 .bookbag-controls-button-block {
-    [% IF rtl == 't' -%]
-    float:right;
-    [% ELSE -%]
-    float:left;
-    [% END -%]
-    width:50%;
+
 }
 h2.bookbag-name { margin-bottom: 0em; padding-bottom: 0em; }
 .bookbag-share .fixed { min-width: 4em; }
 .bookbag-specific {
     [% IF rtl == 't' -%]
-    margin-right: 1em;
+    margin-right: 0em;
     [% ELSE -%]
-    margin-left: 1em;
+    margin-left: 0em;
     [% END -%]
 }
 .bookbag-specific div.sort {
@@ -2399,16 +2432,12 @@ h2.bookbag-name { margin-bottom: 0em; padding-bottom: 0em; }
     width: 40%;
 }
 .bookbag-specific div.meta {
-    background-color: [% css_colors.accent_light %];
     [% IF rtl == 't' -%]
-    float: left;
-    text-align: left;
-    [% ELSE -%]
-    float: right;
     text-align: right;
+    [% ELSE -%]
+    text-align: left;
     [% END -%]
-    width: 54%;
-    border: 1px solid [% css_colors.accent_light %];
+    width: 60%;
     padding: 5px;
     margin-top: 5px;
 }
@@ -2474,10 +2503,13 @@ h2.bookbag-name { margin-bottom: 0em; padding-bottom: 0em; }
 }
 textarea { font-family: sans-serif; }
 table.bookbag-specific {
-    border-right: 1px solid [% css_colors.accent_dark %];
-    border-bottom: 1px solid [% css_colors.accent_medium %];
+    border-right: 0;
+    border-bottom: 0;
     margin-bottom: 2ex;
     width: 100%;
+}
+tr.bookbag-item-row{
+    border-bottom: 1px solid [% css_colors.accent_light %];
 }
 .bookbag-share {
     [% IF rtl == 't' -%]
@@ -2490,13 +2522,7 @@ table.bookbag-specific {
 }
 .bookbag-share .fixed { min-width: 6em; }
 .bookbag-controls {
-    [% IF rtl == 't' -%]
-    float: right;
-    padding: 0px 10px 0px 0px;
-    [% ELSE -%]
-    float: left;
-    padding: 0px 0px 0px 10px;
-    [% END -%]
+
 }
 .bookbag-specific td.list_checkbox {
     [% IF rtl == 't' -%]
@@ -3024,7 +3050,22 @@ a.preflib_change {
     }
 }
 
+/* tablet & mobile view */
 @media only screen and (max-width: 800px) {
+    #header {
+    display: flex;
+    flex-flow: wrap;
+    }
+    #dash_wrapper{
+    width: 100%;
+    }
+    #header-login-wrapper{
+    width: 100%;
+    justify-content: center;
+    }
+    .dash_div{
+    width: 100%;
+    }
     .facet_sidebar_hidden, .result_block_hidden {
         display: none;
     }
@@ -3034,6 +3075,7 @@ a.preflib_change {
     }
     #acct_select, #acct_prefs_select {
         display: inline-block;
+        color: white;
     }
     #acct_tabs, #acct_prefs_tabs {
          display:none;
@@ -3042,8 +3084,10 @@ a.preflib_change {
     #list_description, #list_create_name {
         width: 300px;
     }
+    
 }
 
+/* mobile view */
 @media only screen and (max-width: 600px) {
     .pc-only{
     display: none !important;
@@ -3132,7 +3176,13 @@ a.preflib_change {
         [% ELSE -%]
         clear:left;
         [% END -%]
-        width;90%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        flex-flow: wrap;
+    }
+    .bookbag-controls{
+        width: 100%;
     }
     .bookbag-specific {
         [% IF rtl == 't' -%]
@@ -3156,15 +3206,13 @@ a.preflib_change {
     }
     .bookbag-specific div.meta {
         [% IF rtl == 't' -%]
-        float: right;
         margin-right:0px;
         text-align: right;
         [% ELSE -%]
-        float: left;
         margin-left:0px;
         text-align: left;
         [% END -%]
-        width: 95%;
+        width: 100%;
         margin-bottom:5px;
         padding:5px;
     }
@@ -3195,11 +3243,19 @@ a.preflib_change {
     .bbag-action-field {
         width:230px;
     }
+    table.bookbag-specific {
+    border-right: 0;
+    border-bottom: 0;
+    }
     .bookbag-specific div.sort select {
         width:180px;
     }
+    .bookbag-specific thead {
+        display: none;
+    }
     .bookbag-specific tr {
         display: block;
+        font-size: [% css_fonts.size_small %];
         border-bottom: 1px solid [% css_colors.border_standard %];
     }
     .bookbag-specific td.list_checkbox {
@@ -3213,18 +3269,19 @@ a.preflib_change {
         display: inline-block;
         min-width: 5em;
         [% IF rtl == 't' -%]
-        padding-right: 40% !important;
+        padding-right: 50% !important;
         [% ELSE -%]
-        padding-left: 40% !important;
+        padding-left: 50% !important;
         [% END -%]
     }
     .bookbag-specific td.list_entry:before {
         content: attr(data-label);
+        font-weight: bold;
         position: absolute;
         [% IF rtl == 't' -%]
-        right: 10px;
+        right: 12px;
         [% ELSE -%]
-        left: 10px;
+        left: 12px;
         [% END -%]
     }
     .bbag-navigate-list {
@@ -3238,6 +3295,10 @@ a.preflib_change {
         text-align:right;
         float:right;
         [% END -%]
+    }
+    .filtersort .opac-button{
+        margin-left: 0;
+        margin-right: 0;
     }
     #header-branch p{
     font-size: [% css_fonts.size_biggest %];
@@ -3299,6 +3360,10 @@ a.preflib_change {
     #holds_box form blockquote select {
         width: 100%;
     }
+    #myopac_bookbag_div #create_form .opac-menu, #myopac_bookbag_div #create_form table
+    {
+    width: 100%;
+    }
     #myopac_tabs{
     padding: 0.5em;
     display: flex;
@@ -3319,7 +3384,7 @@ a.preflib_change {
         display: none;
     }
     #list_description, #list_create_name {
-        width: 170px;
+        width: 90%;
     }
     #results_header_inner{
     display: flex;
@@ -3622,6 +3687,9 @@ a.preflib_change {
     #topnav_logo_wrapper{
         padding-top: 0.2em;
     }
+    #dash_wrapper #unread_message_count_floater {
+        margin-top: -0.4em;
+    }
     #dash_user {
         display: block;
         padding: 0.5em;
@@ -3765,9 +3833,12 @@ a.preflib_change {
         thead tr {
 
         }
+        table#acct_holds_main_header thead{
+        display: none;
+        }
 
         table#acct_checked_main_header, table#acct_holds_main_header, table#acct_checked_hist_header, table#acct_holds_hist_header, table#ebook_circs_main_table, table#ebook_holds_main_table, table#acct_reservations_main_header {
-                width: 90%;
+                width: 100%;
         }
 
         table#acct_checked_main_header tr, table#acct_holds_main_header tr, table#acct_checked_hist_header tr, table#acct_reservations_main_header { border: 1px solid #ddd; }
@@ -3778,7 +3849,7 @@ a.preflib_change {
            tables. If actions get added, we should move those tables out of
            here. */
 
-        table#acct_holds_hist_header tr, table#ebook_circs_main_table tr, table#ebook_holds_main_table tr { border-top: 25px solid #fff; }
+        table#ebook_circs_main_table tr, table#ebook_holds_main_table tr { border-top: 25px solid #fff; }
 
 
         table#acct_checked_main_header td, table#acct_holds_main_header td, table#acct_checked_hist_header td, table#acct_holds_hist_header td, table#ebook_circs_main_table td, table#ebook_holds_main_table td, table#acct_reservations_main_header td {
@@ -3807,6 +3878,7 @@ a.preflib_change {
                 padding-right: 10px;
                 [% END -%]
                 white-space: nowrap;
+                font-weight: bold;
         }
 
         table#acct_checked_main_header td:nth-of-type(1) { border-top: 5px solid #aaa; padding-top: 15px; background-color: #fff;}
@@ -3826,7 +3898,7 @@ a.preflib_change {
         table#acct_checked_hist_header td:nth-of-type(7):before { content: "[% l('Barcode') %]"; }
         table#acct_checked_hist_header td:nth-of-type(8):before { content: "[% l('Call number') %]"; }
 
-        table#acct_holds_main_header td:nth-of-type(1) { border-top: 5px solid #aaa; padding-top: 15px; background-color: #fff;}
+        table#acct_holds_main_header td:nth-of-type(1) {}
         table#acct_holds_main_header td:nth-of-type(2):before { content: "[% l('Title') %]";}
         table#acct_holds_main_header td:nth-of-type(3):before { content: "[% l('Author') %]"; }
         table#acct_holds_main_header td:nth-of-type(4):before { content: "[% l('Format') %]"; }
@@ -3835,6 +3907,7 @@ a.preflib_change {
         table#acct_holds_main_header td:nth-of-type(7):before { content: "[% l('Status') %]"; }
         table#acct_holds_main_header td.hold_notes:before { content: "[% l('Notes') %]"; }
 
+        table#acct_holds_hist_header tr:nth-of-type(odd) td {background-color: [% css_colors.background_menu %]}
         table#acct_holds_hist_header td:nth-of-type(1):before { content: "[% l('Title') %]";}
         table#acct_holds_hist_header td:nth-of-type(2):before { content: "[% l('Author') %]"; }
         table#acct_holds_hist_header td:nth-of-type(3):before { content: "[% l('Format') %]"; }
@@ -3866,6 +3939,15 @@ a.preflib_change {
 /* extra small phone mode */
 @media only screen and (max-width: 360px) {
 
+.filtersort label{
+    display: none;
+}
+
+.bookbag-controls-holder .opac-button{
+    margin-left: 0.15em;
+    margin-right: 0.15em;
+}
+
 #dash_identity a {
     float: none;
     margin: 0.1em;
@@ -3895,6 +3977,11 @@ a.preflib_change {
     padding-left: 0.35em;
     padding-right: 0.35em;
     display: inline-block;
+}
+
+div.action-dropdown .opac-button {
+    margin-left: 0;
+    margin-right: 0;
 }
 
 }
@@ -3955,6 +4042,7 @@ label[for*=expert_]
     [% END -%]
 }
 #myopac_summary_div{padding:0px;}
+
 .div-left{
     [% IF rtl == 't' -%]
     float: right;

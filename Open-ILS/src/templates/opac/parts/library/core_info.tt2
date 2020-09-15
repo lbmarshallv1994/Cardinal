@@ -14,12 +14,14 @@
             '<div id="library-url"><a href="'; lib_url | html; '" property="url">'; l('Library web site'); '</a></div>';
         END;
     -%]
-
+    
     [%- IF ctx.hours; %]
+    <br>
         [%- INCLUDE "opac/parts/library/hours.tt2"; %]
     [% END; -%]
-
+    
     [%- IF (ctx.library.email OR ctx.library.phone); %]
+    <br>
     <h2 id="contact-info">[% l('Contact information') %]</h2>
     [%- IF ctx.library.email; %]
         <div>[% l('Email address: ') %]<a href="mailto:[% ctx.library.email | html %]" property="email">[% ctx.library.email | html %]</a></div>
@@ -28,8 +30,9 @@
         <div>[% l('Telephone: ') %]<a href="tel:[% ctx.library.phone | html %]" property="telephone">[% ctx.library.phone | html %]</a></div>
     [% END; %]
     [% END; %]
-
+    
     [% IF ctx.library.shortname == 'DEQ_ELC'; %]
+    <br>
     <div id="addresses">
         <div id="mailing" property="location address" typeof="PostalAddress">
             <h3 property="contactType">[% l('Mailing address') %]</h3>
@@ -41,6 +44,7 @@
         </div>
     </div>
     [%- ELSIF ctx.library.mailing_address %]
+    <br>
     <div id="addresses">
         <div id="mailing" property="location address" typeof="PostalAddress">
             <h3 property="contactType">[% l('Mailing address') %]</h3>
@@ -56,6 +60,7 @@
     [%- END; %]
 
     [%- IF ctx.library.parent_ou; %]
+    <br>
     <h2>[% l('Branch relationship') %]</h2>
     <div id="branch-info">[% l('Parent library: ') %]
         <a property="branchOf" href="[% mkurl(opac_root _ '/library/' _ ctx.parent.shortname, {}, 1) %]">[% ctx.parent.name | html %]</a>

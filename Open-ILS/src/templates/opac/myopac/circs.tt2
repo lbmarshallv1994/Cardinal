@@ -42,7 +42,7 @@
             onsubmit="return confirm('[% l("Are you sure you wish to renew the selected item(s)?") %]');">
         <div>
             <span>
-                <select name="action" title="[% l('Select Action') %]">
+                <select name="action" class="form-control" title="[% l('Select Action') %]">
                     <option value="renew">[% l('Renew Selected Titles') %]</option>
                 </select>
             </span>
@@ -59,11 +59,16 @@
                     src="[% ctx.media_prefix %]/images/question-mark.png[% ctx.cache_key %]" /></a>
             </span>
         </div>
-
+        <label class="mobile_only">Select All</label>
+        <input type="checkbox" id="check_all_checked_mobile"
+            title="[% l('Select All Items') %]"
+            class="mobile_only"
+            onclick="var inputs=document.getElementsByTagName('input'); for (i = 0; i < inputs.length; i++) { if (inputs[i].name == 'circ' &amp;&amp; !inputs[i].disabled) inputs[i].checked = this.checked;}"
+        />
         <table id="acct_checked_main_header" 
             title="[% l('Items Checked Out') %]"
-            class="table_no_border_space table_no_cell_pad item_list_padding">
-            <thead>
+            class="table_no_border_space table_striped table_no_cell_pad item_list_padding">
+            <thead class="pc-only">
             <tr>
                 <th class="checkbox_column">
                     <input type="checkbox" id="check_all_checked"

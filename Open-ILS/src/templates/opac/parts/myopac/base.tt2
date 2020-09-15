@@ -38,7 +38,7 @@
             <div id="acct_select">
                <form name="acct_nav">
                  <label>Navigate to </label>
-                 <select name="acct_url" 
+                 <select class="form-control" name="acct_url" 
                     title="[% l('Select an account page') %]" 
                     onchange="window.location.href=document.acct_nav.acct_url.options[document.acct_nav.acct_url.selectedIndex].value">
                     [% FOREACH page IN myopac_pages;
