@@ -2,10 +2,6 @@
 <script type="text/javascript" src="[% ctx.media_prefix %]/js/ui/default/opac/simple.js[% ctx.cache_key %]"></script>
 [% INCLUDE "opac/i18n_strings.tt2" %]
 
-[% IF ctx.want_jquery %]
-<script type="text/javascript" src="[% ctx.media_prefix %]/js/ui/default/common/build/js/jquery.min.js[% ctx.cache_key %]"></script>
-[% END; # ctx.want_jquery %]
-
 <!-- DOB validation for Patron Registration in OPAC -->
 <script type="text/javascript">
     function dobValidate(input) {
@@ -20,8 +16,20 @@
 }
 </script>
 
+<!-- Modal confirm -->
+<script>
+function modalConfirm(event,text){
+    console.log(event);       
+    jQuery("#modal_confirm").modal("show");
+    return false;
+}
+</script>
+[% INCLUDE opac/parts/modal_confirm.tt2 %]
+
+
 [%- IF ctx.use_stripe %]
-<script type="text/javascript">unHideMe($("pay_fines_now"));[%# the DOM is loaded now, right? %]</script>
+    <script type="text/javascript">unHideMe($("pay_fines_now"));[%# the DOM is loaded now, right? %]</script>
+
 [% END -%]
 
 [%- IF ctx.is_staff %]

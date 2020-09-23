@@ -23,6 +23,7 @@
         </style>
     </head>
     <body class='tundra'>
+        [% ctx.modal_count = 1 %]
         [% INCLUDE login.tt2 %] <!-- shared login page -->
         <div id="oils-base-body-block" class="tundra" dojoType="dijit.layout.LayoutContainer"> 
             <div id="oils-base-header-block" dojoType="dijit.layout.ContentPane" layoutAlign="top">
@@ -40,5 +41,6 @@
                 [% END %]
             </div>
         </div>
+
     </body>
 </html>

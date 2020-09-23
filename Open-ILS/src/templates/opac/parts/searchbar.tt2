@@ -273,7 +273,7 @@ END;
             [% IF fcount > 0 %]
     <a href="#search-filters" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-filters">[% l('Filters') %]</a>/
     [% END %]
-        <a href="#search-more-options" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-more-options">[% l('More Options') %]</a>
+        <a href="#search-more-options" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-more-options">[% l('More Search Options') %]</a>
     </div>
     [% UNLESS took_care_of_form -%]
     </form>

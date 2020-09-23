@@ -30,16 +30,16 @@
     <div class="clear-both"></div> <br/>
 
     <div class="header_middle">
-        <span id="acct_prefs_header">[% l('Account Information and Preferences') %]</span>
+        <span id="acct_prefs_header">[% l('Account Information & Preferences') %]</span>
         <span class="float-right"> 
             <a class="hide_me" href="#">[% l('Export List') %]</a><!-- what does this do? -->
         </span>
     </div>
-
     [%- # Select box navigation for mobile view %]
     <div id="acct_prefs_select">
         <form name="acct_prefs_nav">
             <select name="acct_prefs_url" 
+              class="form-control"
               title="[% l('Select a preference page') %]"
               onchange="window.location.href=document.acct_prefs_nav.acct_prefs_url.options[document.acct_prefs_nav.acct_prefs_url.selectedIndex].value">
         [% FOREACH page IN acct_prefs_pages;

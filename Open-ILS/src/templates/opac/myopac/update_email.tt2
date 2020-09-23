@@ -3,12 +3,6 @@
     WRAPPER "opac/parts/myopac/base.tt2";
     myopac_page = "prefs"  %]
 <h3 class="sr-only">[% l('Edit Email Address') %]</h3>
-<div id='myopac_summary_div' style="padding:0px;">
-
-    <div class="header_middle">
-       <span class="float-left">[% l('Update Email') %]</span>
-    </div>
-	
 [% IF ctx.invalid_email %]
     <div id='account-update-email-error'>
         [% bad_email = ctx.invalid_email | html %]
@@ -21,17 +15,20 @@
     </div>
 
 [% END %]
-
-<form method='post' id='account-update-email' autocomplete='off'>
-    [% IF CGI.param("return_to_referer") %]
-    <input type="hidden" name="redirect_to" value="[% ctx.referer | html %]" />
-    [% END %]
-    <table> 
-        <tr><td>[% l('Current Email') %]</td><td>[% ctx.user.email | html %]</td></tr>
-        <tr><td><label for="current_pw">[% l('Current Password') %]</label></td><td><input type='password' name='current_pw' id='current_pw' /></td></tr>
-        <tr><td><label for="new_email">[% l('New Email') %]</label></td><td><input type='text' name='email' id='new_email' value='[% ctx.invalid_email | html %]'/></td></tr>
-        <tr><td colspan='2' align='center'><input value="[% l('Submit') %]" type='submit'/></td></tr>
-    </table>
-</form>
-
+<br>
+<div id='update-email-menu' class='opac-menu'>
+    <h1>[% l('Update Email') %]</h1>
+    <form method='post' id='account-update-email' autocomplete='off'>
+        [% IF CGI.param("return_to_referer") %]
+        <input type="hidden" name="redirect_to" value="[% ctx.referer | html %]" />
+        [% END %]
+            [%- IF ctx.user.email -%]
+            [% l('Current Email') %]<br><a href="mailto:[% ctx.user.email | html %]">[% ctx.user.email | html %]</a><br><br>
+            [%- END -%]
+            <label for="current_pw">[% l('Current Password') %]</label><br> <input type='password' class='form-control' name='current_pw' id='current_pw' /><br><br>
+            <label for="new_email">[% l('New Email') %]</label><br> <input type='text' class='form-control' name='email' id='new_email' value='[% ctx.invalid_email | html %]'/><br>
+            <a class='opac-button' href="[% ctx.referer %]" >[% l('Cancel') %]</a>
+            <input class='opac-button' value="[% l('Submit') %]" type='submit'/>
+    </form>
+</div>
 [% END %]

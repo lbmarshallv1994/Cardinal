@@ -80,17 +80,31 @@
                 <td></td>
                 [%- ELSE %]
                 <td class='light_border'><a href='update_password'
-                    title="[% l('Change Password') %]">[% l("Change") %]</a></td>
+                    title="[% l('Change Password') %]" class="icon opac-button">
+                        <svg class="bi" width="100%" height="100%" fill="currentColor">
+                          <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#pencil-fill"/>
+                        </svg></a></td>
                 [%- END %]
             </tr>
             <tr>
                 <td class='color_4 light_border'>[% l("Email Address") %]</td>
-                <td class='light_border'>[% ctx.user.email | html %]</td>
+                <td class='light_border'>
+                [% IF ctx.user.email %]
+                <a href="mailto:[% ctx.user.email | html %]">[% ctx.user.email | html %]</a>
+                [% ELSE %]
+                    No Email Address
+                [% END %]
+                </td>
                 [%- IF disable_email_change == 'true' %]
                 <td></td>
                 [%- ELSE %]
                 <td class='light_border'><a href='update_email'
-                    title="[% l('Update Email Address') %]">[% l('Change') %]</a></td>
+                    title="[% l('Update Email Address') %]" class="icon opac-button">
+                        <svg class="bi" width="100%" height="100%" fill="currentColor">
+                          <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#pencil-fill"/>
+                        </svg>
+                    </a>
+                    </td>
                 [%- END %]
             </tr>
 
@@ -117,7 +131,7 @@
 
             <tr>
                 <td class='color_4 light_border'>[% l("Home Library") %]</td>
-                <td class='light_border'>[% ctx.user.home_ou.name | html %]</td>
+                <td class='light_border'>[%- lib = ctx.user.home_ou.id; INCLUDE "opac/parts/generic_library_name_link.tt2"; %]</td>
                 <td></td>
             </tr>
             <tr>

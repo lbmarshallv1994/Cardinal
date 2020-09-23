@@ -1,0 +1,6 @@
+<a href="#" data-toggle="modal" data-target="#infoModal[%-ctx.modal_count-%]" title="[% l('Info') %]">
+    <svg class="bi link" width="18" height="18" fill="currentColor">
+        <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#question-circle-fill"/>
+    </svg>
+</a>
+[% INCLUDE "opac/parts/modal.tt2" id='infoModal' _ ctx.modal_count title=title body=body %]

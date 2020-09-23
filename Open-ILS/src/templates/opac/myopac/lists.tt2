@@ -9,7 +9,7 @@
 "Sharing a list means that the contents " _
 "of the list will be visible to others. " _
 "To see the public view of a shared list, " _
-"click on the HTML View link in the Saved Lists section.");
+"click on the <b>HTML View link</b> in the Saved Lists section.");
 %]
 <h3 class="sr-only">[% l('My Lists') %]</h3>
 <div id='myopac_bookbag_div' style="padding:5px;">
@@ -58,12 +58,7 @@
                         <option value="0">[% l('No') %]
                         <option value="1">[% l('Yes') %]
                     </select>
-                    <a href="javascript:void(0);" 
-                        onclick="alert('[% bb_publish_text %]')">
-                        <img alt="[% l('Sharing Help') %]"
-                            [% html_text_attr('title', bb_publish_text) %]
-                            src="[% ctx.media_prefix %]/images/question-mark.png[% ctx.cache_key %]" />
-                    </a>
+                    [% INCLUDE "opac/parts/modal_info_button.tt2" title=l('Sharing Help') body= bb_publish_text  %]
                 </td>
             </tr>
             [% IF ctx.mylist.size %]

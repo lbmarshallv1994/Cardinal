@@ -7,7 +7,7 @@
     <h3 class="sr-only">[% l('List Preferences') %]</h3>
     <form method='post'>
 
-       <table class="full-width data_grid" id="acct_search_main"
+       <table class="full-width data_grid prefs_grid" id="acct_search_main"
             title="[% l('List Preferences') %]">
             <tbody>
 
@@ -21,9 +21,9 @@
 
                 [%- setting = 'opac.lists_per_page' -%]
                 <tr >
-                    <td width='20%'><label for='[% setting %]'>[%l("Lists per page") %]</label></td>
+                    <td><label for='[% setting %]'>[%l("Lists per page") %]</label></td>
                     <td>
-                        <select id='[% setting %]' name='[% setting %]'>
+                        <select id='[% setting %]' class='form-control' name='[% setting %]'>
                             [%  UNLESS ctx.user_setting_map.$setting;
                                     ctx.user_setting_map.$setting = 10;
                                 END;
@@ -33,17 +33,14 @@
                                         selected='selected'[% END %]>[% val | html %]</option>
                             [% END %]
                         </select>
-                        <img alt="[% l('List Items Help') %]"
-                            src="[% ctx.media_prefix %]/images/question-mark.png[% ctx.cache_key %]"
-                            title="[% l('The number of lists displayed per page.') %]"
-                        />
+                        [% INCLUDE "opac/parts/modal_info_button.tt2" title=l('List Items Help') body=l('The number of lists displayed per page.') %]
                     </td>
                 </tr>
                 [%- setting = 'opac.list_items_per_page' -%]
                 <tr >
-                    <td width='20%'><label for='[% setting %]'>[%l("List items per page") %]</label></td>
+                    <td><label for='[% setting %]'>[%l("List items per page") %]</label></td>
                     <td>
-                        <select id='[% setting %]' name='[% setting %]'>
+                        <select id='[% setting %]' class='form-control' name='[% setting %]'>
                             [%  UNLESS ctx.user_setting_map.$setting;
                                     ctx.user_setting_map.$setting = 10;
                                 END;
@@ -53,10 +50,7 @@
                                         selected='selected'[% END %]>[% val | html %]</option>
                             [% END %]
                         </select>
-                        <img alt="[% l('List Items Help') %]"
-                            src="[% ctx.media_prefix %]/images/question-mark.png[% ctx.cache_key %]"
-                            title="[% l('The number of list items displayed per page when viewing a selected list.') %]"
-                        />
+                        [% INCLUDE "opac/parts/modal_info_button.tt2" title=l('List Items Help') body=l('The number of list items displayed per page when viewing a selected list.') %]
                     </td>
                 </tr>
             </tbody>

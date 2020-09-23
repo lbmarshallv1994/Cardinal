@@ -1,0 +1,21 @@
+<div class="modal fade" id="[%- id -%]" tabindex="-1" data-modal-id="[% ctx.modal_count %]" aria-labelledby="[%- id -%]Label" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="[%- id -%]Label">[%- title -%]</h5>
+        <a class="close" data-dismiss="modal" aria-label="Close">
+            <svg class="bi" width="24" height="24" fill="currentColor">
+              <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#x"/>
+            </svg>
+        </a>
+      </div>
+      <div class="modal-body">
+        [%- body -%]
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="alert opac-button" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+[% ctx.modal_count = ctx.modal_count + 1 %]

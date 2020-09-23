@@ -79,8 +79,7 @@ h3 {
     border-color: [% css_colors.border_input %];
     color: [% css_colors.text_input %];
     font-size: [% css_fonts.size_base %];
-    margin-left: 0.1em;
-    margin-right: 0.1em;
+    margin: 0.1em;
 }
 
 .form-check-inline{
@@ -116,7 +115,7 @@ h3 {
     width: 50%;
 }
 
-a {
+a, .link {
     color: [% css_colors.primary %];
 }
 
@@ -180,6 +179,16 @@ h2.graphic880 {
 .hide_me, .hidden {
     display: none;
     visibility: hidden;
+}
+
+.modal-header{
+    background-color: [% css_colors.primary_fade %];
+    color: [% css_colors.text_invert %];
+    padding: 0.6rem 0.6rem;
+}
+
+.modal-footer {
+    padding: .10rem;
 }
 
 div.select-box-wrapper {
@@ -545,6 +554,7 @@ for now until a better color is picked - if needed.
     font-weight: bold;
     color: [% css_colors.text_invert %];
     background-color: [% css_colors.control %];
+    transition: background-color 0.1s;
     font-weight: bold;
     text-decoration: none;
     margin-bottom: -2px;
@@ -1443,6 +1453,10 @@ div.result_table_utils_cont {
     border-collapse:collapse;
 }
 
+#myopac_prefs_div .prefs_grid tr td:first-of-type{
+    width:20%;
+}
+
 #myopac_prefs_div .data_grid td {
     [% IF rtl == 't' -%]
     padding: 6px 17px 7px 0px;
@@ -1552,6 +1566,18 @@ div.result_table_utils_cont {
     [% ELSE -%]
     float:left;
     [% END -%]
+}
+
+#update-email-menu, #update-password-menu{
+    width: 500px;
+}
+
+#update-email-menu input[type="text"], #update-email-menu input[type="password"]{
+    width: 75%;
+}
+
+#update-password-menu input[type="text"], #update-password-menu input[type="password"]{
+    width: 75%;
 }
 
 #acct_checked_main_header, #acct_holds_main_header, #acct_fines_main_header, #acct_fees_main_header, #acct_checked_hist_header, #acct_holds_hist_header, #acct_list_header, #acct_list_header_anon, #temp_list_holds, #acct_messages_main_header, #ebook_circs_main_table, #ebook_holds_main_table {
@@ -2015,9 +2041,9 @@ div#facet_sidebar {
 }
 #acct_prefs_header {
     [% IF rtl == 't' -%]
-    float: right;
+    /*float: right;*/
     [% ELSE -%]
-    float: left;
+    /*float: left;*/
     [% END -%]
 }
 .search_page_nav_link {
@@ -2246,6 +2272,7 @@ padding-bottom: 1em;
     border-radius: 5px;
     border: none;
     background-color:  [% css_colors.primary_fade %];
+    transition: background-color 0.10s;
     margin: 0.5em;
     padding-bottom: 0.4em;
     padding-top: 0.4em;
@@ -2260,6 +2287,19 @@ padding-bottom: 1em;
     padding-top: 0.3em;
     padding-left: 0.6em;
     padding-right: 0.6em;
+}
+
+tr .opac-button.icon
+{
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.opac-button.icon
+{
+    padding: 0.35em;
+    width: 2.4em;
+    height: 2.4em;
 }
 
 .opac-button.alert
@@ -2300,6 +2340,7 @@ button.opac-button::-moz-focus-inner, input.opac-button::-moz-focus-inner {
     cursor: pointer !important;
     border-radius: 5px;
     border: 1px solid [% css_colors.accent_light %];
+    transition: background-color 0.10s;
     margin: 0.2em;
     padding: 0.3em;
     display: inline-block;
@@ -3084,7 +3125,9 @@ a.preflib_change {
     #list_description, #list_create_name {
         width: 300px;
     }
-    
+    #myopac_prefs_div .prefs_grid tr td:first-of-type{
+    width:auto;
+    }
 }
 
 /* mobile view */
@@ -3092,7 +3135,7 @@ a.preflib_change {
     .pc-only{
     display: none !important;
     }
-    input, select, button, input {
+    input, select, button, input, form .opac-button {
         font-size: [% css_fonts.size_big %];
     }
     .mobile-grid{
@@ -3161,6 +3204,7 @@ a.preflib_change {
        [% END -%]
        padding: 2px 4px 3px 4px;
        font-size: [% css_fonts.size_base %];
+       transition: background-color 0.1s;
     }
     .bookbag-controls-title-block {
         [% IF rtl == 't' -%]
@@ -3443,6 +3487,9 @@ a.preflib_change {
     #browse-search-class::after {
     content: "\A";
     white-space: pre;
+    }
+    #update-email-menu, #update-password-menu{
+    width: 100%;
     }
     .preflib {
         display: none;
