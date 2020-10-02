@@ -41,6 +41,7 @@
         mobile_header_text = "#fff", # white
         item_selected = "#ddd", # grey (lighter)
         result_selected = "#d8ebed", # light blue
+	link = "#00593d", # dark green
     };
     
 %]

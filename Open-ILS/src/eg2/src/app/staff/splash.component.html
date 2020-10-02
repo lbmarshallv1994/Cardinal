@@ -16,6 +16,8 @@
     }
 </style>
 
+<h1 class="sr-only" i18n>Evergreen Staff Client Home Page</h1>
+
 <eg-title i18n-prefix prefix="Evergreen Staff Client"></eg-title>
 
 <div class="container">
@@ -31,7 +33,7 @@
     <div class="col-lg-4">
       <div class="card">
         <div class="card-header">
-          <div class="panel-title text-center" i18n>Circulation and Patrons</div>
+          <h2 class="panel-title text-center" i18n>Circulation and Patrons</h2>
         </div>
         <div class="card-body">
           <div class="list-group">
@@ -61,7 +63,7 @@
     <div class="col-lg-4">
       <div class="card">
         <div class="card-header">
-          <div class="panel-title text-center" i18n>Item Search and Cataloging</div>
+          <h2 class="panel-title text-center" i18n>Item Search and Cataloging</h2>
         </div>
         <div class="card-body">
           <div class="list-group">
@@ -71,11 +73,12 @@
                   [(ngModel)]="catSearchQuery"
                   id='catalog-search-input'
                   (keyup.enter)="searchCatalog()"
-                  i18n-placeholder placeholder="Search for...">
+                  i18n-placeholder placeholder="Search for..."
+                  i18n-aria-label aria-label="Search for...">
                 <span class="input-group-btn">
                   <button class="btn btn-outline-secondary" 
                     (click)="searchCatalog()" type="button" i18n>
-                    Search
+                    Search Catalog
                   </button>
                 </span>
                   <!--
@@ -98,7 +101,7 @@
             <div class="list-group-item border-0 p-2">
               <a href="/eg/staff/cat/bucket/copy/" i18n>
                 <img src="/images/portal/bucket.png" alt="" role="presentation"/>
-                Copy Buckets
+                Item Buckets
               </a>
             </div>
           </div>
@@ -109,7 +112,7 @@
     <div class="col-lg-4">
       <div class="card">
         <div class="card-header">
-          <div class="panel-title text-center" i18n>Administration</div>
+          <h2 class="panel-title text-center" i18n>Administration</h2>
         </div>
         <div class="card-body">
           <div class="list-group">

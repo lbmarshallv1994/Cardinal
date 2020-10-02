@@ -1,6 +1,6 @@
 import {Injectable, EventEmitter} from '@angular/core';
 import {Observable} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {map, tap, finalize} from 'rxjs/operators';
 import {OrgService} from '@eg/core/org.service';
 import {UnapiService} from '@eg/share/catalog/unapi.service';
 import {IdlService, IdlObject} from '@eg/core/idl.service';
@@ -61,6 +61,8 @@ export class CatalogService {
             'open-ils.search.multi_home.bib_ids.by_barcode',
             ctx.identSearch.value
         ).toPromise().then(ids => {
+            // API returns an event for not-found barcodes
+            if (!Array.isArray(ids)) { ids = []; }
             const result = {
                 count: ids.length,
                 ids: ids.map(id => [id])
@@ -135,20 +137,18 @@ export class CatalogService {
             method += '.staff';
         }
 
-        return new Promise((resolve, reject) => {
-            this.net.request(
-                'open-ils.search', method, {
-                    limit : ctx.pager.limit + 1,
-                    offset : ctx.pager.offset
-                }, fullQuery, true
-            ).subscribe(result => {
-                this.applyResultData(ctx, result);
-                ctx.searchState = CatalogSearchState.COMPLETE;
-                this.onSearchComplete.emit(ctx);
-                resolve();
-            });
+        return this.net.request(
+            'open-ils.search', method, {
+                limit : ctx.pager.limit + 1,
+                offset : ctx.pager.offset
+            }, fullQuery, true
+        ).toPromise()
+        .then(result => this.applyResultData(ctx, result))
+        .then(_ => this.fetchFieldHighlights(ctx))
+        .then(_ => {
+            ctx.searchState = CatalogSearchState.COMPLETE;
+            this.onSearchComplete.emit(ctx);
         });
-
     }
 
     // When showing titles linked to a browse entry, fetch
@@ -212,6 +212,67 @@ export class CatalogService {
                 // May be reset when quickly navigating results.
                 ctx.result.records[idx] = summary;
             }
+
+            if (ctx.highlightData[summary.id]) {
+                summary.displayHighlights = ctx.highlightData[summary.id];
+            }
+        })).toPromise();
+    }
+
+    fetchFieldHighlights(ctx: CatalogSearchContext): Promise<any> {
+
+        let hlMap;
+
+        // Extract the highlight map.  Not all searches have them.
+        if ((hlMap = ctx.result)            &&
+            (hlMap = hlMap.global_summary)  &&
+            (hlMap = hlMap.query_struct)    &&
+            (hlMap = hlMap.additional_data) &&
+            (hlMap = hlMap.highlight_map)   &&
+            (Object.keys(hlMap).length > 0)) {
+        } else { return Promise.resolve(); }
+
+        let ids;
+        if (ctx.getHighlightsFor) {
+            ids = [ctx.getHighlightsFor];
+        } else {
+            // ctx.currentResultIds() returns bib IDs or metabib IDs
+            // depending on the search type.  If we have metabib IDs, map
+            // them to bib IDs for highlighting.
+            ids = ctx.currentResultIds();
+            if (ctx.termSearch.groupByMetarecord) {
+                ids = ids.map(mrId =>
+                    ctx.result.records.filter(r => mrId === r.metabibId)[0].id
+                );
+            }
+        }
+
+        return this.net.requestWithParamList( // API is list-based
+            'open-ils.search',
+            'open-ils.search.fetch.metabib.display_field.highlight',
+            [hlMap].concat(ids)
+        ).pipe(map(fields => {
+
+            if (fields.length === 0) { return; }
+
+            // Each 'fields' collection is an array of display field
+            // values whose text is augmented with highlighting markup.
+            const highlights = ctx.highlightData[fields[0].source] = {};
+
+            fields.forEach(field => {
+                const dfMap = this.cmfMap[field.field].display_field_map();
+                if (!dfMap) { return; } // pretty sure this can't happen.
+
+                if (dfMap.multi() === 't') {
+                    if (!highlights[dfMap.name()]) {
+                        highlights[dfMap.name()] = [];
+                    }
+                    (highlights[dfMap.name()] as string[]).push(field.highlight);
+                } else {
+                    highlights[dfMap.name()] = field.highlight;
+                }
+            });
+
         })).toPromise();
     }
 
@@ -312,14 +373,15 @@ export class CatalogService {
     }
 
     fetchCmfs(): Promise<void> {
-        // At the moment, we only need facet CMFs.
         if (Object.keys(this.cmfMap).length) {
             return Promise.resolve();
         }
 
         return new Promise((resolve, reject) => {
             this.pcrud.search('cmf',
-                {facet_field : 't'}, {}, {atomic: true, anonymous: true}
+                {'-or': [{facet_field : 't'}, {display_field: 't'}]},
+                {flesh: 1, flesh_fields: {cmf: ['display_field_map']}},
+                {atomic: true, anonymous: true}
             ).subscribe(
                 cmfs => {
                     cmfs.forEach(c => this.cmfMap[c.id()] = c);
@@ -358,9 +420,10 @@ export class CatalogService {
                 pivot: bs.pivot,
                 org_unit: ctx.searchOrg.id()
             }
-        ).pipe(tap(result => {
-            ctx.searchState = CatalogSearchState.COMPLETE;
-        }));
+        ).pipe(
+            tap(result => ctx.searchState = CatalogSearchState.COMPLETE),
+            finalize(() => this.onSearchComplete.emit(ctx))
+        );
     }
 
     cnBrowse(ctx: CatalogSearchContext): Observable<any> {
@@ -370,7 +433,7 @@ export class CatalogService {
         return this.net.request(
             'open-ils.supercat',
             'open-ils.supercat.call_number.browse',
-            cbs.value, ctx.searchOrg.shortname(), ctx.pager.limit, cbs.offset
+            cbs.value, ctx.searchOrg.shortname(), cbs.limit, cbs.offset
         ).pipe(tap(result => ctx.searchState = CatalogSearchState.COMPLETE));
     }
 }

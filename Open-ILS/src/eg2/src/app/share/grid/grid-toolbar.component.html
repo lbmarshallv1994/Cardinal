@@ -4,7 +4,13 @@
   <div class="btn-toolbar">
 
     <!-- buttons -->
-    <div class="btn-grp" *ngIf="gridContext.toolbarButtons.length">
+    <div class="btn-grp" *ngIf="gridContext.toolbarButtons.length || gridContext.isFilterable">
+      <!-- special case for remove filters button -->
+      <button *ngIf="gridContext.isFilterable"
+        class="btn btn-outline-dark mr-1" (click)="gridContext.removeFilters()"
+        [disabled]="!gridContext.filtersSet()" i18n>
+        Remove Filters
+      </button>
       <button *ngFor="let btn of gridContext.toolbarButtons"
         [disabled]="btn.disabled"
         class="btn btn-outline-dark mr-1" (click)="performButtonAction(btn)">
@@ -19,7 +25,7 @@
         <label class="form-check-label">
           <input class="form-check-input" type="checkbox"
             [(ngModel)]="cb.isChecked"
-            (click)="cb.onChange($event.target.checked)"/>
+            (click)="cb.onChange.emit($event.target.checked)"/>
             {{cb.label}}
         </label>
       </ng-container>
@@ -86,7 +92,7 @@
       title="Expand Cells Vertically" i18n-title
       class="material-icons mat-icon-in-button">expand_more</span>
     <span *ngIf="gridContext.overflowCells"
-      title="Collaps Cells Vertically" i18n-title
+      title="Collapse Cells Vertically" i18n-title
       class="material-icons mat-icon-in-button">expand_less</span>
   </button>
 
@@ -144,6 +150,3 @@
   </div>
 
 <div>
-
-
-

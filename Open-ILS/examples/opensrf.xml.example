@@ -544,6 +544,7 @@ vim:et:ts=4:sw=4:
                             <basedn>ou=people,dc=domain,dc=com</basedn>
                             <authid>cn=username,ou=specials,dc=domain,dc=com</authid>
                             <id_attr>uid</id_attr>
+                            <bind_attr>uid</bind_attr>
                             <password>my_ldap_password_for_authid_user</password>
                             <login_types>
                                 <type>staff</type>
@@ -554,6 +555,7 @@ vim:et:ts=4:sw=4:
                                 <unit>103</unit>
                                 <unit>104</unit>
                             </org_units>
+                            <restrict_by_home_ou>false</restrict_by_home_ou>
                         </authenticator>
                         -->
                         <!-- 'native' is a proxied version of Evergreen's standard authentication -->

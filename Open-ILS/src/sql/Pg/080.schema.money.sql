@@ -77,7 +77,6 @@ END;
 $$ LANGUAGE PLPGSQL;
 CREATE TRIGGER maintain_billing_ts_tgr BEFORE INSERT OR UPDATE ON money.billing FOR EACH ROW EXECUTE PROCEDURE money.maintain_billing_ts();
 
-
 CREATE TABLE money.payment (
 	id		BIGSERIAL			PRIMARY KEY,
 	xact		BIGINT				NOT NULL, -- money.billable_xact.id
@@ -669,11 +668,24 @@ CREATE TRIGGER mat_summary_upd_tgr AFTER UPDATE ON money.credit_card_payment FOR
 CREATE TRIGGER mat_summary_del_tgr BEFORE DELETE ON money.credit_card_payment FOR EACH ROW EXECUTE PROCEDURE money.materialized_summary_payment_del ('credit_card_payment');
 
 
+CREATE TABLE money.debit_card_payment () INHERITS (money.bnm_desk_payment);
+ALTER TABLE money.debit_card_payment ADD PRIMARY KEY (id);
+CREATE INDEX money_debit_card_payment_xact_idx ON money.debit_card_payment (xact);
+CREATE INDEX money_debit_card_id_idx ON money.debit_card_payment (id);
+CREATE INDEX money_debit_card_payment_ts_idx ON money.debit_card_payment (payment_ts);
+CREATE INDEX money_debit_card_payment_accepting_usr_idx ON money.debit_card_payment (accepting_usr);
+CREATE INDEX money_debit_card_payment_cash_drawer_idx ON money.debit_card_payment (cash_drawer);
+
+CREATE TRIGGER mat_summary_add_tgr AFTER INSERT ON money.debit_card_payment FOR EACH ROW EXECUTE PROCEDURE money.materialized_summary_payment_add ('debit_card_payment');
+CREATE TRIGGER mat_summary_upd_tgr AFTER UPDATE ON money.debit_card_payment FOR EACH ROW EXECUTE PROCEDURE money.materialized_summary_payment_update ('debit_card_payment');
+CREATE TRIGGER mat_summary_del_tgr BEFORE DELETE ON money.debit_card_payment FOR EACH ROW EXECUTE PROCEDURE money.materialized_summary_payment_del ('debit_card_payment');
+
+
 CREATE OR REPLACE VIEW money.non_drawer_payment_view AS
 	SELECT	p.*, c.relname AS payment_type
 	  FROM	money.bnm_payment p         
 			JOIN pg_class c ON p.tableoid = c.oid
-	  WHERE	c.relname NOT IN ('cash_payment','check_payment','credit_card_payment');
+	  WHERE	c.relname NOT IN ('cash_payment','check_payment','credit_card_payment','debit_card_payment');
 
 CREATE OR REPLACE VIEW money.cashdrawer_payment_view AS
 	SELECT	ou.id AS org_unit,
@@ -688,6 +700,95 @@ CREATE OR REPLACE VIEW money.cashdrawer_payment_view AS
 		LEFT JOIN money.bnm_desk_payment p ON (ws.id = p.cash_drawer)
 		LEFT JOIN money.payment_view t ON (p.id = t.id);
 
+-- serves as the basis for the aged payments data.
+CREATE OR REPLACE VIEW money.payment_view_for_aging AS
+    SELECT p.*,
+        bnm.accepting_usr,
+        bnmd.cash_drawer,
+        maa.billing
+    FROM money.payment_view p
+    LEFT JOIN money.bnm_payment bnm ON bnm.id = p.id
+    LEFT JOIN money.bnm_desk_payment bnmd ON bnmd.id = p.id
+    LEFT JOIN money.account_adjustment maa ON maa.id = p.id;
+
+-- Create 'aged' clones of billing and payment_view tables
+CREATE TABLE money.aged_payment (LIKE money.payment INCLUDING INDEXES);
+ALTER TABLE money.aged_payment 
+    ADD COLUMN payment_type TEXT NOT NULL,
+    ADD COLUMN accepting_usr INTEGER,
+    ADD COLUMN cash_drawer INTEGER,
+    ADD COLUMN billing BIGINT;
+
+CREATE INDEX aged_payment_accepting_usr_idx ON money.aged_payment(accepting_usr);
+CREATE INDEX aged_payment_cash_drawer_idx ON money.aged_payment(cash_drawer);
+CREATE INDEX aged_payment_billing_idx ON money.aged_payment(billing);
+
+CREATE TABLE money.aged_billing (LIKE money.billing INCLUDING INDEXES);
+
+CREATE OR REPLACE VIEW money.all_payments AS
+    SELECT * FROM money.payment_view_for_aging
+    UNION ALL
+    SELECT * FROM money.aged_payment;
+
+CREATE OR REPLACE VIEW money.all_billings AS
+    SELECT * FROM money.billing
+    UNION ALL
+    SELECT * FROM money.aged_billing;
+
+CREATE OR REPLACE FUNCTION money.age_billings_and_payments() RETURNS INTEGER AS $FUNC$
+-- Age billings and payments linked to transactions which were 
+-- completed at least 'older_than' time ago.
+DECLARE
+    xact_id BIGINT;
+    counter INTEGER DEFAULT 0;
+    keep_age INTERVAL;
+BEGIN
+
+    SELECT value::INTERVAL INTO keep_age FROM config.global_flag 
+        WHERE name = 'history.money.retention_age' AND enabled;
+
+    -- Confirm interval-based aging is enabled.
+    IF keep_age IS NULL THEN RETURN counter; END IF;
+
+    -- Start with non-circulation transactions
+    FOR xact_id IN SELECT DISTINCT(xact.id) FROM money.billable_xact xact
+        -- confirm there is something to age
+        JOIN money.billing mb ON mb.xact = xact.id
+        -- Avoid aging money linked to non-aged circulations.
+        LEFT JOIN action.circulation circ ON circ.id = xact.id
+        WHERE circ.id IS NULL AND AGE(NOW(), xact.xact_finish) > keep_age LOOP
+
+        PERFORM money.age_billings_and_payments_for_xact(xact_id);
+        counter := counter + 1;
+    END LOOP;
+
+    -- Then handle aged circulation money.
+    FOR xact_id IN SELECT DISTINCT(xact.id) FROM action.aged_circulation xact
+        -- confirm there is something to age
+        JOIN money.billing mb ON mb.xact = xact.id
+        WHERE AGE(NOW(), xact.xact_finish) > keep_age LOOP
+
+        PERFORM money.age_billings_and_payments_for_xact(xact_id);
+        counter := counter + 1;
+    END LOOP;
+
+    RETURN counter;
+END;
+$FUNC$ LANGUAGE PLPGSQL;
+
+CREATE OR REPLACE FUNCTION money.age_billings_and_payments_for_xact
+    (xact_id BIGINT) RETURNS VOID AS $FUNC$
+
+    INSERT INTO money.aged_billing
+        SELECT * FROM money.billing WHERE xact = $1;
+
+    INSERT INTO money.aged_payment 
+        SELECT * FROM money.payment_view_for_aging WHERE xact = xact_id;
+
+    DELETE FROM money.payment WHERE xact = $1;
+    DELETE FROM money.billing WHERE xact = $1;
+
+$FUNC$ LANGUAGE SQL;
 
 COMMIT;
 

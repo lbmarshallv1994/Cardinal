@@ -13,7 +13,9 @@ import {IdlService} from '@eg/core/idl.service';
       <eg-staff-banner bannerText="{{classLabel}} Configuration" i18n-bannerText>
       </eg-staff-banner>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
-        readonlyFields="{{readonlyFields}}"></eg-admin-page>
+        configLinkBasePath="{{configLinkBasePath}}"
+        readonlyFields="{{readonlyFields}}"
+        [disableOrgFilter]="disableOrgFilter"></eg-admin-page>
     `
 })
 
@@ -23,6 +25,10 @@ export class BasicAdminPageComponent implements OnInit {
     classLabel: string;
     persistKeyPfx: string;
     readonlyFields = '';
+    configLinkBasePath = '/staff/admin';
+
+    // Tell the admin page to disable and hide the automagic org unit filter
+    disableOrgFilter: boolean;
 
     constructor(
         private route: ActivatedRoute,
@@ -55,13 +61,22 @@ export class BasicAdminPageComponent implements OnInit {
             // ACQ is a special case, because unlike 'server', 'local',
             // 'workstation', the schema ('acq') is the root of the path.
             this.persistKeyPfx = '';
+        } else {
+            this.configLinkBasePath += '/' + this.persistKeyPfx;
         }
 
         // Pass the readonlyFields param if available
-        if (this.route.snapshot.data &&
-            this.route.snapshot.data[0] && // snapshot.data is a HASH.
-            this.route.snapshot.data[0].readonlyFields) {
-            this.readonlyFields = this.route.snapshot.data[0].readonlyFields;
+        if (this.route.snapshot.data && this.route.snapshot.data[0]) {
+            // snapshot.data is a HASH.
+            const data = this.route.snapshot.data[0];
+
+            if (data.readonlyFields) {
+                this.readonlyFields = data.readonlyFields;
+            }
+
+            if (data.disableOrgFilter) {
+                this.disableOrgFilter = true;
+            }
         }
 
         Object.keys(this.idl.classes).forEach(class_ => {

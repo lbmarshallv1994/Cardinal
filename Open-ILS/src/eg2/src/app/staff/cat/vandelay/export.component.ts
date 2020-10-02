@@ -16,7 +16,7 @@ import {BasketService} from '@eg/share/catalog/basket.service';
 })
 export class ExportComponent implements AfterViewInit, OnInit {
 
-    recordSource: string;
+    recordSource = 'csv';
     fieldNumber: number;
     selectedFile: File;
     recordId: number;
@@ -29,8 +29,8 @@ export class ExportComponent implements AfterViewInit, OnInit {
     exportingBasket: boolean;
     basketRecords: number[];
 
-    @ViewChild('fileSelector') private fileSelector;
-    @ViewChild('exportProgress')
+    @ViewChild('fileSelector', { static: false }) private fileSelector;
+    @ViewChild('exportProgress', { static: true })
         private exportProgress: ProgressInlineComponent;
 
     constructor(

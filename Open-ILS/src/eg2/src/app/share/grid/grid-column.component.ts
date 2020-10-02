@@ -1,5 +1,5 @@
 import {Component, Input, OnInit, Host, TemplateRef} from '@angular/core';
-import {GridColumn, GridColumnSet} from './grid';
+import {GridColumn} from './grid';
 import {GridComponent} from './grid.component';
 
 @Component({
@@ -27,8 +27,14 @@ export class GridColumnComponent implements OnInit {
     // If true, boolean fields support 3 values: true, false, null (unset)
     @Input() ternaryBool: boolean;
 
+    // result filtering
+    @Input() filterable: boolean;
+
     // Display date and time when datatype = timestamp
     @Input() datePlusTime: boolean;
+
+    // Display using a specific OU's timestamp when datatype = timestamp
+    @Input() timezoneContextOrg: number;
 
     // Used in conjunction with cellTemplate
     @Input() cellContext: any;
@@ -57,12 +63,20 @@ export class GridColumnComponent implements OnInit {
         col.cellContext = this.cellContext;
         col.disableTooltip = this.disableTooltip;
         col.isSortable = this.sortable;
+        col.isFilterable = this.filterable;
         col.isMultiSortable = this.multiSortable;
         col.datatype = this.datatype;
         col.datePlusTime = this.datePlusTime;
         col.ternaryBool = this.ternaryBool;
+        col.timezoneContextOrg = this.timezoneContextOrg;
         col.isAuto = false;
         this.grid.context.columnSet.add(col);
+
+        if (this.cellTemplate &&
+            !this.grid.context.columnHasTextGenerator(col)) {
+            console.warn(
+                'No cellTextGenerator provided for "' + col.name + '"');
+        }
     }
 }
 

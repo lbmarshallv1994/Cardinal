@@ -11,7 +11,9 @@
   dateformat="{{$root.egDateAndTimeFormat}}">
 
   <eg-grid-action handler="add_copies_to_bucket"
-    label="[% l('Add Items to Bucket') %]"></eg-grid-action>
+    label="[% l('Add to Item Bucket') %]"></eg-grid-action>
+  <eg-grid-action handler="add_records_to_bucket"
+    label="[% l('Add to Record Bucket') %]"></eg-grid-action>
   <eg-grid-action handler="show_in_catalog"
     label="[% l('Show in Catalog') %]"></eg-grid-action>
   <eg-grid-action handler="make_copies_bookable"
@@ -19,6 +21,9 @@
   <eg-grid-action handler="book_copies_now"
     disabled="need_one_selected"
     label="[% l('Book Item Now') %]"></eg-grid-action>
+  <eg-grid-action handler="manage_reservations"
+    disabled="need_one_selected"
+    label="[% l('Manage Reservations') %]"></eg-grid-action>
   <eg-grid-action handler="requestItems"
     label="[% l('Request Items') %]"></eg-grid-action>
   <eg-grid-action handler="attach_to_peer_bib"
@@ -47,6 +52,8 @@
 
   <eg-grid-action handler="selectedHoldingsDamaged" group="[% l('Mark') %]"
     label="[% l('Item as Damaged') %]"></eg-grid-action>
+  <eg-grid-action handler="selectedHoldingsDiscard" group="[% l('Mark') %]"
+    label="[% l('Item as Discard/Weed') %]"></eg-grid-action>
   <eg-grid-action handler="selectedHoldingsMissing" group="[% l('Mark') %]"
     label="[% l('Item as Missing') %]"></eg-grid-action>
     
@@ -82,14 +89,21 @@
   <eg-grid-field label="[% l('Item Status') %]"    path="status.name" visible></eg-grid-field>
   <eg-grid-field label="[% l('Title') %]"       
     path="call_number.record.simple_record.title" visible>
-    <a target="_blank" href="[% ctx.base_path %]/staff/cat/catalog/record/{{item['call_number.record.id']}}">
-      {{item['call_number.record.simple_record.title']}} <span ng-show="item['call_number.record.id']" class="glyphicon glyphicon-new-window"/>
-    </a>
+    <span ng-show="item['dummy_title']">
+        {{item['dummy_title']}}
+    </span>
+    <span ng-hide="item['call_number.record.id'] == -1">
+        <a target="_blank" href="[% ctx.base_path %]/staff/cat/catalog/record/{{item['call_number.record.id']}}">
+          {{item['call_number.record.simple_record.title']}} <span ng-show="item['call_number.record.id']" class="glyphicon glyphicon-new-window"></span>
+        </a>
+    </span>
   </eg-grid-field>
 
   <eg-grid-field label="[% l('Acquisition Cost') %]"     path="cost" hidden></eg-grid-field>
   <eg-grid-field label="[% l('Age-Based Hold Protection') %]"  path="age_protect.name" hidden></eg-grid-field>
-  <eg-grid-field label="[% l('Author') %]"               path="call_number.record.simple_record.author"  hidden></eg-grid-field>
+  <eg-grid-field label="[% l('Author') %]"               path="call_number.record.simple_record.author"  hidden>
+    {{item['call_number.record.simple_record.author'] || item['dummy_author']}}
+  </eg-grid-field>
   <eg-grid-field label="[% l('Checkin Date') %]"         path="_circ_summary.last_checkin_time" datatype="timestamp" hidden></eg-grid-field>
   <eg-grid-field label="[% l('Checkin Scan Date') %]"    path="_circ_summary.last_checkin_scan_time" datatype="timestamp" hidden></eg-grid-field>
   <eg-grid-field label="[% l('Checkin Workstation') %]"  path="_circ_summary.last_checkin_workstation" hidden></eg-grid-field>
@@ -112,7 +126,7 @@
   <eg-grid-field label="[% l('Created By') %]"
     path="creator" hidden>
     <a target="_blank" href="[% ctx.base_path %]/staff/circ/patron/{{item['creator.id']}}/checkout">
-      {{item['creator.usrname']}} <span ng-show="item['creator.id']" class="glyphicon glyphicon-new-window"/>
+      {{item['creator.usrname']}} <span ng-show="item['creator.id']" class="glyphicon glyphicon-new-window"></span>
     </a>
   </eg-grid-field>
 
@@ -134,7 +148,9 @@
   <eg-grid-field label="[% l('Holdable?') %]"             path="holdable" hidden></eg-grid-field>
   <eg-grid-field label="[% l('Holds Count') %]"           path="holds_count" hidden></eg-grid-field>
   <eg-grid-field label="[% l('In-House Uses') %]"         path="_inHouseUseCount" hidden></eg-grid-field>
-  <eg-grid-field label="[% l('ISBN') %]"                  path="call_number.record.simple_record.isbn" hidden></eg-grid-field>
+  <eg-grid-field label="[% l('ISBN') %]"                  path="call_number.record.simple_record.isbn" hidden>
+    {{item['call_number.record.simple_record.isbn'] || item['dummy_isbn']}}
+  </eg-grid-field>
   <eg-grid-field label="[% l('Loan Duration') %]"         path="loan_duration" hidden>
     <span>{{item['loan_duration'] | string_pick:'[% l('Short') %]':'[% l('Normal') %]':'[% l('Extended') %]'}}</span>
   </eg-grid-field>

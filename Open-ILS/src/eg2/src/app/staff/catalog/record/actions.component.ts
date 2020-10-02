@@ -1,4 +1,4 @@
-import {Component, OnInit, Input} from '@angular/core';
+import {Component, OnInit, Input, Output, EventEmitter} from '@angular/core';
 import {Router} from '@angular/router';
 import {StoreService} from '@eg/core/store.service';
 import {CatalogService} from '@eg/share/catalog/catalog.service';
@@ -14,6 +14,9 @@ import {HoldingsService} from '@eg/staff/share/holdings/holdings.service';
   templateUrl: 'actions.component.html'
 })
 export class RecordActionsComponent implements OnInit {
+
+    @Output() addHoldingsRequested: EventEmitter<void>
+        = new EventEmitter<void>();
 
     recId: number;
     initDone = false;
@@ -32,9 +35,13 @@ export class RecordActionsComponent implements OnInit {
             key: 'eg.circ.hold.title_transfer_target',
             current: null
         },
-        volumeTransfer: {
-            key: 'eg.cat.marked_volume_transfer_record',
-            current: null
+        holdingTransfer: {
+            key: 'eg.cat.transfer_target_record',
+            current: null,
+            clear: [ // Clear these values on mark.
+              'eg.cat.transfer_target_lib',
+              'eg.cat.transfer_target_vol'
+            ]
         }
     };
 
@@ -69,6 +76,12 @@ export class RecordActionsComponent implements OnInit {
         const target = this.targets[name];
         target.current = this.recId;
         this.store.setLocalItem(target.key, this.recId);
+
+        if (target.clear) {
+            // Some marks require clearing other marks.
+            target.clear.forEach(key => this.store.removeLocalItem(key));
+        }
+
         this.strings.interpolate('catalog.record.toast.' + name)
             .then(txt => this.toast.success(txt));
     }
@@ -83,14 +96,9 @@ export class RecordActionsComponent implements OnInit {
             .then(txt => this.toast.success(txt));
     }
 
-    // TODO: Support adding copies to existing volumes by getting
-    // selected volumes from the holdings grid.
-    // TODO: Support adding like volumes by getting selected
-    // volumes from the holdings grid.
-    addVolumes() {
-        this.holdings.spawnAddHoldingsUi(this.recId);
+    addHoldings() {
+        this.addHoldingsRequested.emit();
     }
-
 }
 
 

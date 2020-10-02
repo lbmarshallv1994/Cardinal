@@ -6,7 +6,7 @@ import {OrgService} from '@eg/core/org.service';
 import {AuthService} from '@eg/core/auth.service';
 import {Pager} from '@eg/share/util/pager';
 import {ServerStoreService} from '@eg/core/server-store.service';
-import {GridDataSource} from '@eg/share/grid/grid';
+import {GridDataSource, GridColumn, GridCellTextGenerator} from '@eg/share/grid/grid';
 import {GridComponent} from '@eg/share/grid/grid.component';
 import {ProgressDialogComponent} from '@eg/share/dialog/progress.component';
 import {MarkDamagedDialogComponent
@@ -18,6 +18,7 @@ import {HoldRetargetDialogComponent
 import {HoldTransferDialogComponent} from './transfer-dialog.component';
 import {HoldCancelDialogComponent} from './cancel-dialog.component';
 import {HoldManageDialogComponent} from './manage-dialog.component';
+import {PrintService} from '@eg/share/print/print.service';
 
 /** Holds grid with access to detail page and other actions */
 
@@ -35,7 +36,10 @@ export class HoldsGridComponent implements OnInit {
     @Input() persistKey: string;
 
     @Input() preFetchSetting: string;
-        // If set, all holds are fetched on grid load and sorting/paging all
+
+    @Input() printTemplate: string;
+
+    // If set, all holds are fetched on grid load and sorting/paging all
     // happens in the client.  If false, sorting and paging occur on
     // the server.
     enablePreFetch: boolean;
@@ -49,25 +53,26 @@ export class HoldsGridComponent implements OnInit {
     initDone = false;
     holdsCount: number;
     pickupLib: IdlObject;
+    plCompLoaded = false;
     gridDataSource: GridDataSource;
     detailHold: any;
     editHolds: number[];
     transferTarget: number;
 
-    @ViewChild('holdsGrid') private holdsGrid: GridComponent;
-    @ViewChild('progressDialog')
+    @ViewChild('holdsGrid', { static: false }) private holdsGrid: GridComponent;
+    @ViewChild('progressDialog', { static: true })
         private progressDialog: ProgressDialogComponent;
-    @ViewChild('transferDialog')
+    @ViewChild('transferDialog', { static: true })
         private transferDialog: HoldTransferDialogComponent;
-    @ViewChild('markDamagedDialog')
+    @ViewChild('markDamagedDialog', { static: true })
         private markDamagedDialog: MarkDamagedDialogComponent;
-    @ViewChild('markMissingDialog')
+    @ViewChild('markMissingDialog', { static: true })
         private markMissingDialog: MarkMissingDialogComponent;
-    @ViewChild('retargetDialog')
+    @ViewChild('retargetDialog', { static: true })
         private retargetDialog: HoldRetargetDialogComponent;
-    @ViewChild('cancelDialog')
+    @ViewChild('cancelDialog', { static: true })
         private cancelDialog: HoldCancelDialogComponent;
-    @ViewChild('manageDialog')
+    @ViewChild('manageDialog', { static: true })
         private manageDialog: HoldManageDialogComponent;
 
     // Bib record ID.
@@ -107,11 +112,14 @@ export class HoldsGridComponent implements OnInit {
         }
     }
 
+    cellTextGenerator: GridCellTextGenerator;
+
     constructor(
         private net: NetService,
         private org: OrgService,
         private store: ServerStoreService,
-        private auth: AuthService
+        private auth: AuthService,
+        private printer: PrintService
     ) {
         this.gridDataSource = new GridDataSource();
         this.enablePreFetch = null;
@@ -122,11 +130,9 @@ export class HoldsGridComponent implements OnInit {
         this.pickupLib = this.org.get(this.initialPickupLib);
 
         if (this.preFetchSetting) {
-
-                this.store.getItem(this.preFetchSetting).then(
-                    applied => this.enablePreFetch = Boolean(applied)
-                );
-
+            this.store.getItem(this.preFetchSetting).then(
+                applied => this.enablePreFetch = Boolean(applied)
+            );
         }
 
         if (!this.defaultSort) {
@@ -134,8 +140,24 @@ export class HoldsGridComponent implements OnInit {
         }
 
         this.gridDataSource.getRows = (pager: Pager, sort: any[]) => {
+
+            if (!this.hidePickupLibFilter && !this.plCompLoaded) {
+                // When the pickup lib selector is active, avoid any
+                // data fetches until it has settled on a default value.
+                // Once the final value is applied, its onchange will
+                // fire and we'll be back here with plCompLoaded=true.
+                return of([]);
+            }
+
             sort = sort.length > 0 ? sort : this.defaultSort;
             return this.fetchHolds(pager, sort);
+        };
+
+        // Text-ify function for cells that use display templates.
+        this.cellTextGenerator = {
+            title: row => row.title,
+            cp_barcode: row => (row.cp_barcode == null) ? '' : row.cp_barcode,
+            patron_barcode: row => row.ucard_barcode
         };
     }
 
@@ -388,6 +410,30 @@ export class HoldsGridComponent implements OnInit {
                 }
             );
         }
+    }
+
+    printHolds() {
+        // Request a page with no limit to get all of the wide holds for
+        // printing.  Call requestPage() directly instead of grid.reload()
+        // since we may already have the data.
+
+        const pager = new Pager();
+        pager.offset = 0;
+        pager.limit = null;
+
+        if (this.gridDataSource.sort.length === 0) {
+            this.gridDataSource.sort = this.defaultSort;
+        }
+
+        this.gridDataSource.requestPage(pager).then(() => {
+            if (this.gridDataSource.data.length > 0) {
+                this.printer.print({
+                    templateName: this.printTemplate || 'holds_for_bib',
+                    contextData: this.gridDataSource.data,
+                    printContext: 'default'
+                });
+            }
+        });
     }
 }
 

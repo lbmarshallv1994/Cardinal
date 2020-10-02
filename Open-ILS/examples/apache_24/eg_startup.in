@@ -14,6 +14,10 @@ use OpenILS::WWW::EGWeb ('@sysconfdir@/opensrf_core.xml', 'OpenILS::WWW::EGCatLo
 use OpenILS::WWW::IDL2js ('@sysconfdir@/opensrf_core.xml');
 use OpenILS::WWW::FlatFielder;
 use OpenILS::WWW::PhoneList ('@sysconfdir@/opensrf_core.xml');
+use OpenILS::WWW::RemoteAuth ('@sysconfdir@/opensrf_core.xml', 'OpenILS::WWW::RemoteAuth::Basic');
+
+# Pass second argument of '1' to enable template caching.
+use OpenILS::WWW::PrintTemplate ('@sysconfdir@/opensrf_core.xml', 0);
 
 # - Uncomment the following 2 lines to make use of the IP redirection code
 # - The IP file should to contain a map with the following format:
@@ -22,7 +26,6 @@ use OpenILS::WWW::PhoneList ('@sysconfdir@/opensrf_core.xml');
 
 #use OpenILS::WWW::Redirect qw(@sysconfdir@/opensrf_core.xml);
 #OpenILS::WWW::Redirect->parse_ips_file('@sysconfdir@/lib_ips.txt');
-
 
 
 1;

@@ -500,24 +500,34 @@ __PACKAGE__->register_method(
         params => [
             {desc => 'Record ID', type => 'number'},
             {desc => '(Optional) Classification scheme ID', type => 'number'},
+            {desc => '(Optional) Context org unit ID for default classification lookup', type => 'number'},
         ]
     },
     return => {desc => 'Hash of candidate call numbers identified by tag' }
 );
 
 sub biblio_record_marc_cn {
-    my( $self, $client, $id, $class ) = @_;
+    my( $self, $client, $id, $class, $ctx_org_id ) = @_;
 
     my $e = new_editor();
-    my $marc = $e->retrieve_biblio_record_entry($id)->marc;
+    my $bre = $e->retrieve_biblio_record_entry($id);
+    my $marc = $bre->marc;
 
     my $doc = XML::LibXML->new->parse_string($marc);
     $doc->documentElement->setNamespace( "http://www.loc.gov/MARC21/slim", "marc", 1 );
 
+    if (!$class) {
+        my $ctx_org = $ctx_org_id || $bre->owner || $U->get_org_tree->id; # root org
+        $class = $U->ou_ancestor_setting_value(
+            $ctx_org, 'cat.default_classification_scheme', $e);
+    }
+
     my @fields;
     my @res;
     if ($class) {
-        @fields = split(/,/, $e->retrieve_asset_call_number_class($class)->field);
+        # be sure the class ID provided exists.
+        my $cn_class = $e->retrieve_asset_call_number_class($class) or return $e->event;
+        @fields = split(/,/, $cn_class->field);
     } else {
         @fields = qw/050ab 055ab 060ab 070ab 080ab 082ab 086ab 088ab 090 092 096 098 099/;
     }
@@ -1296,6 +1306,17 @@ sub delete_bib_record {
     return $e->die_event unless $e->allowed('DELETE_RECORD', $e->requestor->ws_ou);
     my $vols = $e->search_asset_call_number({record=>$rec_id, deleted=>'f'});
     return OpenILS::Event->new('RECORD_NOT_EMPTY', payload=>$rec_id) if @$vols;
+    my $acq_li_count = $e->json_query({
+        select => {jub => [{column => 'id', transform => 'count'}]},
+    from => 'jub',
+    where => {
+        '+jub' => {
+                 eg_bib_id => $rec_id,
+                 state => ['new','pending-order','on-order']
+            }
+        }
+    })->[0];
+    return OpenILS::Event->new('RECORD_REFERENCED_BY_LINEITEM', payload => $rec_id) if ($acq_li_count->{id} > 0);
     my $evt = OpenILS::Application::Cat::BibCommon->delete_rec($e, $rec_id);
     if($evt) { $e->rollback; return $evt; }   
     $e->commit;

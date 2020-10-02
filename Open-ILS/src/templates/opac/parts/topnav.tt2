@@ -2,6 +2,7 @@
 [%- IF ctx.maintenance_message -%]
 <div id="maintenance_message">[% ctx.maintenance_message %]</div>
 [%- END -%]
+[% IF !ctx.is_staff && !ctx.readonly %]
 <div id="header-wrap">
 <div id="header">
     <div id="topnav_logo_wrapper">

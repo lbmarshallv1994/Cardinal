@@ -38,6 +38,7 @@ export DEBS = \
 	libdbi-dev\
 	libdbi1\
 	libemail-simple-perl\
+	libemail-mime-perl\
 	libexcel-writer-xlsx-perl\
 	libgd-graph3d-perl\
 	liblocale-maketext-lexicon-perl\
@@ -68,10 +69,11 @@ export DEBS = \
 	libuniversal-require-perl\
 	libunix-syslog-perl\
 	libyaz-dev\
-	postgresql-client-9.5\
+	postgresql-client-9.6\
 	libsoap-lite-perl\
 	libbz2-dev\
 	libparse-recdescent-perl\
+	libhtml-defang-perl\
 	yaz
 
 export DEB_APACHE_MODS = \
@@ -98,12 +100,19 @@ export CPAN_MODULES_FORCE = \
 	Business::Stripe \
 	Class::DBI::Frozen::301
 
-PGSQL_SERVER_DEBS_95 = \
+PGSQL_SERVER_DEBS_96 = \
 	$(DEB_PGSQL_COMMON_MODS) \
-	postgresql-9.5 \
-	postgresql-contrib-9.5 \
-	postgresql-plperl-9.5 \
-	postgresql-server-dev-9.5
+	postgresql-9.6 \
+	postgresql-contrib-9.6 \
+	postgresql-plperl-9.6 \
+	postgresql-server-dev-9.6
+
+PGSQL_SERVER_DEBS_10 = \
+        $(DEB_PGSQL_COMMON_MODS) \
+        postgresql-10 \
+        postgresql-contrib-10 \
+        postgresql-plperl-10 \
+        postgresql-server-dev-10
 
 # note: some prereqs are repeated in the developer/packager 
 # sections to support building Evergreen packages on servers
@@ -112,7 +121,9 @@ PGSQL_SERVER_DEBS_95 = \
 DEVELOPER_DEBS = \
 	automake \
 	autoconf \
-	libtool
+	libtool \
+	chromium-browser \
+	firefox
 
 PACKAGER_DEBS = \
 	asciidoc \
@@ -134,13 +145,22 @@ TRANSLATOR_DEBS = \
 	bzr
 
 all:
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_APT_REPO_DEBS)"
+	make -f $(DIR)/Makefile.debian debian_postgresql_repo
 	make -f $(DIR)/Makefile.debian install_debs
 	make -f $(DIR)/Makefile.common install_cpan
 	make -f $(DIR)/Makefile.common install_cpan_force
 	make -f $(DIR)/Makefile.debian debian_sys_config
 
 install_postgres_server:
-	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_SERVER_DEBS_95)"
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_APT_REPO_DEBS)"
+	make -f $(DIR)/Makefile.debian debian_postgresql_repo
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_SERVER_DEBS_96)"
+
+install_postgres_server_10:
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_APT_REPO_DEBS)"
+	make -f $(DIR)/Makefile.debian debian_postgresql_repo
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_SERVER_DEBS_10)"
 
 # note: if/when grunt-cli is available as a
 # package, use the packaged version instead.

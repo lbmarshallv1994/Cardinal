@@ -92,8 +92,7 @@ CREATE TRIGGER no_overlapping_deps
     BEFORE INSERT OR UPDATE ON config.db_patch_dependencies
     FOR EACH ROW EXECUTE PROCEDURE evergreen.array_overlap_check ('deprecates');
 
-INSERT INTO config.upgrade_log (version, applied_to) VALUES ('1171', :eg_version); -- rhamby/mstroup/gmcharlt
-INSERT INTO config.upgrade_log (version, applied_to) VALUES ('3.3.4', :eg_version);
+INSERT INTO config.upgrade_log (version, applied_to) VALUES ('1239', :eg_version); -- sandbergja/csharp
 
 CREATE TABLE config.bib_source (
 	id		SERIAL	PRIMARY KEY,
@@ -1141,6 +1140,7 @@ CREATE TABLE config.best_hold_order(
     name        TEXT        UNIQUE,   -- i18n
     pprox       INT, -- copy capture <-> pickup lib prox
     hprox       INT, -- copy circ lib <-> request lib prox
+    owning_lib_to_home_lib_prox      INT, -- copy owning lib <-> user home lib prox
     aprox       INT, -- copy circ lib <-> pickup lib ADJUSTED prox on ahcm
     approx      INT, -- copy capture <-> pickup lib ADJUSTED prox from function
     priority    INT, -- group hold priority
@@ -1155,6 +1155,7 @@ CREATE TABLE config.best_hold_order(
 ALTER TABLE config.best_hold_order ADD CHECK ((
     pprox IS NOT NULL OR
     hprox IS NOT NULL OR
+    owning_lib_to_home_lib_prox IS NOT NULL OR
     aprox IS NOT NULL OR
     priority IS NOT NULL OR
     cut IS NOT NULL OR
@@ -1318,5 +1319,57 @@ CREATE TABLE config.copy_tag_type (
 
 CREATE INDEX config_copy_tag_type_owner_idx
     ON config.copy_tag_type (owner);
+
+CREATE TABLE config.hold_type (
+    id          SERIAL,
+    hold_type   TEXT UNIQUE,
+    description TEXT
+);
+
+INSERT INTO config.hold_type (hold_type,description) VALUES
+    ('C','Copy Hold'),
+    ('V','Volume Hold'),
+    ('T','Title Hold'),
+    ('M','Metarecord Hold'),
+    ('R','Recall Hold'),
+    ('F','Force Hold'),
+    ('I','Issuance Hold'),
+    ('P','Part Hold')
+;
+
+CREATE TABLE config.print_template (
+    id           SERIAL PRIMARY KEY,
+    name         TEXT NOT NULL, 
+    label        TEXT NOT NULL, -- i18n
+    owner        INT NOT NULL, -- REFERENCES actor.org_unit (id)
+    active       BOOLEAN NOT NULL DEFAULT FALSE,
+    locale       TEXT REFERENCES config.i18n_locale(code) 
+                 ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED,
+    content_type TEXT NOT NULL DEFAULT 'text/html',
+    template     TEXT NOT NULL,
+    CONSTRAINT   name_once_per_lib UNIQUE (owner, name),
+    CONSTRAINT   label_once_per_lib UNIQUE (owner, label)
+);
+
+CREATE TABLE config.carousel_type (
+    id                          SERIAL PRIMARY KEY,
+    name                        TEXT NOT NULL,
+    automatic                   BOOLEAN NOT NULL DEFAULT TRUE,
+    filter_by_age               BOOLEAN NOT NULL DEFAULT FALSE,
+    filter_by_copy_owning_lib   BOOLEAN NOT NULL DEFAULT FALSE,
+    filter_by_copy_location     BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+INSERT INTO config.carousel_type
+    (id, name,                               automatic, filter_by_age, filter_by_copy_owning_lib, filter_by_copy_location)
+VALUES
+    (1, 'Manual',                            FALSE,     FALSE,         FALSE,                     FALSE),
+    (2, 'Newly Catalogued Items',            TRUE,      TRUE,          TRUE,                      TRUE),
+    (3, 'Recently Returned Items',           TRUE,      TRUE,          TRUE,                      TRUE),
+    (4, 'Top Circulated Items',              TRUE,      TRUE,          TRUE,                      FALSE),
+    (5, 'Newest Items By Shelving Location', TRUE,      TRUE,          TRUE,                      FALSE)
+;
+
+SELECT SETVAL('config.carousel_type_id_seq'::TEXT, 100);
 
 COMMIT;

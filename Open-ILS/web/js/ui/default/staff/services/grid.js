@@ -282,6 +282,10 @@ angular.module('egGridMod',
                     return grid.columnsProvider;
                 }
 
+                controls.contextMenuItem = function() {
+                    return $scope.contextMenuItem;
+                }
+
                 // link in the control functions
                 controls.selectedItems = function() {
                     return grid.getSelectedItems()
@@ -712,6 +716,9 @@ angular.module('egGridMod',
                     if(s.hasOwnProperty('item')){ break; }
                     e = e.parentElement;
                 }
+                
+                $scope.contextMenuItem = grid.indexValue(s.item);
+                
                 // select the right-clicked row if it is not already selected (lp1776557):
                 if(!$scope.selected[grid.indexValue(s.item)]){ $event.target.click(); }
 
@@ -2331,15 +2338,14 @@ angular.module('egGridMod',
     var GVF = function(value, column, item) {
         switch(column.datatype) {
             case 'bool':
-                switch(value) {
-                    // Browser will translate true/false for us
+                switch(''+value) {
                     case 't' : 
                     case '1' :  // legacy
-                    case true:
+                    case 'true':
                         return egStrings.YES;
                     case 'f' : 
                     case '0' :  // legacy
-                    case false:
+                    case 'false':
                         return egStrings.NO;
                     // value may be null,  '', etc.
                     default : return '';

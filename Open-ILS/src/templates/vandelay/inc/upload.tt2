@@ -47,7 +47,7 @@
             <td>[% l('Select a Record Source') %]</td>
             <td>
                 <select name='bib_source' jsId='vlUploadSourceSelector' 
-                    dojoType='dijit.form.FilteringSelect' labelAttr='source' searchAttr='source'/>
+                    dojoType='dijit.form.FilteringSelect' labelAttr='source' searchAttr='source'></select>
             </td>
         </tr>
         <tr><td colspan='2' style='margin-top:10px;border-bottom:1px solid #888;border-top:2px solid #888'>
@@ -109,6 +109,16 @@
         <tr>
             <td>[% l('Auto-overlay In-process Acquisitions Copies') %]</td>
             <td colspan='4'><input jsId='vlUploadQueueAutoOverlayInprocessAcqCopies' dojoType='dijit.form.CheckBox'/></td>
+        </tr>
+        <tr>
+            <td>[% l('Auto-overlay On-order Cataloguing  Copies') %]</td>
+            <td colspan='4'><input jsId='vlUploadQueueAutoOverlayOnorderCatCopies' dojoType='dijit.form.CheckBox'/></td>
+        </tr>
+        <tr>
+            <td>[% l('Use Org Unit Matching in Copy to Determine Best Match') %]</td>
+            <td colspan='4'>
+                <input jsId='vlUploadQueueAutoOverlayOrgUnitCopies' dojoType='dijit.form.CheckBox'/>
+            </td>
         </tr>
 
         <tr><td colspan='2' style='border-bottom:2px solid #888;'></td></tr>

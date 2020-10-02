@@ -204,6 +204,9 @@ table.list tr.selected td { /* deprecated? */
    e.g., a item alert */
 .acknowledged { text-decoration: line-through; }
 
+/* eg-help-popover directive doesn't need a border around its <button> */
+.no-border.glyphicon-question-sign { border-color: #fff; }
+
 /* bootstrap alerts are heavily padded.  use this to reduce */
 .alert-less-pad {padding: 5px;}
 
@@ -355,9 +358,14 @@ table.list tr.selected td { /* deprecated? */
   color: #FFF;
   background-color: #EB0000 !important;
 }
-.overdue-row a:link, .lost-row a:link {
+.overdue-row a:link, .overdue-row a:visited, .lost-row a:link, .lost-row a:visited {
   color: #B8ECFF;
 }
+
+.overdue-row a:visited, .lost-row a:visited {
+  color: #DDDDDD;
+}
+
 .longoverdue-row {
   color: #000;
   background-color: #FFE1A8 !important;

@@ -851,6 +851,12 @@ BEGIN
 			credit_forward_balance = DEFAULT,
 			last_xact_id = DEFAULT,
 			alert_message = NULL,
+			pref_prefix = NULL,
+			pref_first_given_name = NULL,
+			pref_second_given_name = NULL,
+			pref_family_name = NULL,
+			pref_suffix = NULL,
+			name_keywords = NULL,
 			create_date = now(),
 			expire_date = now()
 	WHERE
@@ -1274,6 +1280,7 @@ BEGIN
         AND target_biblio_record_entry = source_record;
 
     -- Finally, "delete" the source record
+    UPDATE biblio.record_entry SET active = FALSE WHERE id = source_record;
     DELETE FROM biblio.record_entry WHERE id = source_record;
 
 	-- That's all, folks!

@@ -335,6 +335,15 @@ angular.module('egCoreMod')
         );
     }
 
+    service.destroySettingsCache = function () {
+        if (lf.isOffline || service.cannotConnect) return $q.when();
+        return service.request({
+            schema: 'cache',
+            table: 'Setting',
+            action: 'deleteAll'
+        });
+    }
+
     service.setListInOfflineCache = function (type, list) {
         if (lf.isOffline || service.cannotConnect) return $q.when();
 
@@ -438,6 +447,11 @@ angular.module('egCoreMod')
                         item[parent_field]( hash[''+item[parent_field]()] );
                     }
                 });
+
+                if (type == 'aou') {
+                    // Sort the org tree before absorbing
+                    egCore.env.sort_aou(top);
+                }
 
                 egCore.env.absorbTree(top, type, true)
                 return $q.when(true)

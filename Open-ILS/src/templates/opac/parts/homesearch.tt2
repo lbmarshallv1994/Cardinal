@@ -1,3 +1,4 @@
+[% PROCESS carousels %]
 <div id="homesearch_main_logo">
     <strong><center><img src="[% ctx.media_prefix %]/opac/images/[% ctx.branch_logo %]" /></center></strong>
 </div>

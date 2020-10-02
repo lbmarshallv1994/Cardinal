@@ -66,11 +66,8 @@ angular.module('egCoreMod')
                     // URL, since it creates an intermediate path change.
                     // Instead, use the ham-fisted approach of killing any
                     // search args and applying the args we want.
-                    $window.location.href = 
-                        $window.location.href.replace(
-                            /(\?|\&).*/,
-                            '?set_eg_locale=' + encodeURIComponent(locale)
-                        );
+                    $window.location.href = egCore.env.basePath +
+                        '?set_eg_locale=' + encodeURIComponent(locale);
                 }
 
                 $scope.changeOperatorUndo = function() {
@@ -123,12 +120,15 @@ angular.module('egCoreMod')
 
                                 $scope.showAngularCatalog = 
                                     s['ui.staff.angular_catalog.enabled'];
+                            }).then(function() {
+                                // need to defer initialization of hotkeys to this point
+                                // as it depends on various settings.
+                                $timeout(function(){find_accesskeys($element)});
                             });
+                        } else {
+                            // fallback initialization of hotkeys
+                            $timeout(function(){find_accesskeys($element)});
                         }
-                        // need to defer initialization of hotkeys to this point
-                        // as some of them are conditional on whether one is logged in
-                        // or is working in offline circulation mode
-                        $timeout(function(){find_accesskeys($element)});
                     }
                 );
             }

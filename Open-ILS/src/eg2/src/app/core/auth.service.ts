@@ -130,6 +130,11 @@ export class AuthService {
         let service = 'open-ils.auth';
         let method = 'open-ils.auth.login';
 
+        if (isOpChange && this.opChangeIsActive()) {
+            // Enforce one op-change at a time.
+            this.undoOpChange();
+        }
+
         return this.net.request(
             'open-ils.auth_proxy',
             'open-ils.auth_proxy.enabled')
@@ -286,22 +291,22 @@ export class AuthService {
         }
 
         return new Promise((resolve, reject) => {
-            const workstations =
-                this.store.getLocalItem('eg.workstation.all');
+            return this.store.getWorkstations().then(workstations => {
 
-            if (workstations) {
-                const ws = workstations.filter(
-                    w => Number(w.id) === Number(this.user().wsid()))[0];
+                if (workstations) {
+                    const ws = workstations.filter(
+                        w => Number(w.id) === Number(this.user().wsid()))[0];
 
-                if (ws) {
-                    this.activeUser.workstation = ws.name;
-                    this.workstationState = AuthWsState.VALID;
-                    return resolve();
+                    if (ws) {
+                        this.activeUser.workstation = ws.name;
+                        this.workstationState = AuthWsState.VALID;
+                        return resolve();
+                    }
                 }
-            }
 
-            this.workstationState = AuthWsState.NOT_FOUND_LOCAL;
-            reject();
+                this.workstationState = AuthWsState.NOT_FOUND_LOCAL;
+                reject();
+            });
         });
     }
 

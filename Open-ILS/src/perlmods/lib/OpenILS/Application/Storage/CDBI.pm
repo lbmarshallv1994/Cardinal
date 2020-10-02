@@ -6,18 +6,22 @@ BEGIN {
 use base qw/Class::DBI/;
 use Class::DBI::AbstractSearch;
 
-use OpenILS::Application::Storage::CDBI::actor;
-use OpenILS::Application::Storage::CDBI::action;
-use OpenILS::Application::Storage::CDBI::booking;
-use OpenILS::Application::Storage::CDBI::asset;
-use OpenILS::Application::Storage::CDBI::serial;
-use OpenILS::Application::Storage::CDBI::authority;
-use OpenILS::Application::Storage::CDBI::biblio;
-use OpenILS::Application::Storage::CDBI::config;
-use OpenILS::Application::Storage::CDBI::metabib;
-use OpenILS::Application::Storage::CDBI::money;
-use OpenILS::Application::Storage::CDBI::permission;
-use OpenILS::Application::Storage::CDBI::container;
+# The following modules add, or use, subroutines in modules that are
+# not available when this module is compiled.  We therefore "require"
+# these modules rather than "use" them.  Everything is available at
+# run time.
+require OpenILS::Application::Storage::CDBI::actor;
+require OpenILS::Application::Storage::CDBI::action;
+require OpenILS::Application::Storage::CDBI::booking;
+require OpenILS::Application::Storage::CDBI::asset;
+require OpenILS::Application::Storage::CDBI::serial;
+require OpenILS::Application::Storage::CDBI::authority;
+require OpenILS::Application::Storage::CDBI::biblio;
+require OpenILS::Application::Storage::CDBI::config;
+require OpenILS::Application::Storage::CDBI::metabib;
+require OpenILS::Application::Storage::CDBI::money;
+require OpenILS::Application::Storage::CDBI::permission;
+require OpenILS::Application::Storage::CDBI::container;
 
 use OpenSRF::Utils::JSON;
 use OpenSRF::Utils::Logger qw(:level);
@@ -712,6 +716,7 @@ sub modify_from_fieldmapper {
     #money::payment->might_have( cash_payment => 'money::cash_payment' );
     #money::payment->might_have( check_payment => 'money::check_payment' );
     #money::payment->might_have( credit_card_payment => 'money::credit_card_payment' );
+    #money::payment->might_have( debit_card_payment => 'money::debit_card_payment' );
     #money::payment->might_have( forgive_payment => 'money::forgive_payment' );
     #money::payment->might_have( work_payment => 'money::work_payment' );
     #money::payment->might_have( credit_payment => 'money::credit_payment' );
@@ -727,6 +732,10 @@ sub modify_from_fieldmapper {
     money::credit_card_payment->has_a( xact => 'money::billable_transaction' );
     money::credit_card_payment->has_a( accepting_usr => 'actor::user' );
     #money::credit_card_payment->might_have( payment => 'money::payment' );
+
+    money::debit_card_payment->has_a( xact => 'money::billable_transaction' );
+    money::debit_card_payment->has_a( accepting_usr => 'actor::user' );
+    #money::debit_card_payment->might_have( payment => 'money::payment' );
 
     money::forgive_payment->has_a( xact => 'money::billable_transaction' );
     money::forgive_payment->has_a( accepting_usr => 'actor::user' );

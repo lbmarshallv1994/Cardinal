@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: evergreen\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2018-12-14 21:52-0400\n"
-"PO-Revision-Date: 2018-12-25 01:59+0000\n"
+"POT-Creation-Date: 2019-09-09 16:57-0400\n"
+"PO-Revision-Date: 2019-11-04 23:52+0000\n"
 "Last-Translator: Andi Chandler <Unknown>\n"
 "Language-Team: English (United Kingdom) <en_GB@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2018-12-26 04:34+0000\n"
-"X-Generator: Launchpad (build 18847)\n"
+"X-Launchpad-Export-Date: 2019-11-05 05:53+0000\n"
+"X-Generator: Launchpad (build 469f241f4e73cc0bdffa4e30654052a2af068e06)\n"
 
 #: 1208.TITLE_LAST_COPY:71
 msgid "The last copy attached to a title is being removed or deleted"
@@ -69,6 +69,10 @@ msgstr ""
 msgid "The requested metabib_series_field_entry was not found"
 msgstr "The requested metabib_series_field_entry was not found"
 
+#: 1220.ITEM_NOT_HOLDABLE:116
+msgid "An unholdable copy was encountered"
+msgstr "An unholdable copy was encountered"
+
 #: 11105.PATRON_CREDIT_DISABLED:1043
 msgid ""
 "Payments by patron credit are not allowed for the selected transaction"
@@ -110,6 +114,10 @@ msgstr "The requested action_open_circ_count_by_circ_mod was not found"
 #: 1589.ACTOR_CARD_NOT_FOUND:418
 msgid "The requested actor_card was not found"
 msgstr "The requested actor_card was not found"
+
+#: 1882.RECORD_REFERENCED_BY_LINEITEM:708
+msgid "The selected bib record has an open lineitem order referencing it."
+msgstr "The selected bib record has an open lineitem order referencing it."
 
 #: 1608.METABIB_SUBJECT_FIELD_ENTRY_NOT_FOUND:475
 msgid "The requested metabib_subject_field_entry was not found"
@@ -816,6 +824,10 @@ msgstr "The provided password is not correct"
 msgid "The requested config_item_type_map was not found"
 msgstr "The requested config_item_type_map was not found"
 
+#: 12000.ITEM_TO_MARK_CHECKED_OUT:1069
+msgid "The item to be marked is checked out to a patron."
+msgstr "The item to be marked is checked out to a patron."
+
 #: 8007.OFFLINE_SESSION_EXISTS:963
 msgid "A session with the given name already exists"
 msgstr "A session with the given name already exists"
@@ -839,6 +851,10 @@ msgstr "The requested config_identification_type was not found"
 #: 1579.ASSET_COPY_LOCATION_NOT_FOUND:389
 msgid "The requested asset_copy_location was not found"
 msgstr "The requested asset_copy_location was not found"
+
+#: 12001.ITEM_TO_MARK_IN_TRANSIT:1072
+msgid "The item to be marked is in transit."
+msgstr "The item to be marked is in transit."
 
 #: 1506.CONTAINER_NOT_FOUND:209
 msgid ""
@@ -919,6 +935,10 @@ msgstr "There is an open circulation on the requested item"
 #: 0.SUCCESS:14
 msgid "Success"
 msgstr "Success"
+
+#: 12002.ITEM_TO_MARK_LAST_HOLD_COPY:1075
+msgid "The item to be marked is the last possible target for a hold."
+msgstr "The item to be marked is the last possible target for a hold."
 
 #: 1231.RECORD_NOT_EMPTY:159
 msgid "The selected bib record has volumes attached"
@@ -1395,3 +1415,6 @@ msgstr "The requested money_user_summary was not found"
 #~ "A *TERRIBLE* problem has occurred: a credit card transaction was processed "
 #~ "successfully, but the patron's payment could not be recorded within "
 #~ "Evergreen.  Please seek assistance."
+
+#~ msgid "This item is currently on the holds shelf for another patron"
+#~ msgstr "This item is currently on the holds shelf for another patron"

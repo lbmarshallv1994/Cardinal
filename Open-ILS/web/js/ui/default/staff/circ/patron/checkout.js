@@ -9,6 +9,7 @@ angular.module('egPatronApp').controller('PatronCheckoutCtrl',
 
 function($scope , $q , $routeParams , egCore , egUser , patronSvc , 
          egGridDataProvider , $location , $timeout , egCirc , ngToast) {
+    var now = new Date();
 
     $scope.initTab('checkout', $routeParams.id).finally(function(){
         $scope.focusMe = true;
@@ -16,9 +17,11 @@ function($scope , $q , $routeParams , egCore , egUser , patronSvc ,
     $scope.checkouts = patronSvc.checkouts;
     $scope.checkoutArgs = {
         noncat_type : 'barcode',
-        due_date : new Date()
+        due_date : new Date(now)
     };
 
+    $scope.minDate = new Date(now);
+    $scope.outOfRange = false;
     $scope.gridDataProvider = egGridDataProvider.instance({
         get : function(offset, count) {
             return this.arrayNotifier($scope.checkouts, offset, count);
@@ -31,7 +34,8 @@ function($scope , $q , $routeParams , egCore , egUser , patronSvc ,
             patronSvc.current.active() == 'f' ||
             patronSvc.current.deleted() == 't' ||
             patronSvc.current.card().active() == 'f' ||
-            patronSvc.fetchedWithInactiveCard()
+            patronSvc.fetchedWithInactiveCard() ||
+            $scope.outOfRange == true
         );
     }
 
@@ -87,8 +91,12 @@ function($scope , $q , $routeParams , egCore , egUser , patronSvc ,
     });
 
     $scope.$watch('checkoutArgs.due_date', function(newval) {
-        if ( $scope.date_options.is_until_logout ) {
-            egCore.hatch.setSessionItem('eg.circ.checkout.due_date', newval);
+        if ( $scope.date_options.is_until_logout && !isNaN(newval)) {
+            if (!$scope.outOfRange) {
+                egCore.hatch.setSessionItem('eg.circ.checkout.due_date', newval);
+            } else {
+                egCore.hatch.setSessionItem('eg.circ.checkout.due_date', $scope.checkoutArgs.due_date);
+            }
         }
     });
 
@@ -110,7 +118,9 @@ function($scope , $q , $routeParams , egCore , egUser , patronSvc ,
         );
     }
 
-    $scope.using_hatch_printer = egCore.hatch.usePrinting();
+    egCore.hatch.usePrinting().then(function(useHatch) {
+        $scope.using_hatch_printer = useHatch;
+    });
 
     egCore.hatch.getItem('circ.checkout.strict_barcode')
         .then(function(sb){ $scope.strict_barcode = sb });
@@ -306,14 +316,15 @@ function($scope , $q , $routeParams , egCore , egUser , patronSvc ,
                 print_data.circulations.push({
                     circ : egCore.idl.toHash(co.circ),
                     copy : egCore.idl.toHash(co.acp),
-                    call_number : egCore.idl.toHash(co.acn),
+                    call_number : egCore.idl.toHash(co.acn), // Wrong?
+                    owning_lib : egCore.idl.toHash(co.aou), // Wrong?
                     title : co.title,
                     author : co.author
-                })
+                });
             };
         });
 
-        // This is repeated in patron.* so everyting is in one place but left here so existing templates don't break.
+        // This is repeated in patron.* so everything is in one place but left here so existing templates don't break.
         print_data.patron_money = patronSvc.patron_stats.fines;
         print_data.patron = {
             prefix : cusr.prefix(),

@@ -4,12 +4,21 @@
         opac_root = ctx.kpac_root;
     END;
 
-    org_name = ctx.get_aou(copy_info.circ_lib).name;
-    org_sname = ctx.get_aou(copy_info.circ_lib).shortname;
-    lib_url = ctx.get_org_setting(copy_info.circ_lib, 'lib.info_url');
-    prefer_external_url = ctx.get_org_setting(copy_info.circ_lib, 'lib.prefer_external_url');
+    # Allow fleshed circ_libs
+    IF copy_info.circ_lib.name; 
+       org_id = copy_info.circ_lib.id;
+       org_name = copy_info.circ_lib.name; 
+       org_sname = copy_info.circ_lib.shortname; 
+    ELSE;
+       org_id = copy_info.circ_lib;
+       org_name = ctx.get_aou(org_id).name;
+       org_sname = ctx.get_aou(org_id).shortname;
+    END;
+
+    lib_url = ctx.get_org_setting(org_id, 'lib.info_url');
+    prefer_external_url = ctx.get_org_setting(org_id, 'lib.prefer_external_url');
     UNLESS lib_url && prefer_external_url;
-        lib_url = mkurl(opac_root _ '/library/' _ ctx.get_aou(copy_info.circ_lib).shortname, {}, 1);
+        lib_url = mkurl(opac_root _ '/library/' _ org_sname, {}, 1);
     END; 
     IF lib_url; '<a property="offeredBy" typeof="Library" href="'; lib_url | html; '">'; END;
     '<span property="name">'; org_name | html; '</span>';

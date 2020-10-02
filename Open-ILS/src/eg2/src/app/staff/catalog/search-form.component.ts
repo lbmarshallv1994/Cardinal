@@ -1,11 +1,18 @@
 import {Component, OnInit, AfterViewInit, Renderer2} from '@angular/core';
-import {Router} from '@angular/router';
+import {Router, ActivatedRoute, NavigationEnd} from '@angular/router';
 import {IdlObject} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
 import {CatalogService} from '@eg/share/catalog/catalog.service';
 import {CatalogSearchContext, CatalogSearchState} from '@eg/share/catalog/search-context';
 import {StaffCatalogService} from './catalog.service';
 import {NgbTabset, NgbTabChangeEvent} from '@ng-bootstrap/ng-bootstrap';
+
+// Maps opac-style default tab names to local tab names.
+const LEGACY_TAB_NAME_MAP = {
+    expert: 'marc',
+    numeric: 'ident',
+    advanced: 'term'
+};
 
 @Component({
   selector: 'eg-catalog-search-form',
@@ -21,14 +28,38 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
     copyLocations: IdlObject[];
     searchTab: string;
 
+    // Display the full form if true, otherwise display the expandy.
+    showThyself = true;
+
     constructor(
         private renderer: Renderer2,
         private router: Router,
+        private route: ActivatedRoute,
         private org: OrgService,
         private cat: CatalogService,
         private staffCat: StaffCatalogService
     ) {
         this.copyLocations = [];
+
+        // Some search scenarios, like rendering a search template,
+        // will not be searchable and thus not resovle to a specific
+        // search tab.  Check to see if a specific tab is requested
+        // via the URL.
+        this.route.queryParams.subscribe(params => {
+            if (params.searchTab) {
+                this.searchTab = params.searchTab;
+            }
+        });
+
+        this.router.events.subscribe(routeEvent => {
+            if (routeEvent instanceof NavigationEnd) {
+                if (routeEvent.url.match(/catalog\/record/)) {
+                    this.showThyself = false;
+                } else {
+                    this.showThyself = true;
+                }
+            }
+        });
     }
 
     ngOnInit() {
@@ -49,6 +80,10 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
         // Avoid changing the tab in the lifecycle hook thread.
         setTimeout(() => {
 
+            if (this.context.identSearch.queryType === '') {
+                this.context.identSearch.queryType = 'identifier|isbn';
+            }
+
             // Apply a tab if none was already specified
             if (!this.searchTab) {
                 // Assumes that only one type of search will be searchable
@@ -59,9 +94,18 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
                     this.searchTab = 'ident';
                 } else if (this.context.browseSearch.isSearchable()) {
                     this.searchTab = 'browse';
-                } else {
-                    // Default tab
+                } else if (this.context.termSearch.isSearchable()) {
                     this.searchTab = 'term';
+
+                } else {
+
+                    this.searchTab =
+                        LEGACY_TAB_NAME_MAP[this.staffCat.defaultTab]
+                        || this.staffCat.defaultTab || 'term';
+
+                }
+
+                if (this.searchTab === 'term') {
                     this.refreshCopyLocations();
                 }
             }
@@ -114,7 +158,10 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
      * or if any advanced options are selected.
      */
     showFilters(): boolean {
-        return this.showSearchFilters;
+        // Note that filters may become active due to external
+        // actions on the search context.  Always show the filters
+        // if filter values are applied.
+        return this.showSearchFilters || this.filtersActive();
     }
 
     toggleFilters() {
@@ -194,51 +241,21 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
         // Form search overrides basket display
         this.context.showBasket = false;
 
+        this.context.scrub(this.searchTab);
+
         switch (this.searchTab) {
 
-            case 'term': // AKA keyword search
-                this.context.marcSearch.reset();
-                this.context.browseSearch.reset();
-                this.context.identSearch.reset();
-                this.context.cnBrowseSearch.reset();
-                this.context.termSearch.hasBrowseEntry = '';
-                this.context.termSearch.browseEntry = null;
-                this.context.termSearch.fromMetarecord = null;
-                this.context.termSearch.facetFilters = [];
-                this.staffCat.search();
-                break;
-
+            case 'term':
             case 'ident':
-                this.context.marcSearch.reset();
-                this.context.browseSearch.reset();
-                this.context.termSearch.reset();
-                this.context.cnBrowseSearch.reset();
-                this.staffCat.search();
-                break;
-
             case 'marc':
-                this.context.browseSearch.reset();
-                this.context.termSearch.reset();
-                this.context.identSearch.reset();
-                this.context.cnBrowseSearch.reset();
                 this.staffCat.search();
                 break;
 
             case 'browse':
-                this.context.marcSearch.reset();
-                this.context.termSearch.reset();
-                this.context.identSearch.reset();
-                this.context.cnBrowseSearch.reset();
-                this.context.browseSearch.pivot = null;
                 this.staffCat.browse();
                 break;
 
             case 'cnbrowse':
-                this.context.marcSearch.reset();
-                this.context.termSearch.reset();
-                this.context.identSearch.reset();
-                this.context.browseSearch.reset();
-                this.context.cnBrowseSearch.offset = 0;
                 this.staffCat.cnBrowse();
                 break;
         }
@@ -251,6 +268,16 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
 
     searchIsActive(): boolean {
         return this.context.searchState === CatalogSearchState.SEARCHING;
+    }
+
+    // It's possible to chose invalid combos depending on the order of selection
+    preventBogusCombos(idx: number) {
+        if (this.context.termSearch.fieldClass[idx] === 'keyword') {
+            const op = this.context.termSearch.matchOp[idx];
+            if (op === 'exact' || op === 'starts') {
+                this.context.termSearch.matchOp[idx] = 'contains';
+            }
+        }
     }
 }
 

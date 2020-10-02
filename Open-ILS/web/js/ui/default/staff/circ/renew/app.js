@@ -32,16 +32,16 @@ angular.module('egRenewApp',
 .controller('RenewCtrl',
        ['$scope','$window','$location','egCore','egGridDataProvider','egCirc',
 function($scope , $window , $location , egCore , egGridDataProvider , egCirc) {
+    var now = new Date();
 
     egCore.hatch.getItem('circ.renew.strict_barcode')
         .then(function(sb){ $scope.strict_barcode = sb });
     $scope.focusBarcode = true;
     $scope.outOfRange = false;
-    $scope.minDate = new Date();
+    $scope.minDate = new Date(now);
     $scope.renewals = [];
 
-    var today = new Date();
-    $scope.renewalArgs = {due_date : today};
+    $scope.renewalArgs = {due_date : new Date(now)};
 
     $scope.sort_money = function (a,b) {
         var ma = parseFloat(a);
@@ -184,6 +184,19 @@ function($scope , $window , $location , egCore , egGridDataProvider , egCirc) {
         }
     }
 
+    $scope.showMarkDiscard = function(items) {
+        var copies = [];
+        angular.forEach(items, function(item) {
+            if (item.acp) copies.push(egCore.idl.toHash(item.acp));
+        });
+
+        if (copies.length) {
+            egCirc.mark_discard(copies).then(function() {
+                // update grid items?
+            });
+        }
+    }
+
     $scope.showLastFewCircs = function(items) {
         if (items.length && (copy = items[0].acp)) {
             var url = $location.path(
@@ -236,6 +249,11 @@ function($scope , $window , $location , egCore , egGridDataProvider , egCirc) {
                     title : egCore.idl.toHash(renewal.title),
                     author : egCore.idl.toHash(renewal.author)
                 });
+                // Flesh selected fields of this circulation 
+                print_data.circulations[0].copy.call_number =
+                    egCore.idl.toHash(renewal.acn);
+                print_data.circulations[0].copy.owning_lib =
+	            egCore.idl.toHash(renewal.aou);
             }
         });
 

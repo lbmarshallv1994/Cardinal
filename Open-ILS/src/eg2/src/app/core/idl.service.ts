@@ -140,6 +140,12 @@ export class IdlService {
     getLinkSelector(fmClass: string, field: string): string {
         let fieldDef = this.classes[fmClass].field_map[field];
 
+        if (!fieldDef) {
+            console.warn(
+                `No such field "${field}" for IDL class "${fmClass}"`);
+            return null;
+        }
+
         if (fieldDef.map) {
             // For mapped fields, we want the selector field on the
             // remotely linked object instead of the directly
@@ -149,12 +155,77 @@ export class IdlService {
         }
 
         if (fieldDef.class) {
-            const classDef = this.classes[fieldDef.class];
-            if (classDef.pkey) {
-                return classDef.field_map[classDef.pkey].selector || null;
-            }
+            return this.getClassSelector(fieldDef.class);
         }
         return null;
+    }
+
+    // Return the selector field for the class.  If no selector is
+    // defined, use 'name' if it exists as a field on the class.
+    getClassSelector(idlClass: string): string {
+
+        if (idlClass) {
+            const classDef = this.classes[idlClass];
+
+            if (classDef.pkey) {
+                const selector = classDef.field_map[classDef.pkey].selector;
+                if (selector) { return selector; }
+
+                // No selector defined in the IDL, try 'name'.
+                if ('name' in classDef.field_map) { return 'name'; }
+            }
+        }
+
+        return null;
+    }
+
+    toHash(obj: any, flatten?: boolean): any {
+
+        if (typeof obj !== 'object' || obj === null) {
+            return obj;
+        }
+
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.toHash(item));
+        }
+
+        const fieldNames = obj._isfieldmapper ?
+            Object.keys(this.classes[obj.classname].field_map) :
+            Object.keys(obj);
+
+        const hash: any = {};
+        fieldNames.forEach(field => {
+
+            const val = this.toHash(
+                typeof obj[field] === 'function' ?  obj[field]() : obj[field],
+                flatten
+            );
+
+            if (val === undefined) { return; }
+
+            if (flatten && val !== null &&
+                typeof val === 'object' && !Array.isArray(val)) {
+
+                Object.keys(val).forEach(key => {
+                    const fname = field + '.' + key;
+                    hash[fname] = val[key];
+                });
+
+            } else {
+                hash[field] = val;
+            }
+        });
+
+        return hash;
+    }
+
+    // Returns true if both objects have the same IDL class and pkey value.
+    pkeyMatches(obj1: IdlObject, obj2: IdlObject) {
+        if (!obj1 || !obj2) { return false; }
+        const idlClass = obj1.classname;
+        if (idlClass !== obj2.classname) { return false; }
+        const pkeyField = this.classes[idlClass].pkey || 'id';
+        return obj1[pkeyField]() === obj2[pkeyField]();
     }
 }
 
