@@ -35,14 +35,63 @@
         if (returnval == false) input.select()
         return returnval
 }
-</script>
 
 <!-- Modal confirm -->
-<script>
 function modalConfirm(event,text){
     console.log(event);       
     jQuery("#modal_confirm").modal("show");
     return false;
+}
+
+function copyHeaderLinks(){
+    var mhl = jQuery("#mobile_header_links");
+    mhl.empty();
+    mhl.append("<h3><b>Other Resources</b></h3>");
+    var links = jQuery("#header-links a");
+    if(links.length > 0){
+    var list = "<ul>";
+    links.each(function(i) {
+        list += "<li>"+this.outerHTML+"</li>";
+    });
+    list = list + "</ul>";
+    mhl.append(list);
+    }
+}
+
+<!-- Robust replacement of killRowIfAtLeast -->
+function removeSearchRow(min, link) {
+    var row = link;
+    var tbody = link;
+    while(row.tagName != 'TR'){
+        row = row.parentNode;
+        console.log(row.tagName);
+    }
+    while(tbody.tagName != 'TBODY'){
+        tbody = tbody.parentNode;
+    }
+    if (tbody.getElementsByTagName("tr").length > min)
+        tbody.removeChild(row);
+    return false;
+}
+
+function toggleClass(element,className){
+if (element.classList) {
+  element.classList.toggle(className);
+} else {
+  // For IE9
+  var classes = element.className.split(" ");
+  var i = classes.indexOf(className);
+
+  if (i >= 0)
+    classes.splice(i, 1);
+  else
+    classes.push(className);
+    element.className = classes.join(" ");
+}
+}
+
+function toggleClassByID(id,className){
+    toggleClass(document.getElementById(id),className);
 }
 </script>
 [% INCLUDE opac/parts/modal_confirm.tt2 %]

@@ -58,9 +58,11 @@ END;
         <hr/>
 
         [% IF ctx.register.success %]
-            <h3>[% l('Pre-registration successful!') %]<h3> <!-- NCC customization -->
-            <h4>[% l('Please visit your local library in person to complete your registration.  Bring picture ID and proof of local address.') %]</h4>  <!-- NCC customization -->
-
+            <h3>[% ctx.pre_registration_header %]<h3> <!-- NCC customization -->
+            
+            [% FOREACH pmessage IN ctx.pre_registration_message %]
+               <h4>[% pmessage %]</h4>  <!-- NCC customization -->
+            [% END %]
             [% IF ctx.register.username_taken %]
             <p>
                 [% |l %]

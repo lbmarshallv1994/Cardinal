@@ -198,8 +198,14 @@ ctx.expand_awards = 1;
 
 # Branch name that appears on top nav
 ctx.branch_name = "NC Cardinal";
+
 # Logo that appears on homesearch
 ctx.branch_logo = "cardinal_main_logo.jpg";
+
+# Pre-registration header
+ctx.pre_registration_header = l('Pre-registration successful!');
+# Pre-registration message
+ctx.pre_registration_message = l('Please visit your local library in person to complete your registration.  Bring picture ID and proof of local address.');
 
 ##############################################################################
 # Depth Button/Checkbox
