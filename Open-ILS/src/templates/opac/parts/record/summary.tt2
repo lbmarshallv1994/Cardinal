@@ -23,6 +23,7 @@
             END;
         -%]
         [%- INCLUDE "opac/parts/record/authors.tt2" %]
+        [%- INCLUDE "opac/parts/record/series_brief.tt2" %]
     </div>
     <div id="rdetail_image_div">
         [%- IF obalkyknih_cz.enabled == 'true' %]

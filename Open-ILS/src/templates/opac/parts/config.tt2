@@ -193,11 +193,16 @@ ctx.expand_awards = 1;
 ##############################################################################
 
 # Set a maintenance message to display in the catalogue
-#
-#ctx.maintenance_message = "Due to the Covid-19 Pandemic, all mini-pool rentals have been canceled. We apologize for your dryness.";
+ctx.maintenance_message = "This is a test of the NC Cardinal alert system. This is only a test.";
+# CSS class for maintenance message
+# ctx.maintenance_message_class = "issue";
+# if true, show message on staff client
+# ctx.maintenance_message_staff = true;
 
 # Branch name that appears on top nav
 ctx.branch_name = "NC Cardinal";
+# Link for branch title, defaults to opac root
+# ctx.branch_link = ctx.opac_root;
 
 # Logo that appears on homesearch
 ctx.branch_logo = "cardinal_main_logo.jpg";

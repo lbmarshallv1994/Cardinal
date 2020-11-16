@@ -1,15 +1,15 @@
 [% IF !ctx.is_staff && !ctx.readonly %]
-[%- IF ctx.maintenance_message -%]
-<div id="maintenance_message">[% ctx.maintenance_message %]</div>
-[%- END -%]
 <div id="header-dock">
     <div id="header-wrap" class="fixed">
     <div id="header" [% IF ctx.user %]class="user-active"[% END %]>
         <div id="topnav_logo_wrapper">
             [% INCLUDE "opac/parts/topnav_logo.tt2" %]
                 [%- IF ctx.branch_name -%]
-            <div id="header-branch"><p>[% ctx.branch_name %]</p></div>
+            <a id='header-branch-link' href="[% ctx.branch_link ? ctx.branch_link : ctx.opac_root %]">
+                <div id="header-branch">[% ctx.branch_name %]</div>
+            </a>
         [%- END -%]
+        <script>resizeBranch()</script>
         </div>
         <div id="mobile_control_wrapper" class="mobile-only">
             <a id="mobile_control_button" href="javascript:void(0);" class="icon opac-button-header" id="home_myopac_link" aria-expanded="false" aria-controls="mobile_links" onclick="toggleClassByID('mobile_links','active'); copyHeaderLinks();">
@@ -91,7 +91,9 @@
     [% INCLUDE "opac/parts/topnav_links.tt2" %]
     </div>
 </div>
-
+[%- IF ctx.maintenance_message -%]
+<div [%- IF ctx.maintenance_message_class -%]class="[%- ctx.maintenance_message_class -%]" [%- END -%] id="maintenance_message">[% ctx.maintenance_message %]</div>
+[%- END -%]
 <div id="mobile_links">
     [% IF !ctx.user %]
     [% IF ctx.get_org_setting(ctx.physical_loc || ctx.aou_tree.id, 'opac.allow_pending_user') %]
@@ -156,7 +158,7 @@
 </div>
 
 [%- ELSE -%]
-    [%- IF ctx.maintenance_message -%]
+    [%- IF ctx.maintenance_message && ctx.maintenance_message_staff -%]
     <div id="maintenance_message">[% ctx.maintenance_message %]</div>
     [%- END -%]
 [% END %]

@@ -273,16 +273,20 @@ END; # FOREACH bib
 [%- END; # FOR copy_info
 %]
         <tr>
-        [%- IF ctx.copy_offset > 0 AND NOT serial_holdings;
+        [% 
+        has_next = copies.size >= ctx.copy_limit AND NOT serial_holdings AND (ctx.copy_offset + ctx.copy_limit < total_copies);
+        has_prev = ctx.copy_offset > 0 AND NOT serial_holdings;
+        %]
+        [%- IF has_prev;
             new_offset = ctx.copy_offset - ctx.copy_limit;
             IF new_offset < 0; new_offset = 0; END %]
-            <td>
+            <td colspan=[% has_next ? 3 : 6 %]>
                 <a href="[% mkurl('', {copy_offset => new_offset, copy_limit => ctx.copy_limit}) %]">&laquo; [%
                     l('Previous [_1]', ctx.copy_offset - new_offset) %]</a>
             </td>
         [%- END %]
-        [%- IF copies.size >= ctx.copy_limit AND NOT serial_holdings AND (ctx.copy_offset + ctx.copy_limit < total_copies) %]
-            <td>
+        [%- IF has_next %]
+            <td colspan=[% has_prev ? 3 : 6 %]>
                 <a href="[% mkurl('', {copy_offset => ctx.copy_offset + ctx.copy_limit, copy_limit => ctx.copy_limit}) %]">[%
                     l('Next [_1]', ctx.copy_limit) %] &raquo;</a>
             </td>
@@ -290,17 +294,23 @@ END; # FOREACH bib
         </tr>
         [% IF NOT serial_holdings -%]
         <tr>
-            <td>
+            <td colspan=100>
                 [%- more_copies_limit = 50 %] [%# TODO: config %]
                 [%- IF  ctx.copy_limit != more_copies_limit AND copies.size >= ctx.copy_limit AND ctx.copy_limit < total_copies %]
                     <div class="rdetail_show_copies">
-                        <img src="[% ctx.media_prefix %]/images/plus_sign.png[% ctx.cache_key %]" alt="[% l('Show more copies icon') %]"/>
-                        <a href="[% mkurl('', {copy_limit => more_copies_limit, copy_offset => 0}) %]">[% l('Show more copies') %]</a>
+                        <a href="[% mkurl('', {copy_limit => more_copies_limit, copy_offset => 0}) %]">
+                            <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+                                <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#plus"/>
+                            </svg>[% l('Show more copies') %]
+                        </a>
                     </div>
                 [%- ELSIF ctx.copy_limit == more_copies_limit %]
                     <div  class="rdetail_show_copies">
-                        <img src="[% ctx.media_prefix %]/images/minus_sign.png[% ctx.cache_key %]" alt="[% l('Show fewer copies icon') %]"/>
-                        <a href="[% mkurl('', {copy_limit => 0, copy_offset => 0}) %]">[% l('Show fewer copies') %]</a>
+                        <a href="[% mkurl('', {copy_limit => 0, copy_offset => 0}) %]">
+                        <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+                            <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#dash"/>
+                        </svg>
+                        [% l('Show fewer copies') %]</a>
                     </div>
                 [%- END %]
             </td>

@@ -65,7 +65,7 @@
     <div class="clear-both"></div>
     <div id="messages_main">
         <form method="post" id="messages-form"
-         onsubmit="if (document.getElementById('acct_messages_actions').value == 'mark_deleted') { return modalConfirm(self,'[% l("Are you sure you wish to permanently delete the selected message(s)?") %]') } else { return true; }">
+         onsubmit="if (document.getElementById('acct_messages_actions').value == 'mark_deleted') { return confirm('[% l("Are you sure you wish to permanently delete the selected message(s)?") %]') } else { return true; }">
             <div class="action-dropdown">
                 <span>
                     <select name="action" class="form-control" id="acct_messages_actions"

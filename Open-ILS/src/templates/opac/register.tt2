@@ -168,6 +168,7 @@ FOR field_def IN register_fields;
     <td>
         <input 
             type='text'
+            class='form-control'
             id='[% field_path %]'
             name='[% field_path %]'
             value='[% value || CGI.param(field_path) | html %]'/>

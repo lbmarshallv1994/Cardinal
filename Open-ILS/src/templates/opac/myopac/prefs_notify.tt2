@@ -102,7 +102,7 @@
                     <tr>
                         <td><label for='[% setting %]'>[% l('Default Phone Number') %]</label></td>
                         <td>
-                            <input onchange="record_change(event)" id='[% setting %]' name='[% setting %]' type="text"
+                            <input onchange="record_change(event)" id='[% setting %]' name='[% setting %]' type="text" class="form-control" 
                                 [% IF ctx.user_setting_map.$setting; %] value='[% ctx.user_setting_map.$setting | html %]' [% END %]/>
                         </td>
                     </tr>
@@ -127,7 +127,7 @@
                     <tr>
                         <td><label for='[% setting %]'>[% l('Default Mobile Number') %]</label></td>
                         <td>
-                            <input onchange="record_change(event)" id='[% setting %]' name='[% setting %]' type="text"
+                            <input onchange="record_change(event)" id='[% setting %]' name='[% setting %]' class="form-control" type="text"
                                 [% IF ctx.user_setting_map.$setting; %] value='[% ctx.user_setting_map.$setting | html %]' [% END %]/>
                             [% l('Hint: use the full 10 digits of your phone #, no spaces, no dashes'); %]
                         </td>

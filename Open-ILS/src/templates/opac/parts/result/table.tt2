@@ -113,7 +113,7 @@
                                                 <a href="[% mkurl(record_url_path, add_parms, del_parms); %]">
                                                  <img alt="[% l('Book cover') %]"
                                                         name='item_jacket' class='result_table_pic'
-                                                        src='[% ctx.media_prefix %]/opac/extras/ac/jacket/medium/r/[% rec.bre_id | uri %]' /></a><br />
+                                                        src='[% ctx.media_prefix %]/opac/extras/ac/jacket/medium/r/[% rec.bre_id | uri %]' /></a><br />                                                  
                                                     <div class='result_table_format_cell'>
                                                     [%- IF attrs.format_label; %]
                                                         [% FOR format IN attrs.all_formats %]
@@ -367,6 +367,7 @@ END;
 </td>
                                                             </tr>
                                                         [% END %]
+                                                        [% INCLUDE "opac/parts/result/series.tt2" %]
                                                         [% IF attrs.phys_desc %]
                                                             <tr name="results_phys_desc_tr">
                                                                 <td nowrap="nowrap" valign="top">

@@ -26,14 +26,44 @@
 <!-- DOB validation for Patron Registration in OPAC -->
 <script type="text/javascript">
     function dobValidate(input) {
-        var validformat = /^(19|20)\d\d([- /.])(0[1-9]|1[012])\2(0[1-9]|[12][0-9]|3[01])$/
-        var returnval = false
-        if (!validformat.test(input.value))
-            alert("[% l('You have entered an invalid date, or an improperly formatted date.  Please enter Date of Birth in YYYY-MM-DD or YYYY/MM/DD format and try again.') %]")
-        else
-            returnval = true
-        if (returnval == false) input.select()
-        return returnval
+        var returnval = false;
+        var date = input.value;
+		var dateParts = date.split(/[- \/]/);
+		var errors = "";
+		var DOY = [31,29,31,30,31,30,31,31,30,31,30,31];
+		if(dateParts.length !== 3){
+			errors +="Must be in the form YYYY-MM-DD or YYYY/MM/DD. ";
+		}
+        else{
+		if(dateParts[1].length != 2 || dateParts[2].length != 2){
+			errors += "the day and month must be exactly two characters. ";
+		}
+		var year = parseInt(dateParts[0]);
+		var month = parseInt(dateParts[1]);
+		var day = parseInt(dateParts[2]);
+		
+		if(isNaN(year) || year < 1900 || year > new Date().getFullYear()){
+			errors +="The year is incorrect. ";
+		}
+		if(isNaN(month) || month > 12 || month < 1){
+			errors += "The month is incorrect. ";
+		}
+		else if(isNaN(day) || DOY[month-1] < day){
+			errors += "The day is incorrect. ";
+		}
+		
+		if(month == 2 && day == 29 && (year % 100 == 0 && year % 400 != 0 || year % 4 != 0)){
+		errors += "" + year + " was not a leap year.";
+		}
+        }
+		if(errors.length == 0){
+			return true;
+		}
+		else{
+			alert("The date of birth contains the following errors: "+errors);
+			return false;
+		}
+        
 }
 
 <!-- Modal confirm -->
@@ -64,13 +94,12 @@ function removeSearchRow(min, link) {
     var tbody = link;
     while(row.tagName != 'TR'){
         row = row.parentNode;
-        console.log(row.tagName);
     }
     while(tbody.tagName != 'TBODY'){
         tbody = tbody.parentNode;
     }
     if (tbody.getElementsByTagName("tr").length > min)
-        tbody.removeChild(row);
+        jQuery(row).fadeOut(70,"swing",function(){tbody.removeChild(row);});        
     return false;
 }
 

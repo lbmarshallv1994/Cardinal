@@ -3,6 +3,7 @@
 
         background = "#fff", # white
         background_alert = "#ffcccc", # pink
+        background_issue = "#fffccc", # yellow
         background_invert = "#252525", # charcoal
         background_menu = "#f7f7f7", # light gray       
         text = "black", # black 
@@ -34,6 +35,7 @@
         border_dark = "black", # black
         border_alert = "red", # red
         border_alert_dark = "#bf0000", # dark red
+        border_issue_dark = "#ccbb04", # dark yellow
         border_menu = "#cfcfcf", # lightish gray
         button_text = "#fbf9f9", # off-white 
         button_text_shadow = "#555555", # medium grey
