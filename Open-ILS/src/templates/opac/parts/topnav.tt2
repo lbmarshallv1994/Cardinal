@@ -50,18 +50,19 @@
                         [% IF ctx.user_stats.messages.unread %]
                             <div id="unread_message_count_floater">
                                 [%- ctx.user_stats.messages.unread -%]
-                                <span class="sr-only">[% l('unread') %]</a>
+                                <span class="sr-only">[% l('unread') %]</span>
                             </div>
                         [% END %]
                     </div>
                     <a href="[% mkurl(ctx.opac_root _ '/myopac/lists', {}, ['single', 'message_id', 'hid', 'from_basket']) %]"
-                        class="opac-button-header">[% l('Lists') %]</a>
-                    <a href="#hold-wrapper"  
-                        class="opac-button-header" href="javascript:void(0);" onclick="toggleClassByID('hold-wrapper','active')">[% l('Holds') %]</a>
+                        class="opac-button-header">[% l('Lists') %]</a>                    
                     <a href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]"
                         class="opac-button-header">[% l('Account') %]</a>
                     <a href="[% mkurl(ctx.opac_root _ '/logout', {}, 1) %]"
                         class="opac-button-header" id="logout_link">[% l('Logout') %]</a>
+                    <a href="#hold-wrapper"  
+                        class="opac-button-header" href="javascript:void(0);" onclick="toggleClassByID('hold-wrapper','active')">
+                        [% l('Info') %]</a>
                     </span>
                 </div>
 
