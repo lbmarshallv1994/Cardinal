@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO config.upgrade_log (version) VALUES ('1174'); 
+INSERT INTO config.upgrade_log (version) VALUES ('1213'); 
 
 CREATE TABLE actor.org_unit_shipping_hub_distance (
     id SERIAL PRIMARY KEY,
