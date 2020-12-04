@@ -3,6 +3,7 @@ import {IdlService, IdlObject} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
 import {PcrudService} from '@eg/core/pcrud.service';
 import {NgbTabChangeEvent} from '@ng-bootstrap/ng-bootstrap';
+import {NetService} from '@eg/core/net.service';
 
 const ADDR_TYPES =
     ['billing_address', 'holds_address', 'mailing_address', 'ill_address'];
@@ -17,6 +18,7 @@ export class OrgAddressComponent {
     private tabName: string;
 
     private _orgId: number;
+    calculating: boolean;
 
     get orgId(): number { return this._orgId; }
 
@@ -36,6 +38,7 @@ export class OrgAddressComponent {
     constructor(
         private idl: IdlService,
         private org: OrgService,
+        private net: NetService,
         private pcrud: PcrudService
     ) {
         this.addrChange = new EventEmitter<IdlObject>();
@@ -158,6 +161,41 @@ export class OrgAddressComponent {
 
         return org;
     }
+    
+    clearCoords(addrType : string){
+        const addr = this.addr(addrType);
+        const tmpOrg = this.updatableOrg();
+        console.log(addr);
+        addr.latitude(null);
+        addr.longitude(null);
+        this.pcrud.update(addr).toPromise()
+        .then(_ => this.addrChange.emit(addr));
+        /*
+        ADDR_TYPES.forEach(aType => {
+            const a = this.addr(aType);
+            if (a && a.id() === addr.id()) {
+                tmpOrg[aType](null);
+                this.createAddress(aType);
+            }
+        });
 
+        this.pcrud.update(tmpOrg).toPromise()
+        .then(_ => this.pcrud.remove(addr).toPromise())
+        .then(_ => this.addrChange.emit(addr));
+        */
+    }
+    
+    calculateCoords(addrType : string){
+        const addr = this.addr(addrType);
+        this.calculating = true;
+            this.net.request(
+                'open-ils.vicinity-calculator',
+                'open-ils.vicinity-calculator.set-coords',
+                addr.id()
+            ).subscribe(
+                coords => { addr.latitude(coords[0]);addr.longitude(coords[1]);this.addrChange.emit(addr);},
+                err  => {alert('API failed to calculate ' + err);this.calculating = false;}
+            );
+    }
 }
 

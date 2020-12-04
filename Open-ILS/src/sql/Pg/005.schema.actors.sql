@@ -1280,6 +1280,10 @@ CREATE INDEX actor_usr_privacy_waiver_usr_idx ON actor.usr_privacy_waiver (usr);
 ALTER TABLE actor.org_unit
 ADD COLUMN shipping_hub_ou BIGINT REFERENCES actor.org_unit(id) ON DELETE SET NULL;
 
+ALTER TABLE actor.org_address
+ADD COLUMN latitude NUMERIC,
+ADD COLUMN longitude NUMERIC;
+
 CREATE OR REPLACE FUNCTION actor.list_org_unit_ancestor_shipping_hub(VARIADIC orgs NUMERIC[]) RETURNS TABLE(org_unit INT,hub INT)
   AS
 $func$

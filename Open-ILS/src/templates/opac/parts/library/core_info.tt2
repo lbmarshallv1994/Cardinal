@@ -31,6 +31,7 @@
 
     [%- IF ctx.library.mailing_address; %]
     <div id="addresses">
+        [%- IF ctx.library.mailing_address -%]
         <div id="mailing" property="location address" typeof="PostalAddress">
             <h3 property="contactType">[% l('Mailing address') %]</h3>
             <span property="streetAddress">[% ctx.mailing_address.street1 | html %]
@@ -40,7 +41,17 @@
             <span property="addressRegion">[% ctx.mailing_address.state | html %]</span><br />
             <span property="addressCountry">[% ctx.mailing_address.country | html %]</span><br />
             <span property="postalCode">[% ctx.mailing_address.post_code | html %]</span><br />
+            [%- IF ctx.mailing_address.latitude AND ctx.mailing_address.longitude -%]
+            <div>
+                 <iframe width="500" height="400" frameborder="0" src="https://www.bing.com/maps/embed?h=400&w=500&cp=[% ctx.mailing_address.latitude %]~[% ctx.mailing_address.longitude %]&sp=point.[% ctx.mailing_address.latitude %]_[% ctx.mailing_address.longitude %]_[% ctx.library.name %]&lvl=16&typ=o&sty=r&src=SHELL&FORM=MBEDV8" scrolling="no">
+                 </iframe>
+                 <div style="white-space: nowrap; text-align: center; width: 500px; padding: 6px 0;">
+                    <a id="largeMapLink" target="_blank" href="https://www.bing.com/maps?cp=[% ctx.mailing_address.latitude %]~[% ctx.mailing_address.longitude %]&amp;sp=point.[% ctx.mailing_address.latitude %]_[% ctx.mailing_address.longitude %]_[% ctx.library.name %]&amp;sty=r&amp;lvl=16&amp;FORM=MBEDLD">View Larger Map with Pin</a>
+                </div>
+            </div>
+            [%- END -%]
         </div>
+        [%- END; -%]
     </div>
     [%- END; %]
 

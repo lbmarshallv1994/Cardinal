@@ -1,6 +1,6 @@
 BEGIN;
 
-INSERT INTO config.upgrade_log (version) VALUES ('1173'); 
+INSERT INTO config.upgrade_log (version) VALUES ('1212'); 
 
 ALTER TABLE actor.org_unit
 ADD COLUMN shipping_hub_ou BIGINT REFERENCES actor.org_unit(id) ON DELETE SET NULL;

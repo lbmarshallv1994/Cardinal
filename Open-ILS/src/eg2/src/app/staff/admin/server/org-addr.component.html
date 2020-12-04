@@ -2,7 +2,6 @@
 <ngb-tabset #addressTabs *ngIf="orgUnit" (tabChange)="tabChanged($event)">
   <ng-container *ngFor="let type of addrTypes()">
     <b>type = {{type}}</b>
-
     <ngb-tab *ngIf="addr(type)"
       i18n-title id="{{type}}"
       title="{{type === 'billing_address' ? 'Physical Address' : 
@@ -10,14 +9,17 @@
         (type === 'mailing_address' ? 'Mailing Address' : 'ILL Address'))}}">
 
       <ng-template ngbTabContent>
+        <br/>
+        <button (click)="calculateCoords(type)" class="btn btn-light ml-3" i18n>Calculate Long/Lat</button>
+        <button (click)="clearCoords(type)" class="btn btn-light ml-3" i18n>Invalidate Long/Lat</button> 
         <eg-fm-record-editor idlClass="aoa" readonlyFields="org_unit" 
           [mode]="addr(type).isnew() ? 'create': 'update'" 
           [hideBanner]="true" displayMode="inline" hiddenFields="id"
           (recordSaved)="addrSaved($event)" 
           [record]="addr(type)"
-          fieldOrder="address_type,street1,street2,city,county,state,country,post_code,san,valid"
+          fieldOrder="address_type,street1,street2,city,county,state,country,post_code,san,latitude,longitude,valid"
           >
-          <eg-fm-record-editor-action i18n-label label="Delete" *ngIf="!addr(type).isnew()"
+         <eg-fm-record-editor-action i18n-label label="Delete" *ngIf="!addr(type).isnew()"
             (actionClick)="deleteAddress($event)" buttonCss="btn-warning">
           </eg-fm-record-editor-action>
         </eg-fm-record-editor>
@@ -29,6 +31,7 @@
               class="btn btn-light ml-3" i18n>Clone As New Address</button>
           </div>
         </ng-container>
+
       </ng-template>
     </ngb-tab>
   </ng-container>

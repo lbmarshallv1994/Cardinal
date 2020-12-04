@@ -39,13 +39,9 @@ sub calculate_distance_matrix {
     my $self = shift;
     # find hubs for all OUs
     my @hubs = $self->get_all_hubs();
-    my %hub_coord;
     # find addresses of all hub OUs
-    my %hub_addr = $self->get_addr_from_ou(uniq(@hubs));
-    while( my($k,$v) = each %hub_addr){
-        # use Bing to find the longitude and latitude of all hub OUs
-        $hub_coord{$k} = $self->get_coord_from_address($v);
-    }
+    $logger->info("Getting shipping hub addresses");
+    my %hub_coord = $self->get_coord_from_ou(uniq(@hubs));
     my @origins = values(%hub_coord);
     my @destinations = values(%hub_coord);
     my @hub_ids = keys(%hub_coord);
@@ -112,6 +108,36 @@ my($self,@org_ids) = @_;
     return %addrs; 
 }
 
+sub get_coord_from_ou {
+my($self,@org_ids) = @_;
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'org_unit',
+                },
+                {
+                    column => 'latitude',
+                },{
+                    column => 'longitude',
+                },{
+                    column => 'address_type',
+                }             
+            ]
+        },
+        from => 'aoa',
+        where => {org_unit=>[@org_ids], address_type=>['MAILING']}
+    });
+    my %coords;
+   
+    for my $ref (@ma) {
+        for (@$ref){
+            $coords{$_->{org_unit}} = $_->{latitude}.",".$_->{longitude};
+        }
+    }
+    return %coords;
+}
+
 # gets the address into the proper format for API
 sub format_street_address{
 shift;
@@ -167,6 +193,112 @@ sub get_coord_from_address{
     my( $self, $addr ) = @_;
     my $org1geo = $self->{bing}->geocode(location => $addr);
     return $org1geo->{point}{coordinates}[0].",".$org1geo->{point}{coordinates}[1];
+}
+
+# set the latitude and longitude for all addresses associated with an org unit
+sub set_coord_for_ou{
+    my $self = shift;
+    my $ou = int(shift);
+    $logger->info("using API to retrieve Long/Lat for OU $ou");
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'id',
+                },
+                {
+                    column => 'city',
+                },
+                {
+                    column => 'state',
+                },
+                {
+                    column => 'county',
+                },
+                {
+                    column => 'street1',
+                },
+                {
+                    column => 'street2',
+                },
+                {
+                    column => 'post_code',
+                }             
+            ]
+        },
+        from => 'aoa',
+        where => {org_unit => $ou}
+    });
+    $self->{editor}->xact_begin;
+    for my $ref (@ma) {
+        for (@$ref){
+            my $addr_string =  $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
+            my $org1geo = $self->{bing}->geocode($addr_string);
+            my $lat = $org1geo->{point}{coordinates}[0];
+            my $long = $org1geo->{point}{coordinates}[1];
+            my $addr = $self->{editor}->retrieve_actor_org_address($_->{id});
+            $addr->latitude($lat);
+            $addr->longitude($long);
+            $logger->info("Got $lat $long for OU $ou");
+            $self->{editor}->update_actor_org_address($addr) or return $self->{editor}->die_event;            
+        }
+    }
+    $self->{editor}->xact_commit;
+    return 1;
+}
+
+sub set_coord_for_addr{
+    my $self = shift;
+    my $addr = int(shift);
+    $logger->info("using API to retrieve Long/Lat for address with ID $addr");
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'id',
+                },
+                {
+                    column => 'city',
+                },
+                {
+                    column => 'state',
+                },
+                {
+                    column => 'county',
+                },
+                {
+                    column => 'street1',
+                },
+                {
+                    column => 'street2',
+                },
+                {
+                    column => 'post_code',
+                }             
+            ]
+        },
+        from => 'aoa',
+        where => {id => $addr}
+    });
+    
+    for my $ref (@ma) {
+        for (@$ref){
+            $self->{editor}->xact_begin;
+            my $addr_string =  $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
+            my $org1geo = $self->{bing}->geocode($addr_string);
+            my $lat = $org1geo->{point}{coordinates}[0];
+            my $long = $org1geo->{point}{coordinates}[1];
+            my $address = $self->{editor}->retrieve_actor_org_address($addr);
+            $address->latitude($lat);
+            $address->longitude($long);
+            $logger->info("Got $lat $long for address $addr");
+            $self->{editor}->update_actor_org_address($address) or return $self->{editor}->die_event; 
+            $self->{editor}->xact_commit;
+            my @val = ($lat,$long);
+            return \@val;
+        }
+    }    
+    return $self->{editor}->die_event;
 }
 
 sub vicinity_between_coord{
@@ -259,6 +391,22 @@ sub hub_matrix {
     return %matrix; 
 }
 
+sub distance_between_hubs {
+    my ($self, $origin_hub, $dest_hub) = @_;
+    my @d = $self->{editor}->json_query({
+        select => {'aoushd' => [{column => 'distance'}]},
+        from => 'aoushd',
+        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>[$dest_hub]}
+    });
+    for my $ref (@d) {
+        for (@$ref){
+            return $_->{distance};
+        }
+    }
+    $logger->error("OU $origin_hub has no calculation to OU $dest_hub. open-ils.vicinity-calculator.build-distance-matrix must be run!");
+    return undef;
+}
+
 sub get_target_hubs{
     my $self = shift;
     my $copies_ref = shift;
@@ -304,7 +452,18 @@ my @sh = $self->{editor}->json_query({
     return $sh[0][0]->{'hub'};
 }
 
+
+
+
+
 =begin work zone
+
+OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
+    my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
+    Fieldmapper->import(IDL => $idl);
+my $pc = OpenILS::Utils::VicinityCalculator->new("VbVe1thIFfqm2ghCuREV~3BmYd1kV23t34b_u1DXhQw~AvpRMvRV37o03fEBAq24KnW_R7I7M9CqwzezfKINgNG-LcwMuk7u7ihsBWZCPFE4");
+print Dumper($pc->set_coord_for_addr(2));
+
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
     my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
     Fieldmapper->import(IDL => $idl);
