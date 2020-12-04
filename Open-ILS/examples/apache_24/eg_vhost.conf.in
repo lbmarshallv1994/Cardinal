@@ -413,11 +413,11 @@ RewriteRule .? - [E=locale:%{HTTP:Accept-Language}]
 # OPTIONAL: Running the translator behind a proxy requires accessing
 # the client IP address via mod_remoteip (sudo a2enmod remoteip).
 # Below is a sample configuration for a proxy running on the same
-# server and passing the client IP address via the X-Real-IP header.
+# server and passing the client IP address via the X-Forwarded-For header.
 #
 #RemoteIPInternalProxy 127.0.0.1/24
 #RemoteIPInternalProxy ::1
-#RemoteIPHeader X-Real-IP
+#RemoteIPHeader X-Forwarded-For
 
 <Location /osrf-http-translator>
     SetHandler osrf_http_translator_module
@@ -773,6 +773,14 @@ RewriteRule ^/openurl$ ${openurl:%1} [NE,PT]
     </LocationMatch>
 </IfModule>
 
+<Location /print_template>
+    SetHandler perl-script
+    PerlHandler OpenILS::WWW::PrintTemplate
+    Options +ExecCGI
+    PerlSendHeader On
+    Require all granted 
+</Location>
+
 
 <Location /IDL2js>
 
@@ -828,6 +836,26 @@ RewriteRule ^/openurl$ ${openurl:%1} [NE,PT]
     </IfModule>
 </Location>
 
+<Location /api/basicauth>
+    SetHandler perl-script
+    PerlHandler OpenILS::WWW::RemoteAuth
+    Options +ExecCGI
+
+    # access restricted to localhost by default; since this module provides no
+    # client authentiation, restricting access by IP or other means is stongly
+    # recommended
+    Require local
+
+    # remoteauth profile name
+    PerlSetVar OILSRemoteAuthProfile "Basic"
+    # Perl module for processing requests
+    PerlSetVar OILSRemoteAuthHandler "OpenILS::WWW::RemoteAuth::Basic"
+
+    # staff username/password for config lookup and patron retrieval
+    PerlSetVar OILSRemoteAuthClientUsername "admin"
+    PerlSetVar OILSRemoteAuthClientPassword "demo123"
+</Location>
+
 
 # Uncomment the following to force SSL for everything. Note that this defeats caching
 # and you will suffer a performance hit.
@@ -855,11 +883,25 @@ RewriteRule ^/eg2/(.*) https://%{HTTP_HOST}/eg2/en-US/$1 [R=307,L]
 
 # en-US build
 # This is the only required configuration when only using the default locale.
-<Directory "/openils/var/web/eg2/en-US">
+<Directory "@localstatedir@/web/eg2/en-US">
     FallbackResource /eg2/en-US/index.html
+    <Files "index.html">
+      <IfModule mod_headers.c>
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+      </IfModule>
+    </Files>
 </Directory>
 
 # fr-CA build
-#<Directory "/openils/var/web/eg2/fr-CA">
+#<Directory "@localstatedir@/web/eg2/fr-CA">
 #    FallbackResource /eg2/fr-CA/index.html
+#    <Files "index.html">
+#      <IfModule mod_headers.c>
+#        Header set Cache-Control "no-cache, no-store, must-revalidate"
+#        Header set Pragma "no-cache"
+#        Header set Expires 0
+#      </IfModule>
+#    </Files>
 #</Directory>

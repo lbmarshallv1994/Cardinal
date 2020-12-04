@@ -60,6 +60,7 @@ function($q , egCore , egWorkLog , patronSvc) {
                 case 'cash_payment' : msg = egCore.strings.EG_WORK_LOG_CASH_PAYMENT; break;
                 case 'check_payment' : msg = egCore.strings.EG_WORK_LOG_CHECK_PAYMENT; break;
                 case 'credit_card_payment' : msg = egCore.strings.EG_WORK_LOG_CREDIT_CARD_PAYMENT; break;
+                case 'debit_card_payment' : msg = egCore.strings.EG_WORK_LOG_DEBIT_CARD_PAYMENT; break;
                 case 'credit_payment' : msg = egCore.strings.EG_WORK_LOG_CREDIT_PAYMENT; break;
                 case 'work_payment' : msg = egCore.strings.EG_WORK_LOG_WORK_PAYMENT; break;
                 case 'forgive_payment' : msg = egCore.strings.EG_WORK_LOG_FORGIVE_PAYMENT; break;
@@ -357,7 +358,8 @@ function($scope , $q , $routeParams , egCore , egConfirmDialog , $location,
                 // balance owed on the current item matches or exceeds
                 // the pending payment.  Apply the full remainder of
                 // the payment to this item.. and we're done.
-                item.payment_pending = payment_amount;
+                // Limit to two decimal places to avoid floating point issues
+                item.payment_pending = payment_amount.toFixed(2);
                 break;
             }
         }
@@ -571,7 +573,7 @@ function($scope , $q , $routeParams , egCore , egConfirmDialog , $location,
                 'mbt' : ['summary', 'circulation'],
                 'circ' : ['target_copy'],
                 'acp' : ['call_number'],
-                'acn' : ['record'],
+                'acn' : ['record','owning_lib','prefix','suffix'],
                 'bre' : ['simple_record']
                 }
             },
@@ -621,8 +623,17 @@ function($scope , $q , $routeParams , egCore , egConfirmDialog , $location,
                     xact_start : xact.xact_start(),
                 }
                 if (xact.circulation()) {
-                    newXact.copy_barcode = xact.circulation().target_copy().barcode(),
-                    newXact.title = xact.circulation().target_copy().call_number().record().simple_record().title()
+                    newXact.copy_barcode = xact.circulation().target_copy().barcode();
+                    newXact.title = xact.circulation().target_copy().call_number().record().simple_record().title();
+                    newXact.call_number = {
+                        label : xact.circulation().target_copy().call_number().label(),
+			            prefix : xact.circulation().target_copy().call_number().prefix().label(),
+			            suffix : xact.circulation().target_copy().call_number().suffix().label(),
+                        owning_lib : {
+                            name : xact.circulation().target_copy().call_number().owning_lib().name(),
+                            shortname : xact.circulation().target_copy().call_number().owning_lib().shortname()
+                        }
+                    }
                 }
                 xacts.push(newXact);
             }
@@ -812,9 +823,15 @@ function($scope , $q , $routeParams , egCore , egConfirmDialog , $location,
 
     // direct the user to the transaction details page
     $scope.showFullDetails = function(all) {
-        if (all[0]) 
+        var lastClicked = $scope.gridControls.contextMenuItem();
+        if (lastClicked) {
+            $location.path('/circ/patron/' + 
+                patronSvc.current.id() + '/bill/' + lastClicked + '/statement');
+        } else if (all[0]) {
             $location.path('/circ/patron/' + 
                 patronSvc.current.id() + '/bill/' + all[0].id + '/statement');
+        }
+            
     }
 
     $scope.activateBill = function(xact) {
@@ -1010,6 +1027,25 @@ function($scope,  $q , egCore , patronSvc , billSvc , egPromptDialog , $location
         setQuery : current_grid_query
     }
 
+    $scope.$watch('dates.xact_start', function(new_date, old_date) {
+        if (new_date !== old_date && new_date) {
+            if (new_date.getTime() > $scope.dates.xact_finish.getTime()) {
+                $scope.dates.xact_finish = new_date;
+            } else {
+                $scope.actions.apply_date_range();
+            }
+        }
+    });
+    $scope.$watch('dates.xact_finish', function(new_date, old_date) {
+        if (new_date !== old_date && new_date) {
+            if (new_date.getTime() < $scope.dates.xact_start.getTime()) {
+                $scope.dates.xact_start = new_date;
+            } else {
+                $scope.actions.apply_date_range();
+            }
+        }
+    });
+
     $scope.actions.apply_date_range = function() {
         // tells the grid to re-draw itself with the new query
         $scope.gridControls.setQuery(current_grid_query());
@@ -1070,7 +1106,7 @@ function($scope,  $q , egCore , patronSvc , billSvc , egPromptDialog , $location
                 'mbt' : ['summary', 'circulation'],
                 'circ' : ['target_copy'],
                 'acp' : ['call_number'],
-                'acn' : ['record'],
+                'acn' : ['record','owning_lib','prefix','suffix'],
                 'bre' : ['simple_record']
                 }
             },
@@ -1120,8 +1156,17 @@ function($scope,  $q , egCore , patronSvc , billSvc , egPromptDialog , $location
                     xact_start : xact.xact_start(),
                 }
                 if (xact.circulation()) {
-                    newXact.copy_barcode = xact.circulation().target_copy().barcode(),
-                    newXact.title = xact.circulation().target_copy().call_number().record().simple_record().title()
+                    newXact.copy_barcode = xact.circulation().target_copy().barcode();
+                    newXact.title = xact.circulation().target_copy().call_number().record().simple_record().title();
+                    newXact.call_number = {
+                        label : xact.circulation().target_copy().call_number().label(),
+			            prefix : xact.circulation().target_copy().call_number().prefix().label(),
+			            suffix : xact.circulation().target_copy().call_number().suffix().label(),
+                        owning_lib : {
+                            name : xact.circulation().target_copy().call_number().owning_lib().name(),
+                            shortname : xact.circulation().target_copy().call_number().owning_lib().shortname()
+                        }
+                    }
                 }
                 xacts.push(newXact);
             }
@@ -1151,6 +1196,25 @@ function($scope,  $q , egCore , patronSvc , billSvc , $location) {
         },
         setQuery : current_grid_query
     }
+
+    $scope.$watch('dates.xact_start', function(new_date, old_date) {
+        if (new_date !== old_date && new_date) {
+            if (new_date.getTime() > $scope.dates.xact_finish.getTime()) {
+                $scope.dates.xact_finish = new_date;
+            } else {
+                $scope.actions.apply_date_range();
+            }
+        }
+    });
+    $scope.$watch('dates.xact_finish', function(new_date, old_date) {
+        if (new_date !== old_date && new_date) {
+            if (new_date.getTime() < $scope.dates.xact_start.getTime()) {
+                $scope.dates.xact_start = new_date;
+            } else {
+                $scope.actions.apply_date_range();
+            }
+        }
+    });
 
     $scope.actions.apply_date_range = function() {
         // tells the grid to re-draw itself with the new query

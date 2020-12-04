@@ -737,7 +737,8 @@ angular.module('egMarcMod', ['egCoreMod', 'ui.bootstrap'])
 
                 // necessary to prevent ng-model scope hiding ugliness in egMarcEditBibSource:
                 $scope.bib_source = {
-                    id : $scope.bibSource ? $scope.bibSource : null
+                    id : $scope.bibSource ? $scope.bibSource : null,
+                    name: null
                 };
                 $scope.brandNewRecord = false;
                 $scope.record_type = $scope.recordType || 'bre';
@@ -1330,8 +1331,24 @@ angular.module('egMarcMod', ['egCoreMod', 'ui.bootstrap'])
                 };
 
                 $scope.undeleteRecord = function () {
-                    $scope.Record().deleted(false);
-                    return $scope.saveRecord();
+                    if ($scope.record_type == 'bre') {
+                        egCore.net.request(
+                            'open-ils.cat',
+                            'open-ils.cat.biblio.record_entry.undelete',
+                            egCore.auth.token(), $scope.recordId
+                        ).then(function(resp) {
+                            var evt = egCore.evt.parse(resp);
+                            if (evt) {
+                                return egAlertDialog.open(
+                                    egCore.strings.ALERT_UNDELETE_FAILED,
+                                    { id : $scope.recordId, desc : evt.desc }
+                                );
+                            } else {
+                                ngToast.create(egCore.strings.SUCCESS_UNDELETE_RECORD);
+                                loadRecord().then(processOnSaveCallbacks);
+                            }
+                        });
+                    }
                 };
 
                 $scope.validateHeadings = function () {
@@ -1393,13 +1410,13 @@ angular.module('egMarcMod', ['egCoreMod', 'ui.bootstrap'])
                     if ($scope.recordId) {  
 
                         var method = $scope.record_type === 'bre' ?
-                            'open-ils.cat.biblio.record.marc.replace' :
+                            'open-ils.cat.biblio.record.xml.update' :
                             'open-ils.cat.authority.record.overlay';
 
                         promise = egCore.net.request(
                             'open-ils.cat', method,
                             egCore.auth.token(), $scope.recordId, 
-                            $scope.Record().marc(), $scope.Record().source()
+                            $scope.Record().marc(), $scope.bib_source.name
                         );
 
                     } else {
@@ -1412,7 +1429,7 @@ angular.module('egMarcMod', ['egCoreMod', 'ui.bootstrap'])
                             'open-ils.cat', method,
                             egCore.auth.token(), 
                             $scope.Record().marc(),
-                            $scope.Record().source()
+                            $scope.bib_source.name
                         );
                     }
 
@@ -1590,6 +1607,8 @@ angular.module('egMarcMod', ['egCoreMod', 'ui.bootstrap'])
                     function(newVal, oldVal) {
                         if (newVal !== oldVal) {
                             $scope.bre.source(newVal);
+                            var cbs = $scope.bib_sources.filter(function(s) { return s.id() == newVal });
+                            $scope.$parent.bib_source.name = (cbs && cbs[0]) ? cbs[0].source() : null;
                         }
                     }
                 );

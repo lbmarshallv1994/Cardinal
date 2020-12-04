@@ -15,7 +15,7 @@ export class BasketActionsComponent implements OnInit {
 
     basketAction: string;
 
-    @ViewChild('addBasketToBucketDialog')
+    @ViewChild('addBasketToBucketDialog', { static: true })
         addToBucketDialog: BucketDialogComponent;
 
     constructor(
@@ -37,7 +37,8 @@ export class BasketActionsComponent implements OnInit {
 
     // TODO: confirmation dialogs?
 
-    applyAction() {
+    applyAction(action: string) {
+        this.basketAction = action;
         console.debug('Performing basket action', this.basketAction);
 
         switch (this.basketAction) {

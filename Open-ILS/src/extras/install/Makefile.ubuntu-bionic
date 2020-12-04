@@ -37,6 +37,7 @@ export DEBS = \
 	libdbi-dev\
 	libdbi1\
 	libemail-simple-perl\
+	libemail-mime-perl\
 	libexcel-writer-xlsx-perl\
 	libgd-graph3d-perl\
 	liblocale-maketext-lexicon-perl\
@@ -69,6 +70,7 @@ export DEBS = \
 	libsoap-lite-perl\
 	libbz2-dev\
 	libparse-recdescent-perl\
+	libhtml-defang-perl\
 	yaz
 
 export DEB_APACHE_MODS = \
@@ -110,6 +112,13 @@ PGSQL_SERVER_DEBS_96 = \
 	postgresql-plperl-9.6 \
 	postgresql-server-dev-9.6
 
+PGSQL_SERVER_DEBS_10 = \
+        $(DEB_PGSQL_COMMON_MODS) \
+        postgresql-10 \
+        postgresql-contrib-10 \
+        postgresql-plperl-10 \
+        postgresql-server-dev-10
+
 # note: some prereqs are repeated in the developer/packager 
 # sections to support building Evergreen packages on servers
 # where Evergreen and its prereqs are not installed.
@@ -117,7 +126,9 @@ PGSQL_SERVER_DEBS_96 = \
 DEVELOPER_DEBS = \
 	automake \
 	autoconf \
-	libtool
+	libtool \
+	chromium-browser \
+	firefox
 
 PACKAGER_DEBS = \
 	asciidoc \
@@ -151,6 +162,12 @@ install_postgres_server:
 	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_APT_REPO_DEBS)"
 	make -f $(DIR)/Makefile.debian debian_postgresql_repo
 	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_SERVER_DEBS_96)"
+	make -f $(DIR)/Makefile.common install_cpan_pgsql
+
+install_postgres_server_10:
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_APT_REPO_DEBS)"
+	make -f $(DIR)/Makefile.debian debian_postgresql_repo
+	make -f $(DIR)/Makefile.debian DEBS="$(PGSQL_SERVER_DEBS_10)"
 	make -f $(DIR)/Makefile.common install_cpan_pgsql
 
 # note: if/when grunt-cli is available as a

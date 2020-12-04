@@ -49,12 +49,17 @@
   features="clientsort,allowAll"
   items-provider="gridDataProvider"
   persist-key="circ.patron.items_out"
-  dateformat="{{$root.egDateAndTimeFormat}}">
+  dateformat="{{$root.egDateAndTimeFormat}}"
+  row-class="colorizeItemsOutList">
 
   <eg-grid-action handler="print_receipt"
     label="[% l('Print Item Receipt') %]"></eg-grid-action>
   <eg-grid-action handler="edit_due_date"
     label="[% l('Edit Due Date') %]"></eg-grid-action>
+  <eg-grid-action handler="mark_damaged"
+    label="[% l('Mark Damaged') %]"></eg-grid-action>
+  <eg-grid-action handler="mark_missing"
+    label="[% l('Mark Missing') %]"></eg-grid-action>
   <eg-grid-action handler="mark_lost"
     label="[% l('Mark Lost (By Patron)') %]"></eg-grid-action>
   <eg-grid-action handler="mark_claims_returned"
@@ -80,14 +85,14 @@
       {{item.target_copy().barcode()}}
     </a>
   </eg-grid-field>
-  <eg-grid-field label="[% l('Due Date') %]" path='due_date' datefilter="egDueDate" dateonlyinterval="duration" datecontext="circ_lib" datatype="timestamp"></eg-grid-field>
+  <eg-grid-field label="[% l('Due Date') %]" path='due_date' datefilter="egDueDate" dateonlyinterval="duration" datecontext="circ_lib" datatype="timestamp" required></eg-grid-field>
   <eg-grid-field label="[% l('Workstation') %]" path='workstation.name'></eg-grid-field>
   <eg-grid-field label="[% l('Checkin Workstation') %]" path='checkin_workstation.name'></eg-grid-field>
   <eg-grid-field label="[% l('Checkout / Renewal Library') %]" path='circ_lib.shortname'></eg-grid-field>
   <eg-grid-field label="[% l('Circulation Library') %]" path='target_copy.circ_lib.shortname' hidden></eg-grid-field>
   <eg-grid-field label="[% l('Age-based Hold Protection') %]" path='target_copy.age_protect.name' hidden></eg-grid-field>
   <eg-grid-field label="[% l('Floating Group') %]" path='target_copy.floating.name' hidden></eg-grid-field>
-  <eg-grid-field label="[% l('Location') %]" path='target_copy.location.name' hidden></eg-grid-field>
+  <eg-grid-field label="[% l('Shelving Location') %]" path='target_copy.location.name' hidden></eg-grid-field>
   <eg-grid-field label="[% l('Owning Library') %]" path='target_copy.call_number.owning_lib.shortname' hidden></eg-grid-field>
   <eg-grid-field label="[% l('Renewals Remaining') %]" path='renewal_remaining'></eg-grid-field>
   <eg-grid-field label="[% l('Fines Stopped') %]" path='stop_fines'></eg-grid-field>

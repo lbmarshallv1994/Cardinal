@@ -1,7 +1,9 @@
 import {Injectable, Pipe, PipeTransform} from '@angular/core';
-import {DatePipe, CurrencyPipe} from '@angular/common';
+import {DatePipe, CurrencyPipe, getLocaleDateFormat, getLocaleTimeFormat, getLocaleDateTimeFormat, FormatWidth} from '@angular/common';
 import {IdlService, IdlObject} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
+import {LocaleService} from '@eg/core/locale.service';
+import * as moment from 'moment-timezone';
 
 /**
  * Format IDL vield values for display.
@@ -16,6 +18,7 @@ export interface FormatParams {
     datatype?: string;
     orgField?: string; // 'shortname' || 'name'
     datePlusTime?: boolean;
+    timezoneContextOrg?: number;
 }
 
 @Injectable({providedIn: 'root'})
@@ -29,7 +32,8 @@ export class FormatService {
         private datePipe: DatePipe,
         private currencyPipe: CurrencyPipe,
         private idl: IdlService,
-        private org: OrgService
+        private org: OrgService,
+        private locale: LocaleService
     ) {
 
         // Create an inilne polyfill for Number.isNaN, which is
@@ -107,12 +111,26 @@ export class FormatService {
                 return org ? org[orgField]() : '';
 
             case 'timestamp':
-                const date = new Date(value);
+                let tz;
+                if (params.idlField === 'dob') {
+                    // special case: since dob is the only date column that the
+                    // IDL thinks of as a timestamp, the date object comes over
+                    // as a UTC value; apply the correct timezone rather than the
+                    // local one
+                    tz = 'UTC';
+                } else {
+                    tz = this.wsOrgTimezone;
+                }
+                const date = moment(value).tz(tz);
+                if (!date.isValid()) {
+                    console.error('Invalid date in format service', value);
+                    return '';
+                }
                 let fmt = this.dateFormat || 'shortDate';
                 if (params.datePlusTime) {
                     fmt = this.dateTimeFormat || 'short';
                 }
-                return this.datePipe.transform(date, fmt);
+                return this.datePipe.transform(date.toISOString(true), fmt, date.format('ZZ'));
 
             case 'money':
                 return this.currencyPipe.transform(value);
@@ -129,6 +147,150 @@ export class FormatService {
             default:
                 return value + '';
         }
+    }
+    /**
+     * Create an IDL-friendly display version of a human-readable date
+     */
+    idlFormatDate(date: string, timezone: string): string { return this.momentizeDateString(date, timezone).format('YYYY-MM-DD'); }
+
+    /**
+     * Create an IDL-friendly display version of a human-readable datetime
+     */
+    idlFormatDatetime(datetime: string, timezone: string): string { return this.momentizeDateTimeString(datetime, timezone).toISOString(); }
+
+    /**
+     * Create a Moment from an ISO string
+     */
+    momentizeIsoString(isoString: string, timezone: string): moment.Moment {
+        return (isoString.length) ? moment(isoString, timezone) : moment();
+    }
+
+    /**
+     * Turn a date string into a Moment using the date format org setting.
+     */
+    momentizeDateString(date: string, timezone: string, strict?, locale?): moment.Moment {
+        return this.momentize(date, this.makeFormatParseable(this.dateFormat, locale), timezone, strict);
+    }
+
+    /**
+     * Turn a datetime string into a Moment using the datetime format org setting.
+     */
+    momentizeDateTimeString(date: string, timezone: string, strict?, locale?): moment.Moment {
+        return this.momentize(date, this.makeFormatParseable(this.dateTimeFormat, locale), timezone, strict);
+    }
+
+    /**
+     * Turn a string into a Moment using the provided format string.
+     */
+    private momentize(date: string, format: string, timezone: string, strict: boolean): moment.Moment {
+        if (format.length) {
+            const result = moment.tz(date, format, true, timezone);
+            if (!result.isValid()) {
+                if (strict) {
+                    throw new Error('Error parsing date ' + date);
+                }
+                return moment.tz(date, format, false, timezone);
+            }
+        return moment(new Date(date), timezone);
+        }
+    }
+
+    /**
+     * Takes a dateFormat or dateTimeFormat string (which uses Angular syntax) and transforms
+     * it into a format string that MomentJs can use to parse input human-readable strings
+     * (https://momentjs.com/docs/#/parsing/string-format/)
+     *
+     * Returns a blank string if it can't do this transformation.
+     */
+    private makeFormatParseable(original: string, locale?: string): string {
+        if (!original) { return ''; }
+        if (!locale) { locale = this.locale.currentLocaleCode(); }
+        switch (original) {
+            case 'short': {
+                const template = getLocaleDateTimeFormat(locale, FormatWidth.Short);
+                const date = getLocaleDateFormat(locale, FormatWidth.Short);
+                const time = getLocaleTimeFormat(locale, FormatWidth.Short);
+                original = template
+                    .replace('{1}', date)
+                    .replace('{0}', time)
+                    .replace(/\'(\w+)\'/, '[$1]');
+                break;
+            }
+            case 'medium': {
+                const template = getLocaleDateTimeFormat(locale, FormatWidth.Medium);
+                const date = getLocaleDateFormat(locale, FormatWidth.Medium);
+                const time = getLocaleTimeFormat(locale, FormatWidth.Medium);
+                original = template
+                    .replace('{1}', date)
+                    .replace('{0}', time)
+                    .replace(/\'(\w+)\'/, '[$1]');
+                break;
+            }
+            case 'long': {
+                const template = getLocaleDateTimeFormat(locale, FormatWidth.Long);
+                const date = getLocaleDateFormat(locale, FormatWidth.Long);
+                const time = getLocaleTimeFormat(locale, FormatWidth.Long);
+                original = template
+                    .replace('{1}', date)
+                    .replace('{0}', time)
+                    .replace(/\'(\w+)\'/, '[$1]');
+                break;
+            }
+            case 'full': {
+                const template = getLocaleDateTimeFormat(locale, FormatWidth.Full);
+                const date = getLocaleDateFormat(locale, FormatWidth.Full);
+                const time = getLocaleTimeFormat(locale, FormatWidth.Full);
+                original = template
+                    .replace('{1}', date)
+                    .replace('{0}', time)
+                    .replace(/\'(\w+)\'/, '[$1]');
+                break;
+            }
+            case 'shortDate': {
+                original = getLocaleDateFormat(locale, FormatWidth.Short);
+                break;
+            }
+            case 'mediumDate': {
+                original = getLocaleDateFormat(locale, FormatWidth.Medium);
+                break;
+            }
+            case 'longDate': {
+                original = getLocaleDateFormat(locale, FormatWidth.Long);
+                break;
+            }
+            case 'fullDate': {
+                original = getLocaleDateFormat(locale, FormatWidth.Full);
+                break;
+            }
+            case 'shortTime': {
+                original = getLocaleTimeFormat(locale, FormatWidth.Short);
+                break;
+            }
+            case 'mediumTime': {
+                original = getLocaleTimeFormat(locale, FormatWidth.Medium);
+                break;
+            }
+            case 'longTime': {
+                original = getLocaleTimeFormat(locale, FormatWidth.Long);
+                break;
+            }
+            case 'fullTime': {
+                original = getLocaleTimeFormat(locale, FormatWidth.Full);
+                break;
+            }
+        }
+        return original
+            .replace(/a+/g, 'a') // MomentJs can handle all sorts of meridian strings
+            .replace(/d/g, 'D') // MomentJs capitalizes day of month
+            .replace(/EEEEEE/g, '') // MomentJs does not handle short day of week
+            .replace(/EEEEE/g, '') // MomentJs does not handle narrow day of week
+            .replace(/EEEE/g, 'dddd') // MomentJs has different syntax for long day of week
+            .replace(/E{1,3}/g, 'ddd') // MomentJs has different syntax for abbreviated day of week
+            .replace(/L/g, 'M') // MomentJs does not differentiate between month and month standalone
+            .replace(/W/g, '') // MomentJs uses W for something else
+            .replace(/y/g, 'Y') // MomentJs capitalizes year
+            .replace(/ZZZZ|z{1,4}/g, '[GMT]Z') // MomentJs doesn't put "UTC" in front of offset
+            .replace(/Z{2,3}/g, 'Z'); // MomentJs only uses 1 Z
     }
 }
 

@@ -395,7 +395,7 @@ function(egCore , $q) {
     service.flesh = {   
         flesh : 3, 
         flesh_fields : {
-            acp : ['call_number','parts','stat_cat_entries', 'notes', 'tags'],
+            acp : ['call_number','parts','stat_cat_entries', 'notes', 'tags', 'creator', 'editor'],
             acn : ['label_class','prefix','suffix'],
             acptcm : ['tag']
         }
@@ -481,12 +481,13 @@ function(egCore , $q) {
     return service;
 }])
 
-.directive("egVolCopyEdit", function () {
+.directive("egVolCopyEdit", ['egCore', function (egCore) {
     return {
         restrict: 'E',
         replace: true,
         template:
-            '<div class="row">'+
+            '<div class="row" ng-class="{'+"'new-cp'"+':is_new}">'+
+                '<span ng-if="is_new" class="sr-only">' + egCore.strings.VOL_COPY_NEW_ITEM + '</span>' +
                 '<div class="col-xs-5" ng-class="{'+"'has-error'"+':barcode_has_error}">'+
                     '<input id="{{callNumber.id()}}_{{copy.id()}}"'+
                     ' eg-enter="nextBarcode(copy.id())" class="form-control"'+
@@ -506,10 +507,18 @@ function(egCore , $q) {
                 $scope.barcode_has_error = false;
                 $scope.duplicate_barcode = false;
                 $scope.empty_barcode = false;
+                $scope.is_new = false;
                 $scope.duplicate_barcode_string = window.duplicate_barcode_string;
                 $scope.empty_barcode_string = window.empty_barcode_string;
+                var duplicate_check_count = 0;
 
                 if (!$scope.copy.barcode()) $scope.copy.empty_barcode = true;
+                if ($scope.copy.isnew() || $scope.copy.id() < 0) $scope.copy.is_new = $scope.is_new = true;
+
+                $scope.selectOnFocus = function($event) {
+                    if (!$scope.copy.empty_barcode)
+                        $event.target.select();
+                }
 
                 $scope.selectOnFocus = function($event) {
                     if (!$scope.copy.empty_barcode)
@@ -524,8 +533,13 @@ function(egCore , $q) {
                     if ($scope.barcode != '') {
                         $scope.copy.empty_barcode = $scope.empty_barcode = false;
                         $scope.barcode_has_error = !Boolean(itemSvc.checkBarcode($scope.barcode));
+
+                        var duplicate_check_id = ++duplicate_check_count;
                         itemSvc.checkDuplicateBarcode($scope.barcode, $scope.copy.id())
-                            .then(function (state) { $scope.copy.duplicate_barcode = $scope.duplicate_barcode = state });
+                            .then(function (state) {
+                                if (duplicate_check_id == duplicate_check_count)
+                                    $scope.copy.duplicate_barcode = $scope.duplicate_barcode = state;
+                            });
                     } else {
                         $scope.copy.empty_barcode = $scope.empty_barcode = true;
                     }
@@ -582,28 +596,29 @@ function(egCore , $q) {
         ]
 
     }
-})
+}])
 
-.directive("egVolRow", function () {
+.directive("egVolRow", ['egCore', function (egCore) {
     return {
         restrict: 'E',
         replace: true,
         transclude: true,
         template:
-            '<div class="row">'+
+            '<div class="row" ng-class="{'+"'new-cn'"+':!callNumber.not_ephemeral}">'+
+                '<span ng-if="!callNumber.not_ephemeral" class="sr-only">' + egCore.strings.VOL_COPY_NEW_CALL_NUMBER + '</span>' +
                 '<div class="col-xs-2">'+
                     '<button aria-label="Delete" style="margin:-5px -15px; float:left;" ng-hide="callNumber.not_ephemeral" type="button" class="close" ng-click="removeCN()">&times;</button>' +
-                    '<select class="form-control" ng-model="classification" ng-change="updateClassification()" ng-options="cl.name() for cl in classification_list"/>'+
+                    '<select class="form-control" ng-model="classification" ng-change="updateClassification()" ng-options="cl.name() for cl in classification_list"></select>'+
                 '</div>'+
                 '<div class="col-xs-1">'+
-                    '<select class="form-control" ng-model="prefix" ng-change="updatePrefix()" ng-options="p.label() for p in prefix_list"/>'+
+                    '<select class="form-control" ng-model="prefix" ng-change="updatePrefix()" ng-options="p.label() for p in prefix_list"></select>'+
                 '</div>'+
                 '<div class="col-xs-2">'+
                     '<input class="form-control" type="text" ng-change="updateLabel()" ng-model="label"/>'+
                     '<div class="label label-danger" ng-if="empty_label">{{empty_label_string}}</div>'+
                 '</div>'+
                 '<div class="col-xs-1">'+
-                    '<select class="form-control" ng-model="suffix" ng-change="updateSuffix()" ng-options="s.label() for s in suffix_list"/>'+
+                    '<select class="form-control" ng-model="suffix" ng-change="updateSuffix()" ng-options="s.label() for s in suffix_list"></select>'+
                 '</div>'+
                 '<div ng-hide="onlyVols" class="col-xs-1"><input class="form-control" type="number" ng-model="copy_count" min="{{orig_copy_count}}" ng-change="changeCPCount()"></div>'+
                 '<div ng-hide="onlyVols" class="col-xs-5">'+
@@ -830,7 +845,7 @@ function(egCore , $q) {
         ]
 
     }
-})
+}])
 
 .directive("egVolEdit", function () {
     return {
@@ -1142,6 +1157,8 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
         return true;
     }
 
+    $scope.changed_fields = [];
+
     $scope.completeToWorking = function () {
         angular.forEach( $scope.completedGridControls.selectedItems(), function (c) {
             angular.forEach( $scope.completed_copies, function (w, i) {
@@ -1178,6 +1195,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                                 return;
                             }
                             if (cp[field]() !== newval) {
+                                $scope.changed_fields[cp.$$hashKey+field] = true;
                                 cp[field](newval);
                                 cp.ischanged(1);
                                 $scope.dirty = true;
@@ -1188,6 +1206,14 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
             }
         });
     }
+
+    // determine if any of the selected copies have had changed their value for this field:
+    $scope.field_changed = function (field){
+        // if objects controlling selection don't exist, assume the fields haven't changed
+        if(!$scope.workingGridControls || !$scope.workingGridControls.selectedItems){ return false; }
+        var selected = $scope.workingGridControls.selectedItems();
+        return selected.reduce((acc, cp) => acc || $scope.changed_fields[cp.$$hashKey+field], false);
+    };
 
     $scope.working = {
         MultiMap: {},
@@ -1223,6 +1249,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                 angular.forEach(
                     $scope.workingGridControls.selectedItems(),
                     function (cp) {
+                        if (!angular.isArray(cp.copy_alerts())) cp.copy_alerts([]);
                         $scope.dirty = true;
                         angular.forEach(alerts, function(alrt) {
                             var a = egCore.idl.fromHash('aca', alrt);
@@ -1247,6 +1274,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
             angular.forEach(
                 $scope.workingGridControls.selectedItems(),
                 function (cp) {
+                    if (!angular.isArray(cp.notes())) cp.notes([]);
                     $scope.dirty = true;
                     angular.forEach(notes, function(note) {
                         var n = egCore.idl.fromHash('acpn', note);
@@ -2192,7 +2220,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                         { order_by : { 'acpt' : ['label'] } }, { atomic: true }
                     ).then(function(list) {
                         return list.map(function(item) {
-                            return item.label() + " (" + egCore.org.get(item.owner()).shortname() + ")";
+                            return { value: item.label(), display: item.label() + " (" + egCore.org.get(item.owner()).shortname() + ")" };
                         });
                     });
                 }
@@ -2295,6 +2323,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                     if (typeof(copy_alert.note) != 'undefined' &&
                         copy_alert.note != '') {
                         angular.forEach(copy_list, function (cp) {
+                            if (!angular.isArray(cp.copy_alerts())) cp.copy_alerts([]);
                             var a = new egCore.idl.aca();
                             a.isnew(1);
                             a.create_staff(copy_alert.create_staff);

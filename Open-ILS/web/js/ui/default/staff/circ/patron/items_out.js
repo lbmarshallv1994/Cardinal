@@ -30,6 +30,12 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
 
     // list of alt circs (lost, etc.) and/or check-in with fines circs
     $scope.alt_list = []; 
+    
+    egCore.org.settings([
+        'ui.circ.suppress_checkin_popups' // add other settings as needed
+    ]).then(function(set) {
+        $scope.suppress_popups = set['ui.circ.suppress_checkin_popups'];
+    });
 
     // these are fetched during startup (i.e. .configure())
     // By default, show lost/lo/cr items in the alt list
@@ -81,6 +87,15 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         patronSvc.items_out = [];
         // Grid refresh is not necessary because switching to the
         // noncat_list always involves instantiating a new grid.
+    }
+
+    $scope.colorizeItemsOutList = {
+        apply: function(item) {
+            var duedate = item.due_date();
+            if (duedate && duedate < new Date().toISOString()) {
+                return 'overdue-row';
+            }
+        }
     }
 
     // Reload the user to pick up changes in items out, fines, etc.
@@ -398,11 +413,31 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         });
     }
 
+    function batch_action_with_flat_copies(items, action) {
+        if (!items.length) return;
+        var copies = items.map(function(circ) 
+            { return egCore.idl.toHash(circ.target_copy()) });
+        action(copies).then(reset_page);
+    }
     function batch_action_with_barcodes(items, action) {
         if (!items.length) return;
         var barcodes = items.map(function(circ) 
             { return circ.target_copy().barcode() });
         action(barcodes).then(reset_page);
+    }
+    $scope.mark_damaged = function(items) {
+        if (items.length == 0) return;
+
+        angular.forEach(items, function(circ) {
+            egCirc.mark_damaged({
+                id: circ.target_copy().id(),
+                barcode: circ.target_copy().barcode(),
+                circ_lib: circ.target_copy().circ_lib().id()
+            }).then(() => $timeout(reset_page,1000)) // reset after each, because rejecting one stops the $q.all() chain
+        });
+    }
+    $scope.mark_missing = function(items) {
+        batch_action_with_flat_copies(items, egCirc.mark_missing);
     }
     $scope.mark_lost = function(items) {
         batch_action_with_barcodes(items, egCirc.mark_lost);
@@ -477,11 +512,12 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
             controller : [
                         '$scope','$uibModalInstance',
                 function($scope , $uibModalInstance) {
+                    var now = new Date();
                     $scope.outOfRange = false;
-                    $scope.minDate = new Date();
+                    $scope.minDate = new Date(now);
                     $scope.args = {
                         barcodes : barcodes,
-                        date : new Date()
+                        date : new Date(now)
                     }
                     $scope.cancel = function() {$uibModalInstance.dismiss()}
 
@@ -511,26 +547,31 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         if (!items.length) return;
         var copies = items.map(function(circ) { return circ.target_copy() });
         var barcodes = copies.map(function(copy) { return copy.barcode() });
-
-        return egConfirmDialog.open(
-            egCore.strings.CHECK_IN_CONFIRM, barcodes.join(' '), {
-
-        }).result.then(function() {
-            var copy;
-            function do_one() {
-                if (copy = copies.pop()) {
-                    // Checkin expects a barcode, but will pass other
-                    // parameters too.  Passing the copy ID allows
-                    // for the checkin of deleted copies on the server.
-                    egCirc.checkin(
-                        {copy_barcode: copy.barcode(), copy_id: copy.id()})
-                    .finally(do_one);
-                } else {
-                    reset_page();
-                }
+        
+        var copy;
+        function do_one() {
+            if (copy = copies.pop()) {
+                // Checkin expects a barcode, but will pass other
+                // parameters too.  Passing the copy ID allows
+                // for the checkin of deleted copies on the server.
+                egCirc.checkin(
+                    {copy_barcode: copy.barcode(), copy_id: copy.id()},
+                    {suppress_popups: $scope.suppress_popups})
+                .finally(do_one);
+            } else {
+                reset_page();
             }
-            do_one(); // kick it off
-        });
+        }
+        if ($scope.suppress_popups) {
+            do_one();
+        } else {
+            return egConfirmDialog.open(
+                egCore.strings.CHECK_IN_CONFIRM, barcodes.join(' '), {
+
+            }).result.then(function() {
+                do_one(); // kick it off
+            });
+        }
     }
 
     $scope.add_billing = function(items) {

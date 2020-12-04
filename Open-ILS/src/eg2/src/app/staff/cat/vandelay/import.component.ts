@@ -29,6 +29,8 @@ const TEMPLATE_ATTRS = [
     'mergeOnBestMatch',
     'mergeOnSingleMatch',
     'autoOverlayAcqCopies',
+    'autoOverlayOnOrderCopies',
+    'autoOverlayOrgUnitCopies',
     'selectedHoldingsProfile',
     'selectedMergeProfile',
     'selectedFallThruMergeProfile',
@@ -44,6 +46,8 @@ interface ImportOptions {
     auto_overlay_best_match?: boolean;
     auto_overlay_1match?: boolean;
     opp_acq_copy_overlay?: boolean;
+    opp_oo_cat_copy_overlay?: boolean;
+    auto_overlay_org_unit_copies?: boolean;
     merge_profile?: any;
     fall_through_merge_profile?: any;
     strip_field_groups?: number[];
@@ -83,6 +87,8 @@ export class ImportComponent implements OnInit, AfterViewInit, OnDestroy {
     mergeOnBestMatch: boolean;
     minQualityRatio: number;
     autoOverlayAcqCopies: boolean;
+    autoOverlayOnOrderCopies: boolean;
+    autoOverlayOrgUnitCopies: boolean;
 
     // True after the first upload, then remains true.
     showProgress: boolean;
@@ -104,31 +110,31 @@ export class ImportComponent implements OnInit, AfterViewInit, OnDestroy {
     formTemplates: {[name: string]: any};
     newTemplateName: string;
 
-    @ViewChild('fileSelector') private fileSelector;
-    @ViewChild('uploadProgress')
+    @ViewChild('fileSelector', { static: false }) private fileSelector;
+    @ViewChild('uploadProgress', { static: true })
         private uploadProgress: ProgressInlineComponent;
-    @ViewChild('enqueueProgress')
+    @ViewChild('enqueueProgress', { static: true })
         private enqueueProgress: ProgressInlineComponent;
-    @ViewChild('importProgress')
+    @ViewChild('importProgress', { static: true })
         private importProgress: ProgressInlineComponent;
 
     // Need these refs so values can be applied via external stimuli
-    @ViewChild('formTemplateSelector')
+    @ViewChild('formTemplateSelector', { static: true })
         private formTemplateSelector: ComboboxComponent;
-    @ViewChild('recordTypeSelector')
+    @ViewChild('recordTypeSelector', { static: true })
         private recordTypeSelector: ComboboxComponent;
-    @ViewChild('bibSourceSelector')
+    @ViewChild('bibSourceSelector', { static: true })
         private bibSourceSelector: ComboboxComponent;
-    @ViewChild('matchSetSelector')
+    @ViewChild('matchSetSelector', { static: true })
         private matchSetSelector: ComboboxComponent;
-    @ViewChild('holdingsProfileSelector')
+    @ViewChild('holdingsProfileSelector', { static: true })
         private holdingsProfileSelector: ComboboxComponent;
-    @ViewChild('mergeProfileSelector')
+    @ViewChild('mergeProfileSelector', { static: true })
         private mergeProfileSelector: ComboboxComponent;
-    @ViewChild('fallThruMergeProfileSelector')
+    @ViewChild('fallThruMergeProfileSelector', { static: true })
         private fallThruMergeProfileSelector: ComboboxComponent;
 
-    @ViewChild('dupeQueueAlert')
+    @ViewChild('dupeQueueAlert', { static: true })
         private dupeQueueAlert: AlertDialogComponent;
 
     constructor(
@@ -558,6 +564,8 @@ export class ImportComponent implements OnInit, AfterViewInit, OnDestroy {
             auto_overlay_best_match: this.mergeOnBestMatch,
             auto_overlay_1match: this.mergeOnSingleMatch,
             opp_acq_copy_overlay: this.autoOverlayAcqCopies,
+            opp_oo_cat_copy_overlay: this.autoOverlayOnOrderCopies,
+            auto_overlay_org_unit_copies: this.autoOverlayOrgUnitCopies,
             merge_profile: this.selectedMergeProfile,
             fall_through_merge_profile: this.selectedFallThruMergeProfile,
             strip_field_groups: this.selectedTrashGroups,

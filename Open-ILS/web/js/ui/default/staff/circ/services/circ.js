@@ -54,6 +54,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
         'PATRON_EXCEEDS_OVERDUE_COUNT',
         'PATRON_EXCEEDS_CHECKOUT_COUNT',
         'PATRON_EXCEEDS_FINES',
+        'PATRON_EXCEEDS_LONGOVERDUE_COUNT',
         'PATRON_BARRED',
         'CIRC_EXCEEDS_COPY_RANGE',
         'ITEM_DEPOSIT_REQUIRED',
@@ -80,7 +81,8 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
         'PATRON_BARRED',
         'PATRON_EXCEEDS_LOST_COUNT',
         'PATRON_EXCEEDS_CHECKOUT_COUNT',
-        'PATRON_EXCEEDS_FINES'
+        'PATRON_EXCEEDS_FINES',
+        'PATRON_EXCEEDS_LONGOVERDUE_COUNT'
     ]
 
 
@@ -90,11 +92,13 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
         'PATRON_EXCEEDS_LOST_COUNT',
         'PATRON_EXCEEDS_CHECKOUT_COUNT',
         'PATRON_EXCEEDS_FINES',
+        'PATRON_EXCEEDS_LONGOVERDUE_COUNT',
         'CIRC_EXCEEDS_COPY_RANGE',
         'ITEM_DEPOSIT_REQUIRED',
         'ITEM_RENTAL_FEE_REQUIRED',
         'ITEM_DEPOSIT_PAID',
         'COPY_CIRC_NOT_ALLOWED',
+        'COPY_NOT_AVAILABLE',
         'COPY_IS_REFERENCE',
         'COPY_ALERT_MESSAGE',
         'COPY_NEEDED_FOR_HOLD',
@@ -355,7 +359,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
             data.mbts = payload.parent_circ.billable_transaction().summary();
 
         if (!data.route_to) {
-            if (data.transit) {
+            if (data.transit && !data.transit.dest_recv_time() && !data.transit.cancel_time()) {
                 data.route_to = data.transit.dest().shortname();
             } else if (data.acp) {
                 data.route_to = data.acp.location().name();
@@ -459,7 +463,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
 
         } 
 
-        if (options.suppress_checkin_popups
+        if (options.suppress_popups
             && evt.filter(function(e){return service.checkin_suppress_overrides.indexOf(e.textcode) == -1;}).length == 0) {
             // Events are suppressed.  Re-run the checkin w/ override.
             options.override = true;
@@ -940,12 +944,14 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
             templateUrl: './circ/share/t_precat_dialog',
             backdrop: 'static',
             controller: 
-                ['$scope', '$uibModalInstance', 'circMods',
-                function($scope, $uibModalInstance, circMods) {
+                ['$scope', '$uibModalInstance', 'circMods', 'has_precat_perm',
+                function($scope, $uibModalInstance, circMods, has_precat_perm) {
                 $scope.focusMe = true;
                 $scope.precatArgs = {
                     copy_barcode : params.copy_barcode
                 };
+
+                $scope.can_create_precats = has_precat_perm;
                 $scope.circModifiers = circMods;
                 $scope.ok = function(args) { $uibModalInstance.close(args) }
                 $scope.cancel = function () { $uibModalInstance.dismiss() }
@@ -958,9 +964,8 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                 }
             }],
             resolve : {
-                circMods : function() { 
-                    return service.get_circ_mods();
-                }
+                circMods : function() { return service.get_circ_mods(); },
+                has_precat_perm : function(){ return egCore.perm.hasPermHere('CREATE_PRECAT'); }
             }
         }).result.then(
             function(args) {
@@ -1308,18 +1313,17 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
     service.mark_damaged = function(params) {
         if (!params) return $q.when();
         return $uibModal.open({
+            backdrop: 'static',
             templateUrl: './circ/share/t_mark_damaged',
             controller:
                 ['$scope', '$uibModalInstance', 'egCore', 'egBilling', 'egItem',
                 function($scope, $uibModalInstance, egCore, egBilling, egItem) {
                     var doRefresh = params.refresh;
                     
+                    $scope.showBill = params.charge != null && params.circ;
                     $scope.billArgs = {charge: params.charge};
                     $scope.mode = 'charge';
                     $scope.barcode = params.barcode;
-                    if (params.charge && params.charge > 0) {
-                        $scope.applyFine = "apply";
-                    }
                     if (params.circ) {
                         $scope.circ = params.circ;
                         $scope.circ_checkin_time = params.circ.checkin_time();
@@ -1334,12 +1338,10 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                     $scope.btnChargeFees = function() {
                         $scope.mode = 'charge';
                         $scope.billArgs.charge = params.charge;
-                        $scope.applyFine = "apply";
                     }
                     $scope.btnWaiveFees = function() {
                         $scope.mode = 'waive';
                         $scope.billArgs.charge = 0;
-                        $scope.applyFine = "noapply";
                     }
 
                     $scope.cancel = function ($event) { 
@@ -1350,15 +1352,19 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                     }
 
                     var handle_mark_item_damaged = function() {
+                        var applyFines;
+                        if ($scope.showBill)
+                            applyFines = $scope.billArgs.charge ? 'apply' : 'noapply';
+
                         egCore.net.request(
                             'open-ils.circ',
                             'open-ils.circ.mark_item_damaged',
                             egCore.auth.token(), params.id, {
-                                apply_fines: $scope.applyFine,
+                                apply_fines: applyFines,
                                 override_amount: $scope.billArgs.charge,
                                 override_btype: $scope.billArgs.type,
                                 override_note: $scope.billArgs.note,
-                                handle_checkin: !$scope.applyFine
+                                handle_checkin: !applyFines
                         }).then(function(resp) {
                             if (evt = egCore.evt.parse(resp)) {
                                 doRefresh = false;
@@ -1381,30 +1387,146 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
         }).result;
     }
 
-    service.mark_missing = function(copy_ids) {
+    service.handle_mark_item_event = function(copy, status, args, event) {
+        var dlogTitle, dlogMessage;
+        switch (event.textcode) {
+        case 'ITEM_TO_MARK_CHECKED_OUT':
+            dlogTitle = egCore.strings.MARK_ITEM_CHECKED_OUT;
+            dlogMessage = egCore.strings.MARK_ITEM_CHECKIN_CONTINUE;
+            args.handle_checkin = 1;
+            break;
+        case 'ITEM_TO_MARK_IN_TRANSIT':
+            dlogTitle = egCore.strings.MARK_ITEM_IN_TRANSIT;
+            dlogMessage = egCore.strings.MARK_ITEM_ABORT_CONTINUE;
+            args.handle_transit = 1;
+            break;
+        case 'ITEM_TO_MARK_LAST_HOLD_COPY':
+            dlogTitle = egCore.strings.MARK_ITEM_LAST_HOLD_COPY;
+            dlogMessage = egCore.strings.MARK_ITEM_CONTINUE;
+            args.handle_last_hold_copy = 1;
+            break;
+        case 'COPY_DELETE_WARNING':
+            dlogTitle = egCore.strings.MARK_ITEM_RESTRICT_DELETE;
+            dlogMessage = egCore.strings.MARK_ITEM_CONTINUE;
+            args.handle_copy_delete_warning = 1;
+            break;
+        case 'PERM_FAILURE':
+            console.error('Mark item ' + status.name() + ' for ' + copy.barcode + ' failed: ' +
+                          event);
+            return service.exit_alert(egCore.strings.PERMISSION_DENIED,
+                                      {permission : event.ilsperm});
+            break;
+        default:
+            console.error('Mark item ' + status.name() + ' for ' + copy.barcode + ' failed: ' +
+                          event);
+            return service.exit_alert(egCore.strings.MARK_ITEM_FAILURE,
+                                      {status : status.name(), barcode : copy.barcode,
+                                       textcode : event.textcode});
+            break;
+        }
         return egConfirmDialog.open(
-            egCore.strings.MARK_MISSING_CONFIRM, '',
-            {   num_items : copy_ids.length,
+            dlogTitle, dlogMessage,
+            {
+                barcode : copy.barcode,
+                status : status.name(),
+                ok : function () {},
+                cancel : function () {}
+            }
+        ).result.then(function() {
+            return service.mark_item(copy, status, args);
+        });
+    }
+
+    service.mark_item = function(copy, markstatus, args) {
+        if (!copy) return $q.when();
+
+        // If any new back end mark_item calls are added, also add
+        // them here to use them from the staff client.
+        // TODO: I didn't find any JS constants for copy status.
+        var req;
+        switch (markstatus.id()) {
+        case 2:
+            // Not implemented in the staff client, yet.
+            // req = "open-ils.circ.mark_item_bindery";
+            break;
+        case 4:
+            req = "open-ils.circ.mark_item_missing";
+            break;
+        case 9:
+            // Not implemented in the staff client, yet.
+            // req = "open-ils.circ.mark_item_on_order";
+            break;
+        case 10:
+            // Not implemented in the staff client, yet.
+            // req = "open-ils.circ.mark_item_ill";
+            break;
+        case 11:
+            // Not implemented in the staff client, yet.
+            // req = "open-ils.circ.mark_item_cataloging";
+            break;
+        case 12:
+            // Not implemented in the staff client, yet.
+            // req = "open-ils.circ.mark_item_reserves";
+            break;
+        case 13:
+            req = "open-ils.circ.mark_item_discard";
+            break;
+        case 14:
+            // Damaged is for handling of events. It's main handler is elsewhere.
+            req = "open-ils.circ.mark_item_damaged";
+            break;
+        }
+
+        return egCore.net.request(
+            'open-ils.circ',
+            req,
+            egCore.auth.token(),
+            copy.id,
+            args
+        ).then(function(resp) {
+            if (evt = egCore.evt.parse(resp)) {
+                return service.handle_mark_item_event(copy, markstatus, args, evt);
+            }
+        });
+    }
+
+    service.mark_discard = function(copies) {
+        return egConfirmDialog.open(
+            egCore.strings.MARK_DISCARD_CONFIRM, '',
+            {
+                num_items : copies.length,
                 ok : function() {},
                 cancel : function() {}
             }
         ).result.then(function() {
-            var promises = [];
-            angular.forEach(copy_ids, function(copy_id) {
-                promises.push(
-                    egCore.net.request(
-                        'open-ils.circ',
-                        'open-ils.circ.mark_item_missing',
-                        egCore.auth.token(), copy_id
-                    ).then(function(resp) {
-                        if (evt = egCore.evt.parse(resp)) {
-                            console.error('mark missing failed: ' + evt);
-                        }
-                    })
-                );
-            });
+            return egCore.pcrud.retrieve('ccs', 13)
+                .then(function(resp) {
+                    var promises = [];
+                    angular.forEach(copies, function(copy) {
+                        promises.push(service.mark_item(copy, resp, {}))
+                    });
+                    return $q.all(promises);
+                });
+        });
+    }
 
-            return $q.all(promises);
+    service.mark_missing = function(copies) {
+        return egConfirmDialog.open(
+            egCore.strings.MARK_MISSING_CONFIRM, '',
+            {
+                num_items : copies.length,
+                ok : function() {},
+                cancel : function() {}
+            }
+        ).result.then(function() {
+            return egCore.pcrud.retrieve('ccs', 4)
+                .then(function(resp) {
+                    var promises = [];
+                    angular.forEach(copies, function(copy) {
+                        promises.push(service.mark_item(copy, resp, {}))
+                    });
+                    return $q.all(promises);
+                });
         });
     }
 
@@ -1489,7 +1611,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
 
         var copy = evt && evt.payload ? evt.payload.copy : null;
 
-        if (copy && !options.suppress_checkin_popups
+        if (copy && !options.suppress_popups
             && copy.location().checkin_alert() == 't') {
 
             return egAlertDialog.open(
@@ -1568,7 +1690,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                     case 11: /* CATALOGING */
                         egCore.audio.play('info.checkin.cataloging');
                         evt[0].route_to = egCore.strings.ROUTE_TO_CATALOGING;
-                        if (options.no_precat_alert)
+                        if (options.no_precat_alert || options.suppress_popups)
                             return $q.when(final_resp);
                         return egAlertDialog.open(
                             egCore.strings.PRECAT_CHECKIN_MSG, params)
@@ -1591,10 +1713,15 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                 return service.route_dialog(
                     './circ/share/t_transit_dialog', 
                     evt[0], params, options
-                ).then(function() { return final_resp });
+                ).then(function(data) {
+                    if (transit && data.transit && transit.dest().id() != data.transit.dest().id())
+                        final_resp.evt[0].route_to = data.transit.dest().shortname();
+                    return final_resp;
+                });
 
             case 'ASSET_COPY_NOT_FOUND':
                 egCore.audio.play('error.checkin.not_found');
+                if (options.suppress_popups) return $q.when(final_resp);
                 return egAlertDialog.open(
                     egCore.strings.UNCAT_ALERT_DIALOG, params)
                     .result.then(function() {return final_resp});
@@ -1602,7 +1729,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
             case 'ITEM_NOT_CATALOGED':
                 egCore.audio.play('error.checkin.not_cataloged');
                 evt[0].route_to = egCore.strings.ROUTE_TO_CATALOGING;
-                if (options.no_precat_alert) 
+                if (options.no_precat_alert || options.suppress_popups)
                     return $q.when(final_resp);
                 return egAlertDialog.open(
                     egCore.strings.PRECAT_CHECKIN_MSG, params)
@@ -1673,7 +1800,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                 // do not show the dialog or print if the
                 // disabled automatic print attempt type list includes
                 // the specified template
-                return;
+                return data;
             }
 
             // All actions flow from the print data
@@ -1699,6 +1826,7 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                 }
                 print_context.dest_location =
                     egCore.idl.toHash(egCore.org.get(data.transit.dest()));
+                print_context.copy.status = egCore.idl.toHash(print_context.copy.status);
             }
 
             if (data.patron) {
@@ -1722,12 +1850,12 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                     context : 'default', 
                     template : template, 
                     scope : print_context
-                });
+                }).then(function() { return data });
             }
 
             // when auto-print is on, skip the dialog and go straight
             // to printing.
-            if (options.auto_print_holds_transits) 
+            if (options.auto_print_holds_transits || options.suppress_popups) 
                 return print_transit(template);
 
             return $uibModal.open({
@@ -1752,12 +1880,13 @@ function($uibModal , $q , egCore , egAlertDialog , egConfirmDialog,  egAddCopyAl
                     }
                 }]
 
-            }).result;
+            }).result.then(function() { return data });
         });
     }
 
     // action == what action to take if the user confirms the alert
     service.copy_alert_dialog = function(evt, params, options, action) {
+        egCore.audio.play('warning.circ.item_alert');
         if (angular.isArray(evt)) evt = evt[0];
         if (!angular.isArray(evt.payload)) {
             return egConfirmDialog.open(

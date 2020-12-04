@@ -23,6 +23,7 @@ my $U = "OpenILS::Application::AppUtils";
 my %HOLD_SORT_ORDER_BY = (
     pprox => 'p.prox',
     hprox => 'actor.org_unit_proximity(%d, h.pickup_lib)',  # $cp->call_number->owning_lib
+    owning_lib_to_home_lib_prox => 'actor.org_unit_proximity(%d, au.home_ou)',  # $cp->call_number->owning_lib
     aprox => 'COALESCE(hm.proximity, p.prox)',
     approx => 'action.hold_copy_calculated_proximity(h.id, %d, %d)', # $cp,$here
     priority => 'pgt.hold_priority',
@@ -348,8 +349,9 @@ sub get_hold_sort_order {
     my $row = $dbh->selectrow_hashref(
         q!
         SELECT
-            cbho.pprox, cbho.hprox, cbho.aprox, cbho.approx, cbho.priority,
-            cbho.cut, cbho.depth, cbho.htime, cbho.shtime, cbho.rtime
+            cbho.pprox, cbho.hprox, cbho.owning_lib_to_home_lib_prox, cbho.aprox,
+            cbho.approx, cbho.priority, cbho.cut, cbho.depth, cbho.htime,
+            cbho.shtime, cbho.rtime
         FROM config.best_hold_order cbho
         WHERE id = (
             SELECT oils_json_to_text(value)::INT
@@ -378,6 +380,7 @@ sub build_hold_sort_clause {
 
     my %order_by_sprintf_args = (
         hprox => [$cp->call_number->owning_lib],
+        owning_lib_to_home_lib_prox => [$cp->call_number->owning_lib],
         approx => [$cp->id, $here],
         htime => [$cp->call_number->owning_lib, $cp->call_number->owning_lib],
         shtime => [$cp->call_number->owning_lib, $cp->call_number->owning_lib]
@@ -2146,6 +2149,7 @@ sub wide_hold_data {
                 SELECT  id
                   FROM  action.hold_request recheck
                   WHERE recheck.current_copy = cp.id
+                        AND recheck.capture_time IS NOT NULL
                   ORDER BY capture_time DESC
                   LIMIT 1
             )))
@@ -2176,7 +2180,7 @@ SELECT  h.id, h.request_time, h.capture_time, h.fulfillment_time, h.checkin_time
              ELSE 4
         END AS hold_status,
 
-        (h.shelf_expire_time < NOW() OR h.cancel_time IS NOT NULL OR (h.current_shelf_lib IS NOT NULL AND h.current_shelf_lib <> h.pickup_lib)) AS clear_me,
+        (h.shelf_expire_time < 'today'::timestamptz OR h.cancel_time IS NOT NULL OR (h.current_shelf_lib IS NOT NULL AND h.current_shelf_lib <> h.pickup_lib)) AS clear_me,
 
         (h.usr <> h.requestor) AS is_staff_hold,
 
@@ -2378,6 +2382,7 @@ SELECT  h.id, h.request_time, h.capture_time, h.fulfillment_time, h.checkin_time
     my %field_map = (
         record_id => 'r.bib_record',
         usr_id => 'u.id',
+        usr_alias => 'u.alias',
         cs_id => 'cs.id',
         cp_id => 'cp.id',
         cp_deleted => 'cp.deleted',

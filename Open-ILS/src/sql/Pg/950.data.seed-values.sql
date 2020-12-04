@@ -1911,11 +1911,35 @@ INSERT INTO permission.perm_list ( id, code, description ) VALUES
  ( 607, 'EMERGENCY_CLOSING', oils_i18n_gettext( 607,
     'Create and manage Emergency Closings', 'ppl', 'description' )),
  (608, 'APPLY_WORKSTATION_SETTING',
-   oils_i18n_gettext(608, 'APPLY_WORKSTATION_SETTING', 'ppl', 'description')),
+   oils_i18n_gettext(608, 'Allows a user to apply values to workstation settings', 'ppl', 'description')),
  ( 609, 'MANAGE_CUSTOM_PERM_GRP_TREE', oils_i18n_gettext( 609,
     'Allows a user to manage custom permission group lists.', 'ppl', 'description' )),
  ( 610, 'CLEAR_PURCHASE_REQUEST', oils_i18n_gettext(610,
-    'Clear Completed User Purchase Requests', 'ppl', 'description'))
+    'Clear Completed User Purchase Requests', 'ppl', 'description')),
+ ( 611, 'ADMIN_PRINT_TEMPLATE', oils_i18n_gettext(611,
+    'Modify print templates', 'ppl', 'description')),
+ ( 612, 'ADMIN_CAROUSEL_TYPE', oils_i18n_gettext(612,
+    'Allow a user to manage carousel types', 'ppl', 'description')),
+ ( 613, 'ADMIN_CAROUSEL', oils_i18n_gettext(613,
+    'Allow a user to manage carousels', 'ppl', 'description')),
+ ( 614, 'REFRESH_CAROUSEL', oils_i18n_gettext(614,
+    'Allow a user to refresh carousels', 'ppl', 'description')),
+ ( 615, 'ADMIN_REMOTEAUTH', oils_i18n_gettext( 615,
+    'Administer remote patron authentication', 'ppl', 'description' )),
+ ( 616, 'IMPORT_USE_ORG_UNIT_COPIES', oils_i18n_gettext( 616,
+    'Allows users to import records based on the number of org unit copies attached to a record', 'ppl', 'description' )),
+ ( 617, 'IMPORT_ON_ORDER_CAT_COPY', oils_i18n_gettext( 617,
+    'Allows users to import copies based on the on-order items attached to a record', 'ppl', 'description' )),
+ ( 618, 'CREATE_PRECAT', oils_i18n_gettext(618,
+    'Allows a user to create a pre-catalogued copy', 'ppl', 'description')),
+ ( 619, 'EDIT_SELF_IN_CLIENT', oils_i18n_gettext(619,
+    'Allow a user to edit their own account in the staff client', 'ppl', 'description')),
+ ( 620, 'UPDATE_ORG_UNIT_SETTING.opac.patron.custom_css', oils_i18n_gettext(620,
+    'Update CSS setting for the OPAC', 'ppl', 'description')),
+ ( 621, 'VIEW_BOOKING_RESOURCE_TYPE', oils_i18n_gettext(621,
+    'View booking resource types', 'ppl', 'description')),
+ ( 622, 'VIEW_BOOKING_RESOURCE', oils_i18n_gettext(622,
+    'View booking resources', 'ppl', 'description'))
 ;
 
 
@@ -2009,6 +2033,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 		aout.name = 'Consortium' AND
 		perm.code IN (
 			'CREATE_COPY_TRANSIT',
+			'CREATE_PRECAT',
 			'VIEW_BILLING_TYPE',
 			'VIEW_CIRCULATIONS',
 			'VIEW_COPY_NOTES',
@@ -2073,6 +2098,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'TRANSIT_COPY',
 			'UPDATE_CONTAINER',
 			'VIEW_CONTAINER',
+			'VIEW_COPY_ALERT',
 			'VIEW_COPY_CHECKOUT_HISTORY',
 			'VIEW_COPY_NOTES',
 			'VIEW_HOLD',
@@ -2151,6 +2177,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'CREATE_BIB_IMPORT_QUEUE',
 			'CREATE_IMPORT_ITEM',
 			'CREATE_MARC',
+			'CREATE_PRECAT',
 			'CREATE_TITLE_NOTE',
 			'DELETE_BIB_IMPORT_QUEUE',
 			'DELETE_IMPORT_ITEM',
@@ -2244,6 +2271,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'CREATE_IMPORT_TRASH_FIELD',
 			'CREATE_MERGE_PROFILE',
 			'CREATE_MONOGRAPH_PART',
+			'CREATE_PRECAT',
 			'CREATE_VOLUME_PREFIX',
 			'CREATE_VOLUME_SUFFIX',
 			'DELETE_AUTHORITY_IMPORT_IMPORT_FIELD_DEF',
@@ -2280,6 +2308,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 		pgt.name = 'Cataloging Administrator' AND
 		aout.name = 'System' AND
 		perm.code IN (
+			'ADMIN_COPY_ALERT',
 			'CREATE_COPY_STAT_CAT',
 			'CREATE_COPY_STAT_CAT_ENTRY',
 			'CREATE_COPY_STAT_CAT_ENTRY_MAP',
@@ -2319,6 +2348,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'ADMIN_BOOKING_RESOURCE_ATTR_VALUE',
 			'ADMIN_BOOKING_RESOURCE_TYPE',
 			'ASSIGN_GROUP_PERM',
+			'CREATE_PRECAT',
 			'MARK_ITEM_AVAILABLE',
 			'MARK_ITEM_BINDERY',
 			'MARK_ITEM_CHECKED_OUT',
@@ -2343,6 +2373,8 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'UPDATE_PAYMENT_NOTE',
 			'UPDATE_PICKUP_LIB FROM_TRANSIT',
 			'UPDATE_PICKUP_LIB_FROM_HOLDS_SHELF',
+			'VIEW_BOOKING_RESOURCE',
+			'VIEW_BOOKING_RESOURCE_TYPE',
 			'VIEW_GROUP_PENALTY_THRESHOLD',
 			'VIEW_STANDING_PENALTY',
 			'VOID_BILLING',
@@ -2419,6 +2451,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 		perm.code IN (
 			'ADMIN_MAX_FINE_RULE',
 			'CREATE_CIRC_DURATION',
+			'CREATE_PRECAT',
 			'DELETE_CIRC_DURATION',
 			'MARK_ITEM_MISSING_PIECES',
 			'UPDATE_CIRC_DURATION',
@@ -2502,6 +2535,8 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'UPDATE_PICKUP_LIB_FROM_HOLDS_SHELF',
 			'UPDATE_PICKUP_LIB_FROM_TRANSIT',
 			'UPDATE_USER',
+			'VIEW_BOOKING_RESOURCE',
+			'VIEW_BOOKING_RESOURCE_TYPE',
 			'VIEW_REPORT_OUTPUT',
 			'VIEW_STANDING_PENALTY',
 			'VOID_BILLING',
@@ -2514,6 +2549,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'ITEM_RENTAL_FEE_REQUIRED.override',
 			'ITEM_DEPOSIT_PAID.override',
 			'COPY_STATUS_LOST_AND_PAID.override',
+			'ADMIN_PRINT_TEMPLATE',
 			'ITEM_NOT_HOLDABLE.override');
 
 
@@ -2599,6 +2635,7 @@ INSERT INTO permission.grp_perm_map (grp, perm, depth, grantable)
 			'CREATE_INVOICE',
 			'CREATE_MARC',
 			'CREATE_PICKLIST',
+			'CREATE_PRECAT',
 			'CREATE_PURCHASE_ORDER',
 			'DELETE_BIB_IMPORT_QUEUE',
 			'DELETE_IMPORT_ITEM',
@@ -3923,7 +3960,7 @@ INSERT into config.org_unit_setting_type
         'Content of alert_text include',
         'coust', 'label'),
     oils_i18n_gettext('circ.staff_client.receipt.alert_text',
-        'Text/HTML/Macros to be inserted into receipt templates in place of %INCLUDE(alert_text)%',
+        'Text to be inserted into Print Templates in place of {{includes.alert_text}}',
         'coust', 'description'),
     'string', null)
 
@@ -3932,7 +3969,7 @@ INSERT into config.org_unit_setting_type
         'Content of event_text include',
         'coust', 'label'),
     oils_i18n_gettext('circ.staff_client.receipt.event_text',
-        'Text/HTML/Macros to be inserted into receipt templates in place of %INCLUDE(event_text)%',
+        'Text to be inserted into Print Templates in place of {{includes.event_text}}',
         'coust', 'description'),
     'string', null)
 
@@ -3941,7 +3978,7 @@ INSERT into config.org_unit_setting_type
         'Content of footer_text include',
         'coust', 'label'),
     oils_i18n_gettext('circ.staff_client.receipt.footer_text',
-        'Text/HTML/Macros to be inserted into receipt templates in place of %INCLUDE(footer_text)%',
+        'Text to be inserted into Print Templates in place of {{includes.footer_text}}',
         'coust', 'description'),
     'string', null)
 
@@ -3950,7 +3987,7 @@ INSERT into config.org_unit_setting_type
         'Content of header_text include',
         'coust', 'label'),
     oils_i18n_gettext('circ.staff_client.receipt.header_text',
-        'Text/HTML/Macros to be inserted into receipt templates in place of %INCLUDE(header_text)%',
+        'Text to be inserted into Print Templates in place of {{includes.header_text}}',
         'coust', 'description'),
     'string', null)
 
@@ -3959,7 +3996,7 @@ INSERT into config.org_unit_setting_type
         'Content of notice_text include',
         'coust', 'label'),
     oils_i18n_gettext('circ.staff_client.receipt.notice_text',
-        'Text/HTML/Macros to be inserted into receipt templates in place of %INCLUDE(notice_text)%',
+        'Text to be inserted into Print Templates in place of {{includes.notice_text}}',
         'coust', 'description'),
     'string', null)
 
@@ -4336,6 +4373,15 @@ INSERT into config.org_unit_setting_type
         'coust', 'description'),
     'bool', null)
 
+,( 'opac.show_owning_lib_column', 'opac',
+    oils_i18n_gettext('opac.show_owning_lib_column',
+        'Show "Owning Lib" column in Items Out',
+        'coust', 'label'),
+    oils_i18n_gettext('opac.show_owning_lib_column',
+        'If enabled, an addition column, Owning Lib, will be shown in the Items Out display. This may assist in requesting additional renewals',
+        'coust', 'description'),
+    'bool', null)
+
 ,( 'opac.barcode_regex', 'glob',
     oils_i18n_gettext('opac.barcode_regex',
         'Patron barcode format',
@@ -4371,6 +4417,15 @@ INSERT into config.org_unit_setting_type
         'This will hide certain org units in the public OPAC if the Physical Location (url param "physical_loc") for the OPAC inherits this setting.  This setting specifies an org unit depth, that together with the OPAC Physical Location determines which section of the Org Hierarchy should be visible in the OPAC.  For example, a stock Evergreen installation will have a 3-tier hierarchy (Consortium/System/Branch), where System has a depth of 1 and Branch has a depth of 2.  If this setting contains a depth of 1 in such an installation, then every library in the System in which the Physical Location belongs will be visible, and everything else will be hidden.  A depth of 0 will effectively make every org visible.  The embedded OPAC in the staff client ignores this setting.',
         'coust', 'description'),
     'integer', null)
+
+,( 'opac.patron.custom_css', 'opac',
+    oils_i18n_gettext('opac.patron.custom_css',
+        'Custom CSS for the OPAC',
+        'coust', 'label'),
+    oils_i18n_gettext('opac.patron.custom_css',
+        'Custom CSS for the OPAC',
+        'coust', 'description'),
+    'string', NULL)
 
 ,( 'opac.payment_history_age_limit', 'opac',
     oils_i18n_gettext('opac.payment_history_age_limit',
@@ -4884,6 +4939,15 @@ INSERT into config.org_unit_setting_type
         'coust', 'label'),
     oils_i18n_gettext('ui.patron.edit.au.evening_phone.suggest',
         'The evening_phone field will be suggested on the patron registration screen. Suggesting a field makes it appear when suggested fields are shown. If the field is shown or required this setting is ignored.',
+        'coust', 'description'),
+    'bool', null)
+
+,( 'ui.patron.edit.au.ident_value.require', 'gui',
+    oils_i18n_gettext('ui.patron.edit.au.ident_value.require',
+        'require ident_value field on patron registration',
+        'coust', 'label'),
+    oils_i18n_gettext('ui.patron.edit.au.ident_value.require',
+        'The ident_value field will be required on the patron registration screen.',
         'coust', 'description'),
     'bool', null)
 
@@ -5511,6 +5575,11 @@ UPDATE config.org_unit_setting_type
         WHERE code = 'ADMIN_CREDIT_CARD_PROCESSING' LIMIT 1)
     WHERE name LIKE 'credit.processor%' AND update_perm IS NULL;
 
+UPDATE config.org_unit_setting_type
+    SET update_perm = (SELECT id FROM permission.perm_list
+        WHERE code = 'UPDATE_ORG_UNIT_SETTING.opac.patron.custom_css' LIMIT 1)
+    WHERE name = 'opac.patron.custom_css' AND update_perm IS NULL;
+
 -- *** Has to go below coust definition to satisfy referential integrity ***
 -- In booking, elbow room defines:
 --  a) how far in the future you must make a reservation on a given item if
@@ -5649,6 +5718,7 @@ INSERT INTO container.biblio_record_entry_bucket_type (code,label) VALUES ('book
 INSERT INTO container.biblio_record_entry_bucket_type (code,label) VALUES ('reading_list', oils_i18n_gettext('reading_list', 'Reading List', 'cbrebt', 'label'));
 INSERT INTO container.biblio_record_entry_bucket_type (code,label) VALUES ('template_merge',oils_i18n_gettext('template_merge','Template Merge Container', 'cbrebt', 'label'));
 INSERT INTO container.biblio_record_entry_bucket_type (code,label) VALUES ('url_verify', oils_i18n_gettext('url_verify', 'URL Verification Queue', 'cbrebt', 'label'));
+INSERT INTO container.biblio_record_entry_bucket_type (code,label) VALUES ('carousel', oils_i18n_gettext('carousel', 'Carousel', 'cbrebt', 'label'));
 
 INSERT INTO container.user_bucket_type (code,label) VALUES ('misc', oils_i18n_gettext('misc', 'Miscellaneous', 'cubt', 'label'));
 INSERT INTO container.user_bucket_type (code,label) VALUES ('folks', oils_i18n_gettext('folks', 'Friends', 'cubt', 'label'));
@@ -9511,7 +9581,7 @@ date <b>[% date.format(date.now, '%Y%m%d') %]</b>
   </tr>
   [% END %]
   <tr>
-    <td/><td/><td/><td/>
+    <td></td><td></td><td></td><td></td>
     <td>Subtotal</td>
     <td>[% subtotal %]</td>
   </tr>
@@ -10344,6 +10414,86 @@ INSERT INTO action_trigger.environment (event_def, path ) VALUES
 ( currval('action_trigger.event_definition_id_seq'), 'circ_lib' );
 
 -- END of autorenwal trigger def stuff
+
+
+-- Patron card request definitions and email notification template
+
+INSERT INTO action_trigger.hook
+(key,core_type,description,passive)
+VALUES
+('stgu.created','stgu','Patron requested a card using self registration','t');
+
+
+INSERT INTO action_trigger.event_definition(active,owner,name,hook,validator,reactor,delay,max_delay,delay_field,group_field,template,retention_interval)
+SELECT 'f',1,'Patron Registered for a card stgu.created','stgu.created','NOOP_True','SendEmail','00:01:00'::interval,'1 day'::interval,'row_date','home_ou',
+$$[%- USE date -%]
+[%- lib = target.0.home_ou -%]
+To: [% lib.name %] <[% params.recipient_email || helpers.get_org_setting(target.0.home_ou.id, 'org.bounced_emails') || lib.email || default_sender %]>
+From: [% lib.name %] <[%  helpers.get_org_setting(target.0.home_ou.id, 'org.bounced_emails') || lib.email || params.recipient_email || default_sender %]>
+Date: [% date.format(format => '%a, %d %b %Y %H:%M:%S %Z') %]
+Subject: Patron card requested
+Auto-Submitted: auto-generated
+
+
+Dear Staff Admin,
+
+There are some pending patrons waiting for your attention.
+
+[% FOR patron IN target %]
+    [% patron.first_given_name %]
+
+[% END %]
+
+These requests can be tended via the staff interface. Located "Circulation" -> "Pending Patrons"
+
+
+
+$$,
+'1 year'::interval
+
+WHERE NOT EXISTS (SELECT 1 FROM action_trigger.event_definition WHERE name='Patron Registered for a card stgu.created');
+
+INSERT INTO action_trigger.environment (event_def,path)
+SELECT id,'home_ou' from action_trigger.event_definition WHERE name='Patron Registered for a card stgu.created'
+AND NOT EXISTS (SELECT 1 FROM action_trigger.environment WHERE
+event_def=(SELECT id FROM action_trigger.event_definition WHERE name='Patron Registered for a card stgu.created' AND owner=1 LIMIT 1)
+AND path='home_ou');
+
+
+
+-- END of Patron card request trigger def stuff
+
+
+-- Action Trigger for Fine Limit Exceeded--
+
+INSERT INTO action_trigger.event_definition (active, owner, name, hook, validator, reactor, delay, group_field, max_delay, template) 
+    VALUES (false, 1, 'Fine Limit Exceeded', 'penalty.PATRON_EXCEEDS_FINES', 'NOOP_True', 'SendEmail', '00:05:00', 'usr', '1 day', 
+$$
+[%- USE date -%]
+[%- user = target.usr -%]
+
+To: [%- params.recipient_email || user.email %]
+From: [%- params.sender_email || default_sender %]
+Date: [%- date.format(date.now, '%a, %d %b %Y %T -0000', gmt => 1) %]
+Subject: Fine Limit Exceeded
+Auto-Submitted: auto-generated
+
+Dear [% user.first_given_name %] [% user.family_name %],
+
+
+Our records indicate your account has exceeded the fine limit allowed for the use of your library account.
+
+Please visit the library to pay your fines and restore full access to your account.
+[% END %]
+
+$$);
+
+INSERT INTO action_trigger.environment (event_def, path) VALUES
+    (currval('action_trigger.event_definition_id_seq'), 'usr'),
+    (currval('action_trigger.event_definition_id_seq'), 'usr.card');
+
+-- End Action Trigger for Fine Limit Exceeded
+
 
 -- in-db indexing normalizers
 INSERT INTO config.index_normalizer (name, description, func, param_count) VALUES (
@@ -11653,6 +11803,7 @@ Transaction ID: [% xact_id %]
                     [% CASE "check_payment" %]check
                     [% CASE "credit_card_payment" %]credit card
                     [%- IF mp.credit_card_payment.cc_number %] ([% mp.credit_card_payment.cc_number %])[% END %]
+                    [% CASE "debit_card_payment" %]debit card
                     [% CASE "credit_payment" %]credit
                     [% CASE "forgive_payment" %]forgiveness
                     [% CASE "goods_payment" %]goods
@@ -15912,6 +16063,14 @@ INSERT INTO config.best_hold_order (
     1, 2, 3, 4, 5, 6, 7, 8
 );
 
+INSERT INTO config.best_hold_order (
+    name,
+    owning_lib_to_home_lib_prox, hprox, approx, pprox, aprox, priority, cut, depth, rtime
+) VALUES (
+    'Traditional with Holds-chase-home-lib-patrons',
+    1, 2, 3, 4, 5, 6, 7, 8, 9
+);
+
 INSERT INTO actor.org_unit_setting (
     org_unit, name, value
 ) VALUES (
@@ -19970,3 +20129,288 @@ VALUES (
         'cwst', 'label'
     )
 );
+
+
+INSERT INTO config.workstation_setting_type (name, grp, datatype, label)
+VALUES (
+    'eg.catalog.search_templates', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.catalog.search_templates',
+        'Staff Catalog Search Templates',
+        'cwst', 'label'
+    )
+);
+
+INSERT INTO config.workstation_setting_type (name, grp, datatype, label) 
+VALUES (
+    'eg.grid.admin.local.config.hold_matrix_matchpoint', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.config.hold_matrix_matchpoint',
+        'Grid Config: admin.local.config.hold_matrix_matchpoint',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.actor.address_alert', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.actor.address_alert',
+        'Grid Config: admin.local.actor.address_alert',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.config.barcode_completion', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.config.barcode_completion',
+        'Grid Config: admin.local.config.barcode_completion',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.actor.copy_alert_suppress', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.actor.copy_alert_suppress',
+        'Grid Config: admin.local.actor.copy_alert_suppress',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.asset.copy_location', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.asset.copy_location',
+        'Grid Config: admin.local.asset.copy_location',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.asset.copy_tag', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.asset.copy_tag',
+        'Grid Config: admin.local.asset.copy_tag',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.permission.grp_penalty_threshold', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.permission.grp_penalty_threshold',
+        'Grid Config: admin.local.permission.grp_penalty_threshold',
+        'cwst', 'label'
+    )
+), (
+    'eg.grid.admin.local.config.non_cataloged_type', 'gui', 'object',
+    oils_i18n_gettext(
+        'eg.grid.admin.local.config.non_cataloged_type',
+        'Grid Config: admin.local.config.non_cataloged_type',
+        'cwst', 'label'
+    )
+);
+
+INSERT INTO config.print_template 
+    (id, name, locale, active, owner, label, template) 
+VALUES (
+    1, 'patron_address', 'en-US', FALSE,
+    (SELECT id FROM actor.org_unit WHERE parent_ou IS NULL),
+    oils_i18n_gettext(1, 'Address Label', 'cpt', 'label'),
+$TEMPLATE$
+[%-
+    SET patron = template_data.patron;
+    SET addr = template_data.address;
+-%]
+<div>
+  <div>
+    [% patron.first_given_name %] 
+    [% patron.second_given_name %] 
+    [% patron.family_name %]
+  </div>
+  <div>[% addr.street1 %]</div>
+  [% IF addr.street2 %]<div>[% addr.street2 %]</div>[% END %]
+  <div>
+    [% addr.city %], [% addr.state %] [% addr.post_code %]
+  </div>
+</div>
+$TEMPLATE$
+);
+
+INSERT INTO config.print_template 
+    (id, name, locale, active, owner, label, template) 
+VALUES (
+    2, 'holds_for_bib', 'en-US', FALSE,
+    (SELECT id FROM actor.org_unit WHERE parent_ou IS NULL),
+    oils_i18n_gettext(2, 'Holds for Bib Record', 'cpt', 'label'),
+$TEMPLATE$
+[%-
+    USE date;
+    SET holds = template_data;
+    # template_data is an arry of wide_hold hashes.
+-%]
+<div>
+  <div>Holds for record: [% holds.0.title %]</div>
+  <hr/>
+  <style>#holds-for-bib-table td { padding: 5px; }</style>
+  <table id="holds-for-bib-table">
+    <thead>
+      <tr>
+        <th>Request Date</th>
+        <th>Patron Barcode</th>
+        <th>Patron Last</th>
+        <th>Patron Alias</th>
+        <th>Current Item</th>
+      </tr>
+    </thead>
+    <tbody>
+      [% FOR hold IN holds %]
+      <tr>
+        <td>[% 
+          date.format(helpers.format_date(
+            hold.request_time, staff_org_timezone), '%x %r', locale) 
+        %]</td>
+        <td>[% hold.ucard_barcode %]</td>
+        <td>[% hold.usr_family_name %]</td>
+        <td>[% hold.usr_alias %]</td>
+        <td>[% hold.cp_barcode %]</td>
+      </tr>
+      [% END %]
+    </tbody>
+  </table>
+  <hr/>
+  <div>
+    [% staff_org.shortname %] 
+    [% date.format(helpers.current_date(client_timezone), '%x %r', locale) %]
+  </div>
+  <div>Printed by [% staff.first_given_name %]</div>
+</div>
+<br/>
+
+$TEMPLATE$
+);
+
+
+-- Allow for 1k stock templates
+SELECT SETVAL('config.print_template_id_seq'::TEXT, 1000);
+
+INSERT INTO config.workstation_setting_type (name, grp, datatype, label)
+VALUES (
+    'eg.grid.booking.manage', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.manage',
+        'Grid Config: Booking Manage Reservations',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.pickup.ready', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.pickup.ready',
+        'Grid Config: Booking Ready to pick up grid',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.pickup.picked_up', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.pickup.picked_up',
+        'Grid Config: Booking Already Picked Up grid',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.return.patron.picked_up', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.return.patron.picked_up',
+        'Grid Config: Booking Return Patron tab Already Picked Up grid',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.return.patron.returned', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.return.patron.returned',
+        'Grid Config: Booking Return Patron tab Returned Today grid',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.return.resource.picked_up', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.return.resourcce.picked_up',
+        'Grid Config: Booking Return Resource tab Already Picked Up grid',
+        'cwst', 'label')
+), (
+    'eg.grid.booking.return.resource.returned', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.return.resource.returned',
+        'Grid Config: Booking Return Resource tab Returned Today grid',
+        'cwst', 'label')
+), (
+    'eg.booking.manage.selected_org_family', 'gui', 'object',
+    oils_i18n_gettext(
+        'booking.manage.selected_org_family',
+        'Sticky setting for pickup ou family in Manage Reservations screen',
+        'cwst', 'label')
+), (
+    'eg.booking.return.tab', 'gui', 'string',
+    oils_i18n_gettext(
+        'booking.return.tab',
+        'Sticky setting for tab in Booking Return',
+        'cwst', 'label')
+), (
+    'eg.booking.create.granularity', 'gui', 'integer',
+    oils_i18n_gettext(
+        'booking.create.granularity',
+        'Sticky setting for granularity combobox in Booking Create',
+        'cwst', 'label')
+), (
+    'eg.booking.create.multiday', 'gui', 'bool',
+    oils_i18n_gettext(
+        'booking.create.multiday',
+        'Default to creating multiday booking reservations',
+        'cwst', 'label')
+), (
+    'eg.booking.pickup.ready.only_show_captured', 'gui', 'bool',
+    oils_i18n_gettext(
+        'booking.pickup.ready.only_show_captured',
+        'Include only resources that have been captured in the Ready grid in the Pickup screen',
+        'cwst', 'label')
+), (
+    'eg.grid.circ.patron.xact_details_details_bills', 'gui', 'object',
+    oils_i18n_gettext(
+    'eg.grid.circ.patron.xact_details_details_bills',
+    'Grid Config: circ.patron.xact_details_details_bills',
+    'cwst', 'label')
+), (
+    'eg.grid.circ.patron.xact_details_details_payments', 'gui', 'object',
+    oils_i18n_gettext(
+    'eg.grid.circ.patron.xact_details_details_payments',
+    'Grid Config: circ.patron.xact_details_details_payments',
+    'cwst', 'label')
+);
+
+INSERT INTO config.workstation_setting_type (name, grp, datatype, label)
+VALUES (
+    'eg.hatch.enable.printing', 'gui', 'bool',
+    oils_i18n_gettext(
+        'eg.hatch.enable.printing',
+        'Use Hatch for printing',
+        'cwst', 'label'
+    )
+);
+
+INSERT INTO config.workstation_setting_type (name, grp, datatype, label)
+VALUES (
+    'eg.catalog.results.count', 'gui', 'integer',
+    oils_i18n_gettext(
+        'eg.catalog.results.count',
+        'Catalog Results Page Size',
+        'cwst', 'label'
+    )
+);
+
+INSERT INTO config.global_flag (name, value, enabled, label)
+VALUES (
+    'history.money.age_with_circs',
+    NULL, 
+    FALSE,
+    oils_i18n_gettext(
+        'history.money.age_with_circs',
+        'Age billings and payments when cirulcations are aged.',
+        'cgf', 'label'
+    )
+), (
+    'history.money.retention_age',
+    NULL, 
+    FALSE,
+    oils_i18n_gettext(
+        'history.money.retention_age',
+        'Age billings and payments whose transactions were completed ' ||
+        'this long ago.  For circulation transactions, this setting ' ||
+        'is superseded by the "history.money.age_with_circs" setting',
+        'cgf', 'label'
+    )
+);
+
+

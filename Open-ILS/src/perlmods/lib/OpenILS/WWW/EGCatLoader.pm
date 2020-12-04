@@ -225,6 +225,7 @@ sub load {
     return $self->load_myopac_circ_history_export if $path =~ m|opac/myopac/circ_history/export|;
     return $self->load_myopac_circ_history if $path =~ m|opac/myopac/circ_history|;
     return $self->load_myopac_hold_history if $path =~ m|opac/myopac/hold_history|;
+    return $self->load_myopac_prefs_notify_changed_holds if $path =~ m|opac/myopac/prefs_notify_changed_holds|;
     return $self->load_myopac_prefs_notify if $path =~ m|opac/myopac/prefs_notify|;
     return $self->load_myopac_prefs_settings if $path =~ m|opac/myopac/prefs_settings|;
     return $self->load_myopac_prefs_my_lists if $path =~ m|opac/myopac/prefs_my_lists|;
@@ -357,6 +358,48 @@ sub load_common {
     $self->load_search_filter_groups($ctx->{search_ou});
     $self->load_org_util_funcs;
     $self->load_perm_funcs;
+
+    # FIXME - move carousel helpers to a separate file
+    $ctx->{get_visible_carousels} = sub {
+        my $org_unit = $self->ctx->{physical_loc} || $self->cgi->param('loc') || $self->ctx->{aou_tree}->()->id;
+        return $U->simplereq(
+            'open-ils.actor',
+            'open-ils.actor.carousel.retrieve_by_org',
+            $org_unit
+        );
+    };
+    $ctx->{get_carousel} = sub {
+        my $id = shift;
+
+        my $carousel = $e->retrieve_container_carousel($id);
+        my $ret = {
+            id   => $id,
+            name => $carousel->name
+        };
+        my $q = {
+            select => { bre => ['id'], mfde => [{ column => 'value', alias => 'title' }] },
+            from   => {
+                bre => {
+                    cbrebi => {
+                        join => {
+                            cbreb => {
+                                join => { cc => {} }
+                            }
+                        }
+                    },
+                    mfde => {}
+                }
+            },
+            where  => {
+                '+cc' => { id => $id },
+                '+bre' => { deleted => 'f' },
+                '+mfde' => { name => 'title' }
+            }
+        };
+        my $r = $e->json_query($q);
+        $ret->{bibs} = $r;
+        return $ret;
+    };
 
     $ctx->{fetch_display_fields} = sub {
         my $id = shift;

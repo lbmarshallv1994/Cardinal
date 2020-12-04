@@ -113,7 +113,7 @@
 	</event>
 
 	<event code='1220' textcode='ITEM_NOT_HOLDABLE'>
-		<desc xml:lang="en-US">A copy with a remote circulating library (circ_lib) was encountered</desc>
+		<desc xml:lang="en-US">An unholdable copy was encountered</desc>
 	</event>
 
 	<event code='1221' textcode='ORG_CANNOT_HAVE_VOLS'>
@@ -704,7 +704,9 @@
 	<event code='1881' textcode='PERMISSION_GRP_PENALTY_THRESHOLD_NOT_FOUND'>
 		<desc xml:lang='en-US'>The requested permission_grp_penalty_threshold was not found</desc>
 	</event>
-
+    <event code='1882' textcode='RECORD_REFERENCED_BY_LINEITEM'>
+        <desc xml:lang="en-US">The selected bib record has an open lineitem order referencing it.</desc>
+    </event>
 
 	<event code='1700' textcode='NON_CAT_TYPE_EXISTS'>
 		<desc xml:lang="en-US"> The non-cataloged type object already exists </desc>
@@ -759,6 +761,9 @@
 	</event>
 	<event code='1715' textcode='HOLD_SUSPEND_AFTER_CAPTURE'>
 		<desc xml:lang="en-US">Attempt to suspend a hold after it has been captured.</desc>
+	</event>
+	<event code='1716' textcode='MONEY_DEBIT_CARD_PAYMENT_NOT_FOUND'>
+		<desc xml:lang='en-US'>The requested money_debit_card_payment was not found</desc>
 	</event>
 
 	<event code='1900' textcode='URL_VERIFY_NOT_SESSION_CREATOR'>
@@ -1059,6 +1064,18 @@
     </event>
     <event code='11010' textcode='SERIAL_CAPTION_AND_PATTERN_NOT_EMPTY'>
         <desc xml:lang="en-US">The prediction pattern still has dependent objects</desc>
+    </event>
+
+	<!-- ================================================================ -->
+
+    <event code='12000' textcode='ITEM_TO_MARK_CHECKED_OUT'>
+      <desc xml:lang="en-US">The item to be marked is checked out to a patron.</desc>
+    </event>
+    <event code='12001' textcode='ITEM_TO_MARK_IN_TRANSIT'>
+      <desc xml:lang="en-US">The item to be marked is in transit.</desc>
+    </event>
+    <event code='12002' textcode='ITEM_TO_MARK_LAST_HOLD_COPY'>
+      <desc xml:lang="en-US">The item to be marked is the last possible target for a hold.</desc>
     </event>
 </ils_events>
 

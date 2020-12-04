@@ -1,3 +1,7 @@
+
+<eg-patron-search-dialog #patronSearch>
+</eg-patron-search-dialog>
+
 <div class="row">
   <div class="col-lg-4">
     <h3 i18n>Place Hold 
@@ -7,7 +11,7 @@
     </h3>
   </div>
   <div class="col-lg-2 text-right">
-    <button class="btn btn-outline-dark btn-sm" [disabled]="true">
+    <button class="btn btn-outline-dark btn-sm" (click)="searchPatrons()">
       <span class="material-icons mat-icon-in-button align-middle" 
         i18n-title title="Search for Patron">search</span>
       <span class="align-middle" i18n>Search for Patron</span>
@@ -167,7 +171,7 @@
   <div class="col-lg-12" i18n>Placing 
     <ng-container *ngIf="holdType == 'M'">METARECORD</ng-container> 
     <ng-container *ngIf="holdType == 'T'">TITLE</ng-container> 
-    <ng-container *ngIf="holdType == 'V'">VOLUME</ng-container> 
+    <ng-container *ngIf="holdType == 'V'">CALL NUMBER</ng-container>
     <ng-container *ngIf="holdType == 'F'">FORCE COPY</ng-container> 
     <ng-container *ngIf="holdType == 'C'">COPY</ng-container> 
     <ng-container *ngIf="holdType == 'R'">RECALL</ng-container> 
@@ -222,8 +226,8 @@
         </div>
         <div class="col-lg-2">{{ctx.holdMeta.bibSummary.display.author}}</div>
         <div class="col-lg-2">
-          <ng-container *ngIf="ctx.holdMeta.volume; else anyValue">
-            {{ctx.holdMeta.volume.label()}}
+          <ng-container *ngIf="ctx.holdMeta.callNum; else anyValue">
+            {{ctx.holdMeta.callNum.label()}}
           </ng-container>
         </div>
         <div class="col-lg-1">

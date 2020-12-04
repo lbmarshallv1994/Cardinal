@@ -1,7 +1,15 @@
-<!--
-TODO focus search input
--->
-<div id='staffcat-search-form' class="row pt-3 pb-3 mb-3">
+<div id='staffcat-search-form'>
+
+  <div *ngIf="!showThyself" class="row pt-1 pb-1 mb-2 pr-2">
+    <div class="col-lg-12 d-flex">
+      <div class="flex-1"></div><!-- push right -->
+      <a (click)="showThyself=true" class="label-with-material-icon no-href" i18n>
+        Show Search Form <span class="material-icons">unfold_more</span>
+      </a>
+    </div>
+  </div>
+  
+  <div *ngIf="showThyself" class="row pt-3 pb-3 mb-3">
   <div class="col-lg-8">
     <ngb-tabset #searchTabs [activeId]="searchTab" (tabChange)="onTabChange($event)">
       <ngb-tab title="Keyword Search" i18n-title id="term">
@@ -27,6 +35,7 @@ TODO focus search input
             </div>
             <div class="col-lg-2 pl-0 pr-2">
               <select class="form-control" 
+                (change)="preventBogusCombos(idx)"
                 [(ngModel)]="context.termSearch.fieldClass[idx]">
                 <option i18n value='keyword'>Keyword</option>
                 <option i18n value='title'>Title</option>
@@ -42,8 +51,10 @@ TODO focus search input
                 <option i18n value='contains'>Contains</option>
                 <option i18n value='nocontains'>Does not contain</option>
                 <option i18n value='phrase'>Contains phrase</option>
-                <option i18n value='exact'>Matches exactly</option>
-                <option i18n value='starts'>Starts with</option>
+                <option [disabled]="context.termSearch.fieldClass[idx]=='keyword'"
+                  i18n value='exact'>Matches exactly</option>
+                <option [disabled]="context.termSearch.fieldClass[idx]=='keyword'"
+                  i18n value='starts'>Starts with</option>
               </select>
             </div>
             <div class="col-lg-4 pl-0 pr-2">
@@ -224,7 +235,6 @@ TODO focus search input
                   [(ngModel)]="context.identSearch.queryType">
                   <option i18n value="identifier|isbn">ISBN</option>
                   <option i18n value="identifier|issn">ISSN</option>
-                  <option i18n disabled value="cnbrowse">Call Number (Shelf Browse)</option>
                   <option i18n value="identifier|lccn">LCCN</option>
                   <option i18n value="identifier|tcn">TCN</option>
                   <option i18n value="item_barcode">Item Barcode</option>
@@ -340,11 +350,18 @@ TODO focus search input
         </div>
       </div>
     </div>
-    <div class="row mt-2">
+    <div class="row mt-1">
+      <div class="col-lg-12">
+        <eg-catalog-search-templates [searchTab]="searchTab">
+        </eg-catalog-search-templates>
+      </div>
+    </div>
+    <div class="row mt-1">
       <div class="col-lg-12">
         <eg-catalog-basket-actions></eg-catalog-basket-actions>
       </div>
     </div>
+  </div>
   </div>
 </div>
 

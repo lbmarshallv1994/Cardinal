@@ -305,8 +305,13 @@ function($uibModal , $q , egCore , egConfirmDialog , egAlertDialog) {
                 angular.forEach(
                     ['thaw_date', 'request_time', 'expire_time', 'shelf_expire_time'], 
                     function(field) {
-                        if (modal_scope.args['modify_' + field]) 
+                        if (modal_scope.args['modify_' + field]) { 
                             val[field] = modal_scope.args[field].toISOString();
+                            if (field === 'thaw_date') {
+                            //If we are setting the thaw_date, freeze the hold.
+                                val['frozen'] = true;
+                            }
+                        }
                     }
                 );
 
@@ -335,6 +340,17 @@ function($uibModal , $q , egCore , egConfirmDialog , egAlertDialog) {
                         relay_to_update($scope).then($uibModalInstance.close);
                     }
                     $scope.cancel = function() { $uibModalInstance.dismiss() }
+                    $scope.minDate = new Date();
+                    //watch for changes to the hold dates, and perform validations
+                    $scope.$watch('args', function(newValue,oldValue,scope) {
+                        if (newValue['thaw_date'] && newValue['thaw_date'] < today) {
+                            $scope.args['thaw_date'] = today;
+                            $scope.args.thaw_date_error = true;
+                        }
+                        if (newValue['thaw_date'] && newValue['thaw_date'] > today) {
+                            $scope.args.thaw_date_error = false;
+                        }
+                    }, true);
                 }
             ],
         }).result;
@@ -744,20 +760,40 @@ function($window , $location , $timeout , egCore , egHolds , egCirc) {
         });
     }
 
-    service.mark_missing = function(items) {
-        var copy_ids = items
+    service.mark_discard = function(items) {
+        var copies = items
             .filter(function(item) { return Boolean(item.copy) })
-            .map(function(item) { return item.copy.id() });
-        if (copy_ids.length) 
-            egCirc.mark_missing(copy_ids).then(service.refresh);
+            .map(function(item) {
+                return {id: item.copy.id(), barcode: item.copy.barcode()}
+            });
+        if (copies.length)
+            egCirc.mark_discard(copies).then(service.refresh);
+    }
+
+    service.mark_missing = function(items) {
+        var copies = items
+            .filter(function(item) { return Boolean(item.copy) })
+            .map(function(item) {
+                return {id: item.copy.id(), barcode: item.copy.barcode()}
+            });
+        if (copies.length)
+            egCirc.mark_missing(copies).then(service.refresh);
     }
 
     service.mark_missing_wide = function(items) {
-        var copy_ids = items
+        var copies = items
             .filter(function(item) { return Boolean(item.hold.cp_id) })
-            .map(function(item) { return item.hold.cp_id });
-        if (copy_ids.length) 
-            egCirc.mark_missing(copy_ids).then(service.refresh);
+            .map(function(item) { return {id: item.hold.cp_id, barcode: item.hold.cp_barcode}; });
+        if (copies.length)
+            egCirc.mark_missing(copies).then(service.refresh);
+    }
+
+    service.mark_discard_wide = function(items) {
+        var copies = items
+            .filter(function(item) { return Boolean(item.hold.cp_id) })
+            .map(function(item) { return {id: item.hold.cp_id, barcode: item.hold.cp_barcode}; });
+        if (copies.length)
+            egCirc.mark_discard(copies).then(service.refresh);
     }
 
     service.retarget = function(items) {

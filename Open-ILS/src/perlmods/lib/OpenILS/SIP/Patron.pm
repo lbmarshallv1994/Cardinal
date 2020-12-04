@@ -328,6 +328,23 @@ sub language {
     return '000'; # Unspecified
 }
 
+# method to check to see if charge_ok, renew_ok, and
+# lost_card should be coerced to return a status indicating
+# that the patron should be allowed to circulate; this
+# implements a workaround further described in
+# https://bugs.launchpad.net/evergreen/+bug/1853363
+sub patron_status_always_permit_loans_set {
+    my $self = shift;
+
+    my $login = OpenILS::SIP->login_account();
+
+    return (
+                OpenILS::SIP::to_bool($login->{patron_status_always_permit_loans}) //
+                OpenILS::SIP::to_bool(OpenILS::SIP->get_option_value('patron_status_always_permit_loans'))
+           ) ||
+           0;
+}
+
 # How much more detail do we need to check here?
 # sec: adding logic to return false if user is barred, has a circulation block
 # or an expired card
@@ -335,6 +352,8 @@ sub charge_ok {
     my $self = shift;
     my $u = $self->{user};
     my $circ_is_blocked = 0;
+
+    return 1 if $self->patron_status_always_permit_loans_set();
 
     # compute expiration date for borrowing privileges
     my $expire = DateTime::Format::ISO8601->new->parse_datetime(clean_ISO8601($u->expire_date));
@@ -354,6 +373,8 @@ sub renew_ok {
     my $self = shift;
     my $u = $self->{user};
     my $renew_is_blocked = 0;
+
+    return 1 if $self->patron_status_always_permit_loans_set();
 
     # compute expiration date for borrowing privileges
     my $expire = DateTime::Format::ISO8601->new->parse_datetime(clean_ISO8601($u->expire_date));
@@ -398,6 +419,9 @@ sub hold_ok {
 # return true if the card provided is marked as lost
 sub card_lost {
     my $self = shift;
+
+    return 0 if $self->patron_status_always_permit_loans_set();
+
     return $self->{user}->card->active eq 'f';
 }
 
@@ -520,13 +544,17 @@ sub hold_items {
     my ($self, $start, $end, $ids_only) = @_;
     syslog('LOG_DEBUG', 'OILS: Patron->hold_items()');
 
-
     # all of my open holds
-    my $holds = $self->{editor}->search_action_hold_request({
-        usr => $self->{user}->id, 
-        fulfillment_time => undef, 
-        cancel_time => undef 
-    });
+    my $holds_query = {
+        usr => $self->{user}->id,
+        fulfillment_time => undef,
+        cancel_time => undef
+    };
+    if (OpenILS::SIP->get_option_value('msg64_hold_items_available')) {
+        # Limit to available holds.
+        $holds_query->{current_shelf_lib} = {'=' => {'+ahr' => 'pickup_lib'}};
+    }
+    my $holds = $self->{editor}->search_action_hold_request($holds_query);
 
     return $holds if $ids_only;
     return $self->__format_holds($holds, $start, $end);
@@ -846,23 +874,120 @@ sub charged_items_impl {
 sub fine_items {
     my ($self, $start, $end, $ids_only) = @_;
     my @fines;
-    eval {
-       my $xacts = $U->simplereq('open-ils.actor', 'open-ils.actor.user.transactions.history.have_balance', $self->{authtoken}, $self->{user}->id);
-       foreach my $xact (@{$xacts}) {
-           if ($ids_only) {
-               push @fines, $xact;
-               next;
-           }
-           my $line = $xact->balance_owed . " " . $xact->last_billing_type . " ";
-           if ($xact->xact_type eq 'circulation') {
-               my $mods = $U->simplereq('open-ils.circ', 'open-ils.circ.circ_transaction.find_title', $self->{authtoken}, $xact->id);
-               $line .= $mods->title . ' / ' . $mods->author;
-           } else {
-               $line .= $xact->last_billing_note;
-           }
-           push @fines, $line;
-       }
-    };
+
+    my $login = OpenILS::SIP->login_account();
+    my $AV_format = lc($login->{av_format}) || 'eg_legacy';
+
+    # Do a prescan for validity and default to eg_legacy
+    if ($AV_format ne "swyer_a" &&
+        $AV_format ne "swyer_b" &&
+        $AV_format ne "eg_legacy" &&
+        $AV_format ne "3m") {
+
+        syslog('LOG_WARNING',
+            "OILS: Unknown value for AV_format: ". $login->{av_format});
+        $AV_format = "eg_legacy";
+    }
+
+    my $xacts = $U->simplereq('open-ils.actor',
+        'open-ils.actor.user.transactions.history.have_balance',
+        $self->{authtoken}, $self->{user}->id);
+
+    my $line;
+    foreach my $xact (@{$xacts}) {
+
+        if ($ids_only) {
+            push @fines, $xact->id;
+            next;
+        }
+
+        # fine item details requested
+
+        my $title;
+        my $author;
+        my $line;
+
+        my $fee_type;
+
+        if ($xact->last_billing_type =~ /^Lost/) {
+            $fee_type = 'LOST';
+        } elsif ($xact->last_billing_type =~ /^Overdue/) {
+            $fee_type = 'FINE';
+        } else {
+            $fee_type = 'FEE';
+        }
+
+        if ($xact->xact_type eq 'circulation') {
+            my $e = OpenILS::SIP->editor();
+            my $circ = $e->retrieve_action_circulation([
+                $xact->id, {
+                    flesh => 2,
+                    flesh_fields => {
+                        circ => ['target_copy'],
+                        acp => ['call_number']
+                    }
+                }
+            ]);
+
+            my $displays = $e->search_metabib_flat_display_entry({
+                source => $circ->target_copy->call_number->record,
+                name => ['title', 'author']
+            });
+
+            ($title) = map {$_->value} grep {$_->name eq 'title'} @$displays;
+            ($author) = map {$_->value} grep {$_->name eq 'author'} @$displays;
+
+            # Scrub "/" chars since they are used in some cases 
+            # to delineate title/author.
+            if ($title) {
+                $title =~ s/\///g;
+            } else {
+                $title = '';
+            }
+
+            if ($author) {
+                $author =~ s/\///g;
+            } else {
+                $author = '';
+            }
+        }
+
+        if ($AV_format eq "eg_legacy") {
+
+            $line = $xact->balance_owed . " " . $xact->last_billing_type . " ";
+
+            if ($xact->xact_type eq 'circulation') {
+                $line .= "$title / $author";
+            } else {
+                $line .= $xact->last_billing_note;
+            }
+
+        } elsif ($AV_format eq "3m" or $AV_format eq "swyer_a") {
+
+            $line = $xact->id . ' $' . $xact->balance_owed . " \"$fee_type\" ";
+
+            if ($xact->xact_type eq 'circulation') {
+                $line .= "$title";
+            } else {
+                $line .= $xact->last_billing_note;
+            }
+
+        } elsif ($AV_format eq "swyer_b") {
+
+            $line =   "Charge-Number: " . $xact->id;
+            $line .=  ", Amount-Due: "  . $xact->balance_owed;
+            $line .=  ", Fine-Type: $fee_type";
+
+            if ($xact->xact_type eq 'circulation') {
+                $line .= ", Title: $title";
+            } else {
+                $line .= ", Title: " . $xact->last_billing_note;
+            }
+        }
+
+        push @fines, $line;
+    }
+
     my $log_status = $@ ? 'ERROR: ' . $@ : 'OK';
     syslog('LOG_DEBUG', 'OILS: Patron->fine_items() ' . $log_status);
     return (defined $start and defined $end) ? 

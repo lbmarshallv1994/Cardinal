@@ -1,13 +1,14 @@
 /**
  * Collection of grid related classses and interfaces.
  */
-import {TemplateRef, EventEmitter} from '@angular/core';
+import {TemplateRef, EventEmitter, QueryList} from '@angular/core';
 import {Observable, Subscription} from 'rxjs';
 import {IdlService, IdlObject} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
 import {ServerStoreService} from '@eg/core/server-store.service';
 import {FormatService} from '@eg/core/format.service';
 import {Pager} from '@eg/share/util/pager';
+import {GridFilterControlComponent} from './grid-filter-control.component';
 
 const MAX_ALL_ROW_COUNT = 10000;
 
@@ -27,17 +28,28 @@ export class GridColumn {
     datatype: string;
     datePlusTime: boolean;
     ternaryBool: boolean;
+    timezoneContextOrg: number;
     cellTemplate: TemplateRef<any>;
+
     cellContext: any;
     isIndex: boolean;
     isDragTarget: boolean;
     isSortable: boolean;
+    isFilterable: boolean;
+    isFiltered: boolean;
     isMultiSortable: boolean;
     disableTooltip: boolean;
     comparator: (valueA: any, valueB: any) => number;
 
     // True if the column was automatically generated.
     isAuto: boolean;
+
+    // for filters
+    filterValue: string;
+    filterOperator: string;
+    filterInputDisabled: boolean;
+    filterIncludeOrgAncestors: boolean;
+    filterIncludeOrgDescendants: boolean;
 
     flesher: (obj: any, col: GridColumn, item: any) => any;
 
@@ -48,6 +60,19 @@ export class GridColumn {
           userContext: this.cellContext
         };
     }
+
+    constructor() {
+        this.removeFilter();
+    }
+
+    removeFilter() {
+        this.isFiltered = false;
+        this.filterValue = undefined;
+        this.filterOperator = '=';
+        this.filterInputDisabled = false;
+        this.filterIncludeOrgAncestors = false;
+        this.filterIncludeOrgDescendants = false;
+    }
 }
 
 export class GridColumnSet {
@@ -55,6 +80,7 @@ export class GridColumnSet {
     idlClass: string;
     indexColumn: GridColumn;
     isSortable: boolean;
+    isFilterable: boolean;
     isMultiSortable: boolean;
     stockVisible: string[];
     idl: IdlService;
@@ -85,6 +111,7 @@ export class GridColumnSet {
         }
 
         this.applyColumnSortability(col);
+        this.applyColumnFilterability(col);
     }
 
     // Returns true if the new column was inserted, false otherwise.
@@ -150,23 +177,32 @@ export class GridColumnSet {
 
         let idlParent;
         let idlField;
-        let idlClass = this.idl.classes[this.idlClass];
+        let idlClass;
+        let nextIdlClass = this.idl.classes[this.idlClass];
 
         const pathParts = dotpath.split(/\./);
 
         for (let i = 0; i < pathParts.length; i++) {
+
             const part = pathParts[i];
             idlParent = idlField;
+            idlClass = nextIdlClass;
             idlField = idlClass.field_map[part];
 
-            if (idlField) {
-                if (idlField['class'] && (
-                    idlField.datatype === 'link' ||
-                    idlField.datatype === 'org_unit')) {
-                    idlClass = this.idl.classes[idlField['class']];
-                }
-            } else {
-                return null;
+            if (!idlField) { return null; } // invalid IDL path
+
+            if (i === pathParts.length - 1) {
+                // No more links to process.
+                break;
+            }
+
+            if (idlField['class'] && (
+                idlField.datatype === 'link' ||
+                idlField.datatype === 'org_unit')) {
+                // The link class on the current field refers to the
+                // class of the link destination, not the current field.
+                // Mark it for processing during the next iteration.
+                nextIdlClass = this.idl.classes[idlField['class']];
             }
         }
 
@@ -189,14 +225,16 @@ export class GridColumnSet {
 
     applyColumnDefaults(col: GridColumn) {
 
-        if (!col.idlFieldDef && col.path) {
-            const idlInfo = this.idlInfoFromDotpath(col.path);
+        if (!col.idlFieldDef) {
+            const idlInfo = this.idlInfoFromDotpath(col.path || col.name);
             if (idlInfo) {
                 col.idlFieldDef = idlInfo.idlField;
                 col.idlClass = idlInfo.idlClass.name;
+                if (!col.datatype) {
+                    col.datatype = col.idlFieldDef.datatype;
+                }
                 if (!col.label) {
                     col.label = col.idlFieldDef.label || col.idlFieldDef.name;
-                    col.datatype = col.idlFieldDef.datatype;
                 }
             }
         }
@@ -222,6 +260,12 @@ export class GridColumnSet {
 
         if (col.isMultiSortable) {
             col.isSortable = true;
+        }
+    }
+    applyColumnFilterability(col: GridColumn) {
+        // column filterability defaults to the afilterability of the column set.
+        if (col.isFilterable === undefined && this.isFilterable) {
+            col.isFilterable = true;
         }
     }
 
@@ -353,6 +397,20 @@ export class GridColumnSet {
     }
 }
 
+// Maps colunm names to functions which return plain text values for
+// each mapped column on a given row.  This is primarily useful for
+// generating print-friendly content for grid cells rendered via
+// cellTemplate.
+//
+// USAGE NOTE: Since a cellTemplate can be passed arbitrary context
+//             but a GridCellTextGenerator only gets the row object,
+//             if it's important to include content that's not available
+//             by default in the row object, you may want to stick
+//             it in the row object as an additional attribute.
+//
+export interface GridCellTextGenerator {
+    [columnName: string]: (row: any) => string;
+}
 
 export class GridRowSelector {
     indexes: {[string: string]: boolean};
@@ -386,7 +444,7 @@ export class GridRowSelector {
     // In some contexts (template checkboxes) the value for an index is
     // set to false to deselect instead of having it removed (via deselect()).
     // NOTE GridRowSelector has no knowledge of when a row is no longer
-    // present in the grid.  Use GridContext.getSelectedRows() to get 
+    // present in the grid.  Use GridContext.getSelectedRows() to get
     // list of selected rows that are still present in the grid.
     selected() {
         return Object.keys(this.indexes).filter(
@@ -425,6 +483,8 @@ export class GridContext {
     pager: Pager;
     idlClass: string;
     isSortable: boolean;
+    isFilterable: boolean;
+    stickyGridHeader: boolean;
     isMultiSortable: boolean;
     useLocalSort: boolean;
     persistKey: string;
@@ -445,13 +505,15 @@ export class GridContext {
     defaultVisibleFields: string[];
     defaultHiddenFields: string[];
     overflowCells: boolean;
-    showLinkSelectors: boolean;
     disablePaging: boolean;
     showDeclaredFieldsOnly: boolean;
+    cellTextGenerator: GridCellTextGenerator;
 
     // Allow calling code to know when the select-all-rows-in-page
     // action has occurred.
     selectRowsInPageEmitter: EventEmitter<void>;
+
+    filterControls: QueryList<GridFilterControlComponent>;
 
     // Services injected by our grid component
     idl: IdlService;
@@ -480,6 +542,7 @@ export class GridContext {
         this.selectRowsInPageEmitter = new EventEmitter<void>();
         this.columnSet = new GridColumnSet(this.idl, this.idlClass);
         this.columnSet.isSortable = this.isSortable === true;
+        this.columnSet.isFilterable = this.isFilterable === true;
         this.columnSet.isMultiSortable = this.isMultiSortable === true;
         this.columnSet.defaultHiddenFields = this.defaultHiddenFields;
         this.columnSet.defaultVisibleFields = this.defaultVisibleFields;
@@ -523,6 +586,13 @@ export class GridContext {
         // getting modified by an angular digest cycle.
         setTimeout(() => {
             this.pager.reset();
+            this.dataSource.reset();
+            this.dataSource.requestPage(this.pager);
+        });
+    }
+
+    reloadWithoutPagerReset() {
+        setTimeout(() => {
             this.dataSource.reset();
             this.dataSource.requestPage(this.pager);
         });
@@ -689,7 +759,8 @@ export class GridContext {
             idlClass: col.idlClass,
             idlField: col.idlFieldDef ? col.idlFieldDef.name : col.name,
             datatype: col.datatype,
-            datePlusTime: Boolean(col.datePlusTime)
+            datePlusTime: Boolean(col.datePlusTime),
+            timezoneContextOrg: Number(col.timezoneContextOrg)
         });
     }
 
@@ -752,11 +823,15 @@ export class GridContext {
 
 
     getColumnTextContent(row: any, col: GridColumn): string {
-        if (col.cellTemplate) {
-            // TODO
-            // Extract the text content from the rendered template.
+        if (this.columnHasTextGenerator(col)) {
+            const str = this.cellTextGenerator[col.name](row);
+            return (str === null || str === undefined)  ? '' : str;
         } else {
-            return this.getRowColumnValue(row, col);
+            if (col.cellTemplate) {
+                return ''; // avoid 'undefined' values
+            } else {
+                return this.getRowColumnValue(row, col);
+            }
         }
     }
 
@@ -942,6 +1017,16 @@ export class GridContext {
         });
     }
 
+    removeFilters(): void {
+        this.dataSource.filters = {};
+        this.columnSet.displayColumns().forEach(col => { col.removeFilter(); });
+        this.filterControls.forEach(ctl => ctl.reset());
+        this.reload();
+    }
+    filtersSet(): boolean {
+        return Object.keys(this.dataSource.filters).length > 0;
+    }
+
     gridToCsv(): Promise<string> {
 
         let csvStr = '';
@@ -1002,14 +1087,6 @@ export class GridContext {
             col.isIndex = (field.name === pkeyField);
             col.isAuto = true;
 
-            if (this.showLinkSelectors) {
-                const selector = this.idl.getLinkSelector(
-                    this.columnSet.idlClass, field.name);
-                if (selector) {
-                    col.path = field.name + '.' + selector;
-                }
-            }
-
             if (this.showDeclaredFieldsOnly) {
                 col.hidden = true;
             }
@@ -1035,6 +1112,10 @@ export class GridContext {
     getGridConfig(persistKey: string): Promise<GridPersistConf> {
         if (!persistKey) { return Promise.resolve(null); }
         return this.store.getItem('eg.grid.' + persistKey);
+    }
+
+    columnHasTextGenerator(col: GridColumn): boolean {
+        return this.cellTextGenerator && col.name in this.cellTextGenerator;
     }
 }
 
@@ -1069,12 +1150,14 @@ export class GridDataSource {
 
     data: any[];
     sort: any[];
+    filters: Object;
     allRowsRetrieved: boolean;
     requestingData: boolean;
     getRows: (pager: Pager, sort: any[]) => Observable<any>;
 
     constructor() {
         this.sort = [];
+        this.filters = {};
         this.reset();
     }
 

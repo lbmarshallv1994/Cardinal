@@ -148,7 +148,7 @@ CREATE TABLE action.circulation (
 								   DEFERRABLE INITIALLY DEFERRED,
 	copy_location	INT				NOT NULL DEFAULT 1 REFERENCES asset.copy_location (id) DEFERRABLE INITIALLY DEFERRED,
 	checkin_scan_time   TIMESTAMP WITH TIME ZONE,
-    auto_renewal            BOOLEAN,
+    auto_renewal            BOOLEAN	NOT NULL DEFAULT FALSE,
     auto_renewal_remaining  INTEGER
 ) INHERITS (money.billable_xact);
 ALTER TABLE action.circulation ADD PRIMARY KEY (id);
@@ -314,7 +314,6 @@ UNION ALL
 ;
 
 
-
 CREATE OR REPLACE FUNCTION action.age_circ_on_delete () RETURNS TRIGGER AS $$
 DECLARE
 found char := 'N';
@@ -340,15 +339,26 @@ BEGIN
         circ_lib, circ_staff, checkin_staff, checkin_lib, renewal_remaining, grace_period, due_date,
         stop_fines_time, checkin_time, create_time, duration, fine_interval, recurring_fine,
         max_fine, phone_renewal, desk_renewal, opac_renewal, duration_rule, recurring_fine_rule,
-        max_fine_rule, stop_fines, workstation, checkin_workstation, checkin_scan_time, parent_circ)
+        max_fine_rule, stop_fines, workstation, checkin_workstation, checkin_scan_time, parent_circ,
+        auto_renewal, auto_renewal_remaining)
       SELECT
         id,usr_post_code, usr_home_ou, usr_profile, usr_birth_year, copy_call_number, copy_location,
         copy_owning_lib, copy_circ_lib, copy_bib_record, xact_start, xact_finish, target_copy,
         circ_lib, circ_staff, checkin_staff, checkin_lib, renewal_remaining, grace_period, due_date,
         stop_fines_time, checkin_time, create_time, duration, fine_interval, recurring_fine,
         max_fine, phone_renewal, desk_renewal, opac_renewal, duration_rule, recurring_fine_rule,
-        max_fine_rule, stop_fines, workstation, checkin_workstation, checkin_scan_time, parent_circ
+        max_fine_rule, stop_fines, workstation, checkin_workstation, checkin_scan_time, parent_circ,
+        auto_renewal, auto_renewal_remaining
         FROM action.all_circulation WHERE id = OLD.id;
+
+    -- Migrate billings and payments to aged tables
+
+    SELECT 'Y' INTO found FROM config.global_flag 
+        WHERE name = 'history.money.age_with_circs' AND enabled;
+
+    IF found = 'Y' THEN
+        PERFORM money.age_billings_and_payments_for_xact(OLD.id);
+    END IF;
 
     RETURN OLD;
 END;
@@ -442,7 +452,7 @@ CREATE TABLE action.hold_request (
 	selection_ou		INT				NOT NULL,
 	selection_depth		INT				NOT NULL DEFAULT 0,
 	pickup_lib		INT				NOT NULL REFERENCES actor.org_unit DEFERRABLE INITIALLY DEFERRED,
-	hold_type		TEXT				NOT NULL, -- CHECK (hold_type IN ('M','T','V','C')),  -- XXX constraint too constraining...
+	hold_type		TEXT				REFERENCES config.hold_type (hold_type) DEFERRABLE INITIALLY DEFERRED,
 	holdable_formats	TEXT,
 	phone_notify		TEXT,
 	email_notify		BOOL				NOT NULL DEFAULT FALSE,
@@ -538,7 +548,7 @@ CREATE OR REPLACE FUNCTION
     action.hold_request_regen_copy_maps(
         hold_id INTEGER, copy_ids INTEGER[]) RETURNS VOID AS $$
     DELETE FROM action.hold_copy_map WHERE hold = $1;
-    INSERT INTO action.hold_copy_map (hold, target_copy) SELECT $1, UNNEST($2);
+    INSERT INTO action.hold_copy_map (hold, target_copy) SELECT DISTINCT $1, UNNEST($2);
 $$ LANGUAGE SQL;
 
 CREATE TABLE action.transit_copy (

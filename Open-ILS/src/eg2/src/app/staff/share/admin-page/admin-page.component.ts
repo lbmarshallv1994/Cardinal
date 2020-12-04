@@ -1,17 +1,21 @@
 import {Component, Input, OnInit, TemplateRef, ViewChild} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {Location} from '@angular/common';
 import {IdlService, IdlObject} from '@eg/core/idl.service';
-import {GridDataSource} from '@eg/share/grid/grid';
+import {FormatService} from '@eg/core/format.service';
+import {GridDataSource, GridColumn} from '@eg/share/grid/grid';
 import {GridComponent} from '@eg/share/grid/grid.component';
-import {TranslateComponent} from '@eg/staff/share/translate/translate.component';
+import {TranslateComponent} from '@eg/share/translate/translate.component';
 import {ToastService} from '@eg/share/toast/toast.service';
 import {Pager} from '@eg/share/util/pager';
 import {PcrudService} from '@eg/core/pcrud.service';
 import {OrgService} from '@eg/core/org.service';
 import {PermService} from '@eg/core/perm.service';
 import {AuthService} from '@eg/core/auth.service';
-import {FmRecordEditorComponent} from '@eg/share/fm-editor/fm-editor.component';
+import {FmRecordEditorComponent, FmFieldOptions
+    } from '@eg/share/fm-editor/fm-editor.component';
 import {StringComponent} from '@eg/share/string/string.component';
+import {OrgFamily} from '@eg/share/org-family-select/org-family-select.component';
 
 /**
  * General purpose CRUD interface for IDL objects
@@ -40,6 +44,11 @@ export class AdminPageComponent implements OnInit {
     // Size of create/edito dialog.  Uses large by default.
     @Input() dialogSize: 'sm' | 'lg' = 'lg';
 
+    // comma-separated list of fields to hide.
+    // This does not imply all other fields should be visible, only that
+    // the selected fields will be hidden.
+    @Input() hideGridFields: string;
+
     // If an org unit field is specified, an org unit filter
     // is added to the top of the page.
     @Input() orgField: string;
@@ -66,16 +75,33 @@ export class AdminPageComponent implements OnInit {
     // Optional comma-separated list of read-only fields
     @Input() readonlyFields: string;
 
-    @ViewChild('grid') grid: GridComponent;
-    @ViewChild('editDialog') editDialog: FmRecordEditorComponent;
-    @ViewChild('successString') successString: StringComponent;
-    @ViewChild('createString') createString: StringComponent;
-    @ViewChild('createErrString') createErrString: StringComponent;
-    @ViewChild('updateFailedString') updateFailedString: StringComponent;
-    @ViewChild('translator') translator: TranslateComponent;
+    // Optional template containing help/about text which will
+    // be added to the page, above the grid.
+    @Input() helpTemplate: TemplateRef<any>;
+
+    // Override field options for create/edit dialog
+    @Input() fieldOptions: {[field: string]: FmFieldOptions};
+
+    // Override default values for fm-editor
+    @Input() defaultNewRecord: IdlObject;
+
+    // Used as the first part of the routerLink path when creating
+    // links to related tables via configField's.
+    @Input() configLinkBasePath: string;
+
+    @ViewChild('grid', { static: true }) grid: GridComponent;
+    @ViewChild('editDialog', { static: true }) editDialog: FmRecordEditorComponent;
+    @ViewChild('successString', { static: true }) successString: StringComponent;
+    @ViewChild('createString', { static: true }) createString: StringComponent;
+    @ViewChild('createErrString', { static: true }) createErrString: StringComponent;
+    @ViewChild('updateFailedString', { static: true }) updateFailedString: StringComponent;
+    @ViewChild('deleteFailedString', { static: true }) deleteFailedString: StringComponent;
+    @ViewChild('deleteSuccessString', { static: true }) deleteSuccessString: StringComponent;
+    @ViewChild('translator', { static: true }) translator: TranslateComponent;
 
     idlClassDef: any;
     pkeyField: string;
+    configFields: any[]; // IDL field definitions
 
     // True if any columns on the object support translations
     translateRowIdx: number;
@@ -83,6 +109,7 @@ export class AdminPageComponent implements OnInit {
     translatableFields: string[];
 
     contextOrg: IdlObject;
+    searchOrgs: OrgFamily;
     orgFieldLabel: string;
     viewPerms: string;
     canCreate: boolean;
@@ -93,14 +120,17 @@ export class AdminPageComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private idl: IdlService,
+        private ngLocation: Location,
+        private format: FormatService,
+        public idl: IdlService,
         private org: OrgService,
-        private auth: AuthService,
-        private pcrud: PcrudService,
+        public auth: AuthService,
+        public pcrud: PcrudService,
         private perm: PermService,
-        private toast: ToastService
+        public toast: ToastService
     ) {
         this.translatableFields = [];
+        this.configFields = [];
     }
 
     applyOrgValues(orgId?: number) {
@@ -124,10 +154,12 @@ export class AdminPageComponent implements OnInit {
         if (this.orgField) {
             this.orgFieldLabel = this.idlClassDef.field_map[this.orgField].label;
             this.contextOrg = this.org.get(orgId) || this.org.root();
+            this.searchOrgs = {primaryOrgId: this.contextOrg.id()};
         }
     }
 
     ngOnInit() {
+
         this.idlClassDef = this.idl.classes[this.idlClass];
         this.pkeyField = this.idlClassDef.pkey || 'id';
 
@@ -141,6 +173,16 @@ export class AdminPageComponent implements OnInit {
                 this.idlClassDef.table;
         }
 
+
+        // Note the field filter could be based purely on fields
+        // which are links, but that leads to cases where links
+        // are created to tables which are too big and/or admin
+        // interfaces which are not otherwise used because they
+        // have custom UI's instead.
+        // this.idlClassDef.fields.filter(f => f.datatype === 'link');
+        this.configFields =
+            this.idlClassDef.fields.filter(f => f.config_field);
+
         // gridFilters are a JSON encoded string
         const filters = this.route.snapshot.queryParamMap.get('gridFilters');
         if (filters) {
@@ -148,6 +190,20 @@ export class AdminPageComponent implements OnInit {
                 this.gridFilters = JSON.parse(filters);
             } catch (E) {
                 console.error('Invalid grid filters provided: ', filters);
+            }
+
+            // Use the grid filters as the basis for our default
+            // new record (passed to fm-editor).
+            if (!this.defaultNewRecord) {
+                const rec = this.idl.create(this.idlClass);
+                Object.keys(this.gridFilters).forEach(field => {
+                    // When filtering on the primary key of the current
+                    // object type, avoid using it in the default new object.
+                    if (rec[field] && this.pkeyField !== field) {
+                        rec[field](this.gridFilters[field]);
+                    }
+                });
+                this.defaultNewRecord = rec;
             }
         }
 
@@ -188,11 +244,6 @@ export class AdminPageComponent implements OnInit {
         });
     }
 
-    orgOnChange(org: IdlObject) {
-        this.contextOrg = org;
-        this.grid.reload();
-    }
-
     initDataSource() {
         this.dataSource = new GridDataSource();
 
@@ -222,23 +273,9 @@ export class AdminPageComponent implements OnInit {
 
             const search: any = {};
 
-            if (this.contextOrg) {
-                // Filter rows by those linking to the context org and
-                // optionally ancestor and descendant org units.
-
-                let orgs = [this.contextOrg.id()];
-
-                if (this.includeOrgAncestors) {
-                    orgs = this.org.ancestors(this.contextOrg, true);
-                }
-
-                if (this.includeOrgDescendants) {
-                    // can result in duplicate workstation org IDs... meh
-                    orgs = orgs.concat(
-                        this.org.descendants(this.contextOrg, true));
-                }
-
-                search[this.orgField] = orgs;
+            if (this.orgField) {
+                search[this.orgField] =
+                    this.searchOrgs.orgIds || [this.contextOrg.id()];
             }
 
             if (this.gridFilters) {
@@ -253,18 +290,9 @@ export class AdminPageComponent implements OnInit {
         };
     }
 
-    disableAncestorSelector(): boolean {
-        return this.contextOrg &&
-            this.contextOrg.id() === this.org.root().id();
-    }
-
-    disableDescendantSelector(): boolean {
-        return this.contextOrg && this.contextOrg.children().length === 0;
-    }
-
     showEditDialog(idlThing: IdlObject): Promise<any> {
         this.editDialog.mode = 'update';
-        this.editDialog.recId = idlThing[this.pkeyField]();
+        this.editDialog.recordId = idlThing[this.pkeyField]();
         return new Promise((resolve, reject) => {
             this.editDialog.open({size: this.dialogSize}).subscribe(
                 result => {
@@ -298,8 +326,15 @@ export class AdminPageComponent implements OnInit {
     deleteSelected(idlThings: IdlObject[]) {
         idlThings.forEach(idlThing => idlThing.isdeleted(true));
         this.pcrud.autoApply(idlThings).subscribe(
-            val => console.debug('deleted: ' + val),
-            err => {},
+            val => {
+                console.debug('deleted: ' + val);
+                this.deleteSuccessString.current()
+                    .then(str => this.toast.success(str));
+            },
+            err => {
+                this.deleteFailedString.current()
+                    .then(str => this.toast.danger(str));
+            },
             ()  => this.grid.reload()
         );
     }
@@ -308,7 +343,7 @@ export class AdminPageComponent implements OnInit {
         this.editDialog.mode = 'create';
         // We reuse the same editor for all actions.  Be sure
         // create action does not try to modify an existing record.
-        this.editDialog.recId = null;
+        this.editDialog.recordId = null;
         this.editDialog.record = null;
         this.editDialog.open({size: this.dialogSize}).subscribe(
             ok => {
@@ -366,6 +401,88 @@ export class AdminPageComponent implements OnInit {
         };
 
         this.translator.open({size: 'lg'});
+    }
+
+    // Construct a routerLink path for a configField.
+    configFieldRouteLink(row: any, col: GridColumn): string {
+        const cf = this.configFields.filter(field => field.name === col.name)[0];
+        const linkClass = this.idl.classes[cf['class']];
+        const pathParts = linkClass.table.split(/\./); // schema.tablename
+        return `${this.configLinkBasePath}/${pathParts[0]}/${pathParts[1]}`;
+    }
+
+    // Compiles a gridFilter value used when navigating to a linked
+    // class via configField.  The filter ensures the linked page
+    // only shows rows which refer back to the object from which the
+    // link was clicked.
+    configFieldRouteParams(row: any, col: GridColumn): any {
+        const cf = this.configFields.filter(field => field.name === col.name)[0];
+        let value = this.configFieldLinkedValue(row, col);
+
+        // For certain has-a relationships, the linked object will be
+        // fleshed so its display (selector) value can be used.
+        // Extract the scalar value found at the remote target field.
+        if (value && typeof value === 'object') { value = value[cf.key](); }
+
+        const filter: any = {};
+        filter[cf.key] = value;
+
+        return {gridFilters : JSON.stringify(filter)};
+    }
+
+    // Returns the value on the local object for the field which
+    // refers to the remote object.  This may be a scalar or a
+    // fleshed IDL object.
+    configFieldLinkedValue(row: any, col: GridColumn): any {
+        const cf = this.configFields.filter(field => field.name === col.name)[0];
+        const linkClass = this.idl.classes[cf['class']];
+
+        // cf.key is the name of the field on the linked object that matches
+        // the value on our local object.
+        // In as has_many relationship, the remote field has its own
+        // 'key' value which determines which field on the local object
+        // represents the other end of the relationship.  This is
+        // typically, but not always the local pkey field.
+
+        const localField =
+            cf.reltype === 'has_many' ?
+            (linkClass.field_map[cf.key].key || this.pkeyField) : cf.name;
+
+        return row[localField]();
+    }
+
+    // Returns a URL suitable for using as an href.
+    // We use an href to jump to the secondary admin page because
+    // routerLink within the same base component results in component
+    // reuse of a series of components which were not designed with
+    // reuse in mind.
+    configFieldLinkUrl(row: any, col: GridColumn): string {
+        const path = this.configFieldRouteLink(row, col);
+        const filters = this.configFieldRouteParams(row, col);
+        const url = path + '?gridFilters=' +
+            encodeURIComponent(filters.gridFilters);
+
+        return this.ngLocation.prepareExternalUrl(url);
+    }
+
+    configLinkLabel(row: any, col: GridColumn): string {
+        const cf = this.configFields.filter(field => field.name === col.name)[0];
+
+        // Has-many links have no specific value to use for display
+        // so just use the column label.
+        if (cf.reltype === 'has_many') { return col.label; }
+
+        return this.format.transform({
+            value: row[col.name](),
+            idlClass: this.idlClass,
+            idlField: col.name
+        });
+    }
+
+    clearGridFiltersUrl(): string {
+        const parts = this.idlClassDef.table.split(/\./);
+        const url = this.configLinkBasePath + '/' + parts[0] + '/' + parts[1];
+        return this.ngLocation.prepareExternalUrl(url);
     }
 }
 

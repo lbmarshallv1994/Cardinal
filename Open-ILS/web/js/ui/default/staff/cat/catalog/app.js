@@ -423,6 +423,58 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         });
     }
 
+    $scope.carousels_available = false;
+    egCore.net.request(
+        'open-ils.actor',
+        'open-ils.actor.carousel.retrieve_manual_by_staff',
+        egCore.auth.token()
+    ).then(function(carousels) { $scope.carousels_available = true; });
+
+    $scope.add_to_carousel = function(recs) {
+        if (!angular.isArray(recs)) {
+            recs = [ $scope.record_id ];
+        }
+        return $uibModal.open({
+            templateUrl: './cat/catalog/t_add_to_carousel',
+            backdrop: 'static',
+            animation: true,
+            size: 'md',
+            controller:
+                   ['$scope','$uibModalInstance',
+            function($scope , $uibModalInstance) {
+                $scope.bucket_id = 0;
+                $scope.allCarousels = [];
+                egCore.net.request(
+                    'open-ils.actor',
+                    'open-ils.actor.carousel.retrieve_manual_by_staff',
+                    egCore.auth.token()
+                ).then(function(carousels) { $scope.allCarousels = carousels; });
+
+                $scope.add_to_carousel = function() {
+                    // or more precisely, the carousel's bucket
+                    var promises = [];
+                    angular.forEach(recs, function(recId) {
+                        var item = new egCore.idl.cbrebi();
+                        item.bucket($scope.bucket_id);
+                        item.target_biblio_record_entry(recId);
+                        promises.push(egCore.net.request(
+                            'open-ils.actor',
+                            'open-ils.actor.container.item.create',
+                            egCore.auth.token(), 'biblio', item
+                        ));
+                    });
+                    $q.all(promises).then(function(resp) {
+                        $uibModalInstance.close();
+                    });
+                }
+
+                $scope.cancel = function() {
+                    $uibModalInstance.dismiss();
+                }
+            }]
+        });
+    }
+
     $scope.current_overlay_target     = egCore.hatch.getLocalItem('eg.cat.marked_overlay_record');
     $scope.current_transfer_target    = egCore.hatch.getLocalItem('eg.cat.transfer_target_record');
     $scope.current_conjoined_target   = egCore.hatch.getLocalItem('eg.cat.marked_conjoined_record');
@@ -578,6 +630,14 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         });
     }
 
+    // Map the Angular catalog-only 'item_table' tab to the AngJS
+    // 'catalog' tab.
+    function get_default_record_tab() {
+        var tab = egCore.hatch.getLocalItem('eg.cat.default_record_tab');
+        if (!tab || tab === 'item_table') { return 'catalog'; }
+        return tab;
+    }
+
     // also set it when the iframe changes to a new record
     $scope.handle_page = function(url) {
 
@@ -617,8 +677,8 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         // or we didn't change records on the OPAC load
         if (!$scope.in_opac_call && ($scope.record_id != prev_record_id)) {
             if ($scope.record_id) {
-                $scope.default_tab = egCore.hatch.getLocalItem( 'eg.cat.default_record_tab' );
-                tab = $routeParams.record_tab || $scope.default_tab || 'catalog';
+                $scope.default_tab = get_default_record_tab();
+                tab = $routeParams.record_tab || $scope.default_tab;
             } else {
                 tab = $routeParams.record_tab || 'catalog';
             }
@@ -633,7 +693,7 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
             $(doc).find('#hold_usr_search').on('click', function() {
                 patron_search_dialog().result.then(function(barc) {
                     $(doc).find('#hold_usr_input').val(barc);
-                    $(doc).find('#hold_usr_input').change();
+                    $(doc).find('#hold_usr_input').trigger($.Event('keydown', {which: 13}));
                 });
             });
             $(doc).find('#select_basket_action').on('change', function() {
@@ -884,74 +944,9 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         });
     }
 
-    $scope.book_copies_now = function() {
-        var copies_by_record = {};
-        var record_list = [];
-        angular.forEach(
-            $scope.holdingsGridControls.selectedItems(),
-            function (item) {
-                var record_id = item['call_number.record.id'];
-                if (typeof copies_by_record[ record_id ] == 'undefined') {
-                    copies_by_record[ record_id ] = [];
-                    record_list.push( record_id );
-                }
-                copies_by_record[ record_id ].push(item.id);
-            }
-        );
-
-        var promises = [];
-        var combined_brt = [];
-        var combined_brsrc = [];
-        angular.forEach(record_list, function(record_id) {
-            promises.push(
-                egCore.net.request(
-                    'open-ils.booking',
-                    'open-ils.booking.resources.create_from_copies',
-                    egCore.auth.token(),
-                    copies_by_record[record_id]
-                ).then(function(results) {
-                    if (results && results['brt']) {
-                        combined_brt = combined_brt.concat(results['brt']);
-                    }
-                    if (results && results['brsrc']) {
-                        combined_brsrc = combined_brsrc.concat(results['brsrc']);
-                    }
-                })
-            );
-        });
-
-        $q.all(promises).then(function() {
-            if (combined_brt.length > 0 || combined_brsrc.length > 0) {
-                $uibModal.open({
-                    template: '<eg-embed-frame url="booking_admin_url" handlers="funcs"></eg-embed-frame>',
-                    backdrop: 'static',
-                    animation: true,
-                    size: 'md',
-                    controller:
-                           ['$scope','$location','egCore','$uibModalInstance',
-                    function($scope , $location , egCore , $uibModalInstance) {
-
-                        $scope.funcs = {
-                            ses : egCore.auth.token(),
-                            bresv_interface_opts : {
-                                booking_results : {
-                                     brt : combined_brt
-                                    ,brsrc : combined_brsrc
-                                }
-                            }
-                        }
-
-                        var booking_path = '/eg/booking/reservation';
-
-                        $scope.booking_admin_url =
-                            $location.absUrl().replace(/\/eg\/staff.*/, booking_path);
-
-                    }]
-                });
-            }
-        });
+    $scope.book_copies_now = function(items) {
+        location.href = "/eg2/staff/booking/create_reservation/for_resource/" + items[0]['barcode'];
     }
-
 
     $scope.requestItems = function() {
         var copy_list = gatherSelectedHoldingsIds();
@@ -1021,6 +1016,13 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
             }]
         });
     }
+
+    $scope.manage_reservations = function() {
+        var item = $scope.holdingsGridControls.selectedItems()[0];
+        if (item)
+            location.href = "/eg2/staff/booking/manage_reservations/by_resource/" + item.barcode;
+    }
+
 
     $scope.view_place_orders = function() {
         if (!$scope.record_id) return;
@@ -1307,12 +1309,32 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         ).result.then(function() {
             egCore.net.request(
                 'open-ils.cat',
-                'open-ils.cat.asset.volume.fleshed.batch.update.override',
+                'open-ils.cat.asset.volume.fleshed.batch.update',
                 egCore.auth.token(), cnList, 1, flags
-            ).then(function(update_count) {
-                holdingsSvcInst.fetchAgain().then(function() {
-                    $scope.holdingsGridDataProvider.refresh();
-                });
+            ).then(function(resp) {
+                var evt = egCore.evt.parse(resp);
+                if (evt) {
+                    egConfirmDialog.open(
+                        egCore.strings.OVERRIDE_DELETE_ITEMS_FROM_CATALOG_TITLE,
+                        egCore.strings.OVERRIDE_DELETE_ITEMS_FROM_CATALOG_BODY,
+                        {'evt_desc': evt.desc}
+                    ).result.then(function() {
+                        egCore.net.request(
+                            'open-ils.cat',
+                            'open-ils.cat.asset.volume.fleshed.batch.update.override',
+                            egCore.auth.token(), cnList, 1,
+                            { events: ['TITLE_LAST_COPY', 'COPY_DELETE_WARNING'] }
+                        ).then(function() {
+                            holdingsSvcInst.fetchAgain().then(function() {
+                                $scope.holdingsGridDataProvider.refresh();
+                            });
+                        });
+                    });
+                } else {
+                    holdingsSvcInst.fetchAgain().then(function() {
+                        $scope.holdingsGridDataProvider.refresh();
+                    });
+                }
             });
         });
     }
@@ -1671,12 +1693,26 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         });
     }
 
-    $scope.selectedHoldingsMissing = function () {
-        egCirc.mark_missing(gatherSelectedHoldingsIds()).then(function() {
-            holdingsSvcInst.fetchAgain().then(function() {
-                $scope.holdingsGridDataProvider.refresh();
+    $scope.selectedHoldingsDiscard = function () {
+        var copy_list = gatherSelectedRawCopies();
+        if (copy_list.length == 0) return;
+        egCirc.mark_discard(copy_list.map(function(cp) {
+            return {id: cp.id(), barcode: cp.barcode()};})).then(function() {
+                holdingsSvcInst.fetchAgain().then(function() {
+                    $scope.holdingsGridDataProvider.refresh();
+                });
             });
-        });
+    }
+
+    $scope.selectedHoldingsMissing = function () {
+        var copy_list = gatherSelectedRawCopies();
+        if (copy_list.length == 0) return;
+        egCirc.mark_missing(copy_list.map(function(cp) {
+            return {id: cp.id(), barcode: cp.barcode()};})).then(function() {
+                holdingsSvcInst.fetchAgain().then(function() {
+                    $scope.holdingsGridDataProvider.refresh();
+                });
+            });
     }
 
     $scope.selectedHoldingsCopyAlertsAdd = function() {
@@ -1767,7 +1803,9 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         };
 
         var order_by = [{ request_time : null }];
-        if (provider.sort && provider.sort.length) {
+        // NOTE: Server sort is disabled for now.  See the comment on
+        // similar code in circ/holds/app.js for details.
+        if (false && provider.sort && provider.sort.length) {
             order_by = [];
             angular.forEach(provider.sort, function (c) {
                 if (!angular.isObject(c)) {
@@ -1906,13 +1944,13 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
         // A record ID in the path indicates a request for the record-
         // specific page.
         if ($routeParams.record_id) {
-            url = url.replace(/advanced/, '/record/' + $scope.record_id);
+            url = url.replace(/\/advanced/, '/record/' + $scope.record_id);
         }
 
         // Jumping directly to the results page by passing a search
         // query via the URL.  Copy all URL params to the iframe url.
         if ($location.path().match(/catalog\/results/)) {
-            url = url.replace(/advanced/, '/results?');
+            url = url.replace(/\/advanced/, '/results?');
             var first = true;
             angular.forEach($location.search(), function(val, key) {
                 if (!first) url += '&';
@@ -1978,8 +2016,8 @@ function($scope , $routeParams , $location , $window , $q , egCore , egHolds , e
 
     var tab;
     if ($scope.record_id) {
-        $scope.default_tab = egCore.hatch.getLocalItem( 'eg.cat.default_record_tab' );
-        tab = $routeParams.record_tab || $scope.default_tab || 'catalog';
+        $scope.default_tab = get_default_record_tab();
+        tab = $routeParams.record_tab || $scope.default_tab;
 
     } else {
         tab = $routeParams.record_tab || 'catalog';

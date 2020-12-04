@@ -1,4 +1,4 @@
-import {Component, OnInit, Input,
+import {Component, OnInit, Input, ViewChild,
     Output, EventEmitter, TemplateRef} from '@angular/core';
 import {IdlService, IdlObject} from '@eg/core/idl.service';
 import {Observable} from 'rxjs';
@@ -6,8 +6,14 @@ import {map} from 'rxjs/operators';
 import {AuthService} from '@eg/core/auth.service';
 import {PcrudService} from '@eg/core/pcrud.service';
 import {DialogComponent} from '@eg/share/dialog/dialog.component';
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {ToastService} from '@eg/share/toast/toast.service';
+import {StringComponent} from '@eg/share/string/string.component';
+import {NgbModal, NgbModalOptions} from '@ng-bootstrap/ng-bootstrap';
 import {ComboboxEntry} from '@eg/share/combobox/combobox.component';
+import {FormatService} from '@eg/core/format.service';
+import {TranslateComponent} from '@eg/share/translate/translate.component';
+import {FmRecordEditorActionComponent} from './fm-editor-action.component';
+import {ConfirmDialogComponent} from '@eg/share/dialog/confirm.component';
 
 interface CustomFieldTemplate {
     template: TemplateRef<any>;
@@ -18,7 +24,7 @@ interface CustomFieldTemplate {
     context?: {[fields: string]: any};
 }
 
-interface CustomFieldContext {
+export interface CustomFieldContext {
     // Current create/edit/view record
     record: IdlObject;
 
@@ -35,7 +41,7 @@ export interface FmFieldOptions {
 
     // Render the field as a combobox using these values, regardless
     // of the field's datatype.
-    customValues?: {[field: string]: ComboboxEntry[]};
+    customValues?: ComboboxEntry[];
 
     // Provide / override the "selector" value for the linked class.
     // This is the field the combobox will search for typeahead.  If no
@@ -61,6 +67,11 @@ export interface FmFieldOptions {
     // This only has an affect if the value is true.
     isReadonly?: boolean;
 
+    // If this function is defined, the function will be called
+    // at render time to see if the field should be marked readonly.
+    // This supersedes all other isReadonly specifiers.
+    isReadonlyOverride?: (field: string, record: IdlObject) => boolean;
+
     // Render the field using this custom template instead of chosing
     // from the default set of form inputs.
     customTemplate?: CustomFieldTemplate;
@@ -78,15 +89,8 @@ export class FmRecordEditorComponent
     // IDL class hint (e.g. "aou")
     @Input() idlClass: string;
 
-    // mode: 'create' for creating a new record,
-    //       'update' for editing an existing record
-    //       'view' for viewing an existing record without editing
-    mode: 'create' | 'update' | 'view' = 'create';
-    recId: any;
-
-    // IDL record we are editing
-    // TODO: allow this to be update in real time by the caller?
-    record: IdlObject;
+    // Show datetime fields in this particular timezone
+    timezone: string = this.format.wsOrgTimezone;
 
     // Permissions extracted from the permacrud defs in the IDL
     // for the current IDL class
@@ -95,6 +99,9 @@ export class FmRecordEditorComponent
     // Collection of FmFieldOptions for specifying non-default
     // behaviour for each field (by field name).
     @Input() fieldOptions: {[fieldName: string]: FmFieldOptions} = {};
+
+    // This is used to set default values when making a new record
+    @Input() defaultNewRecord: IdlObject;
 
     // list of fields that should not be displayed
     @Input() hiddenFieldsList: string[] = [];
@@ -109,6 +116,10 @@ export class FmRecordEditorComponent
     @Input() requiredFieldsList: string[] = [];
     @Input() requiredFields: string; // comma-separated string version
 
+    // list of timestamp fields that should display with a timepicker
+    @Input() datetimeFieldsList: string[] = [];
+    @Input() datetimeFields: string; // comma-separated string version
+
     // list of org_unit fields where a default value may be applied by
     // the org-select if no value is present.
     @Input() orgDefaultAllowedList: string[] = [];
@@ -121,14 +132,29 @@ export class FmRecordEditorComponent
     // for all combobox fields.  See also FmFieldOptions.
     @Input() preloadLinkedValues: boolean;
 
+    // Display within a modal dialog window or inline in the page.
+    @Input() displayMode: 'dialog' | 'inline' = 'dialog';
+
+    // Hide the top 'Record Editor: ...' banner.  Primarily useful
+    // for displayMode === 'inline'
+    @Input() hideBanner: boolean;
+
     // Emit the modified object when the save action completes.
-    @Output() onSave$ = new EventEmitter<IdlObject>();
+    @Output() recordSaved = new EventEmitter<IdlObject>();
+
+    // Emit the modified object when the save action completes.
+    @Output() recordDeleted = new EventEmitter<IdlObject>();
 
     // Emit the original object when the save action is canceled.
-    @Output() onCancel$ = new EventEmitter<IdlObject>();
+    @Output() recordCanceled = new EventEmitter<IdlObject>();
 
     // Emit an error message when the save action fails.
-    @Output() onError$ = new EventEmitter<string>();
+    @Output() recordError = new EventEmitter<string>();
+
+    @ViewChild('translator', { static: true }) private translator: TranslateComponent;
+    @ViewChild('successStr', { static: true }) successStr: StringComponent;
+    @ViewChild('failStr', { static: true }) failStr: StringComponent;
+    @ViewChild('confirmDel', { static: true }) confirmDel: ConfirmDialogComponent;
 
     // IDL info for the the selected IDL class
     idlDef: any;
@@ -143,20 +169,75 @@ export class FmRecordEditorComponent
     // DOM id prefix to prevent id collisions.
     idPrefix: string;
 
-    @Input() editMode(mode: 'create' | 'update' | 'view') {
-        this.mode = mode;
+    // mode: 'create' for creating a new record,
+    //       'update' for editing an existing record
+    //       'view' for viewing an existing record without editing
+    @Input() mode: 'create' | 'update' | 'view' = 'create';
+
+    // custom function for munging the record before it gets saved;
+    // will get passed mode and the record itself
+    @Input() preSave: Function;
+
+    // recordId and record getters and setters.
+    // Note that setting the this.recordId to NULL does not clear the
+    // current value of this.record and vice versa.  Only viable data
+    // is actionable.  This allows the caller to use both @Input()'s
+    // without each clobbering the other.
+
+    // Record ID to view/update.
+    _recordId: any = null;
+    @Input() set recordId(id: any) {
+        if (id) {
+            if (id !== this._recordId) {
+                this._recordId = id;
+                this._record = null; // force re-fetch
+                this.handleRecordChange();
+            }
+        } else {
+            this._recordId = null;
+        }
     }
 
-    // Record ID to view/update.  Value is dynamic.  Records are not
-    // fetched until .open() is called.
-    @Input() set recordId(id: any) {
-        if (id) { this.recId = id; }
+    get recordId(): any {
+        return this._recordId;
     }
+
+    // IDL record we are editing
+    _record: IdlObject = null;
+    @Input() set record(r: IdlObject) {
+        if (r) {
+            if (!this.idl.pkeyMatches(this.record, r)) {
+                this._record = r;
+                this._recordId = null; // avoid mismatch
+                this.handleRecordChange();
+            }
+        } else {
+            this._record = null;
+        }
+    }
+
+    get record(): IdlObject {
+        return this._record;
+    }
+
+    actions: FmRecordEditorActionComponent[] = [];
+
+    initDone: boolean;
+
+    // Comma-separated list of field names defining the order in which
+    // fields should be rendered in the form.  Any fields not represented
+    // will be rendered alphabetically by label after the named fields.
+    @Input() fieldOrder: string;
+
+    // When true, show a delete button and support delete operations.
+    @Input() showDelete: boolean;
 
     constructor(
       private modal: NgbModal, // required for passing to parent
       private idl: IdlService,
       private auth: AuthService,
+      private toast: ToastService,
+      private format: FormatService,
       private pcrud: PcrudService) {
       super(modal);
     }
@@ -164,6 +245,10 @@ export class FmRecordEditorComponent
     // Avoid fetching data on init since that may lead to unnecessary
     // data retrieval.
     ngOnInit() {
+
+        // In case the caller sets the value to null / undef.
+        if (!this.fieldOptions) { this.fieldOptions = {}; }
+
         this.listifyInputs();
         this.idlDef = this.idl.classes[this.idlClass];
         this.recordLabel = this.idlDef.label;
@@ -171,7 +256,45 @@ export class FmRecordEditorComponent
         // Add some randomness to the generated DOM IDs to ensure against clobbering
         this.idPrefix = 'fm-editor-' + Math.floor(Math.random() * 100000);
 
-        this.onOpen$.subscribe(() => this.initRecord());
+        if (this.isDialog()) {
+            this.onOpen$.subscribe(() => this.initRecord());
+        } else {
+            this.initRecord();
+        }
+        this.initDone = true;
+    }
+
+    // If the record ID changes after ngOnInit has been called
+    // and we're using displayMode=inline, force the data to
+    // resync in real time
+    handleRecordChange() {
+        if (this.initDone && !this.isDialog()) {
+            this.initRecord();
+        }
+    }
+
+    open(args?: NgbModalOptions): Observable<any> {
+        if (!args) {
+            args = {};
+        }
+        // ensure we don't hang on to our copy of the record
+        // if the user dismisses the dialog
+        args.beforeDismiss = () => {
+            this.record = undefined;
+            return true;
+        };
+        return super.open(args);
+    }
+
+    isDialog(): boolean {
+        return this.displayMode === 'dialog';
+    }
+
+    // DEPRECATED: This is a duplicate of this.record = abc;
+    setRecord(record: IdlObject) {
+        console.warn('fm-editor:setRecord() is deprecated. ' +
+            'Use editor.record = abc or [record]="abc" instead');
+        this.record = record; // this calls the setter
     }
 
     // Translate comma-separated string versions of various inputs
@@ -185,6 +308,9 @@ export class FmRecordEditorComponent
         }
         if (this.requiredFields) {
             this.requiredFieldsList = this.requiredFields.split(/,/);
+        }
+        if (this.datetimeFields) {
+            this.datetimeFieldsList = this.datetimeFields.split(/,/);
         }
         if (this.orgDefaultAllowed) {
             this.orgDefaultAllowedList = this.orgDefaultAllowed.split(/,/);
@@ -200,27 +326,51 @@ export class FmRecordEditorComponent
             update: pc.update ? pc.update.perms : [],
         };
 
+        this.pkeyIsEditable = !('pkey_sequence' in this.idlDef);
+
         if (this.mode === 'update' || this.mode === 'view') {
-            return this.pcrud.retrieve(this.idlClass, this.recId)
-            .toPromise().then(rec => {
+
+            let promise;
+            if (this.record && this.recordId === null) {
+                promise = Promise.resolve(this.record);
+            } else if (this.recordId) {
+                promise =
+                    this.pcrud.retrieve(this.idlClass, this.recordId).toPromise();
+            } else {
+                // Not enough data yet to fetch anything
+                return Promise.resolve();
+            }
+
+            return promise.then(rec => {
 
                 if (!rec) {
                     return Promise.reject(`No '${this.idlClass}'
-                        record found with id ${this.recId}`);
+                        record found with id ${this.recordId}`);
                 }
 
-                this.record = rec;
+                // Set this._record (not this.record) to avoid loop in initRecord()
+                this._record = rec;
                 this.convertDatatypesToJs();
                 return this.getFieldList();
             });
         }
 
-        // create a new record from scratch or from a stub record
-        // provided by the caller.
-        this.pkeyIsEditable = !('pkey_sequence' in this.idlDef);
+        // In 'create' mode.
+        //
+        // Create a new record from the stub record provided by the
+        // caller or a new from-scratch record
         if (!this.record) {
-            this.record = this.idl.create(this.idlClass);
+            // NOTE: Set this._record (not this.record) to avoid
+            // loop in initRecord()
+            if (this.defaultNewRecord) {
+                // Clone to avoid polluting the stub record
+                this._record = this.idl.clone(this.defaultNewRecord);
+            } else {
+                this._record = this.idl.create(this.idlClass);
+            }
         }
+        this._recordId = null; // avoid future confusion
+
         return this.getFieldList();
     }
 
@@ -241,7 +391,8 @@ export class FmRecordEditorComponent
     // Modifies the provided FM record in place, replacing JS values
     // with IDL-compatible values.
     convertDatatypesToIdl(rec: IdlObject) {
-        const fields = this.idlDef.fields;
+        const fields = this.idlDef.fields.filter(f => !f.virtual);
+
         fields.forEach(field => {
             if (field.datatype === 'bool') {
                 if (rec[field.name]() === true) {
@@ -259,24 +410,13 @@ export class FmRecordEditorComponent
         });
     }
 
-    // Returns the name of the field on a class (typically via a linked
-    // field) that acts as the selector value for display / search.
-    getClassSelector(class_: string): string {
-        if (class_) {
-            const linkedClass = this.idl.classes[class_];
-            return linkedClass.pkey ?
-                linkedClass.field_map[linkedClass.pkey].selector : null;
-        }
-        return null;
-    }
-
     private flattenLinkedValues(field: any, list: IdlObject[]): ComboboxEntry[] {
         const class_ = field.class;
         const fieldOptions = this.fieldOptions[field.name] || {};
         const idField = this.idl.classes[class_].pkey;
 
         const selector = fieldOptions.linkedSearchField
-            || this.getClassSelector(class_) || idField;
+            || this.idl.getClassSelector(class_) || idField;
 
         return list.map(item => {
             return {id: item[idField](), label: item[selector]()};
@@ -285,13 +425,35 @@ export class FmRecordEditorComponent
 
     private getFieldList(): Promise<any> {
 
-        this.fields = this.idlDef.fields.filter(f =>
-            !f.virtual && !this.hiddenFieldsList.includes(f.name)
-        );
+        const fields = this.idlDef.fields.filter(f =>
+            !f.virtual && !this.hiddenFieldsList.includes(f.name));
 
         // Wait for all network calls to complete
         return Promise.all(
-            this.fields.map(field => this.constructOneField(field)));
+            fields.map(field => this.constructOneField(field))
+
+        ).then(() => {
+
+            if (!this.fieldOrder) {
+                this.fields = fields.sort((a, b) => a.label < b.label ? -1 : 1);
+                return;
+            }
+
+            let newList = [];
+            const ordered = this.fieldOrder.split(/,/);
+
+            ordered.forEach(name => {
+                const f1 = fields.filter(f2 => f2.name === name)[0];
+                if (f1) { newList.push(f1); }
+            });
+
+            // Sort remaining fields by label
+            const remainder = fields.filter(f => !ordered.includes(f.name));
+            remainder.sort((a, b) => a.label < b.label ? -1 : 1);
+            newList = newList.concat(remainder);
+
+            this.fields = newList;
+        });
     }
 
     private constructOneField(field: any): Promise<any> {
@@ -299,9 +461,15 @@ export class FmRecordEditorComponent
         let promise = null;
         const fieldOptions = this.fieldOptions[field.name] || {};
 
-        field.readOnly = this.mode === 'view'
-            || fieldOptions.isReadonly === true
-            || this.readonlyFieldsList.includes(field.name);
+        if (this.mode === 'view') {
+            field.readOnly = true;
+        } else if (fieldOptions.isReadonlyOverride) {
+            field.readOnly =
+                !fieldOptions.isReadonlyOverride(field.name, this.record);
+        } else {
+            field.readOnly = fieldOptions.isReadonly === true
+                || this.readonlyFieldsList.includes(field.name);
+        }
 
         if (fieldOptions.isRequiredOverride) {
             field.isRequired = () => {
@@ -331,7 +499,7 @@ export class FmRecordEditorComponent
                 // field.  Otherwise, avoid the network lookup and let the
                 // bare value (usually an ID) be displayed.
                 const selector = fieldOptions.linkedSearchField ||
-                    this.getClassSelector(field.class);
+                    this.idl.getClassSelector(field.class);
 
                 if (selector && selector !== field.name) {
                     promise = this.pcrud.retrieve(field.class, idToFetch)
@@ -349,6 +517,8 @@ export class FmRecordEditorComponent
 
             promise = this.wireUpCombobox(field);
 
+        } else if (field.datatype === 'timestamp') {
+            field.datetime = this.datetimeFieldsList.includes(field.name);
         } else if (field.datatype === 'org_unit') {
             field.orgDefaultAllowed =
                 this.orgDefaultAllowedList.includes(field.name);
@@ -374,7 +544,7 @@ export class FmRecordEditorComponent
         }
 
         const selector = fieldOptions.linkedSearchField ||
-            this.getClassSelector(field.class);
+            this.idl.getClassSelector(field.class);
 
         if (!selector && !fieldOptions.preloadLinkedValues) {
             // User probably expects an async data source, but we can't
@@ -438,14 +608,51 @@ export class FmRecordEditorComponent
 
     save() {
         const recToSave = this.idl.clone(this.record);
+        if (this.preSave) {
+            this.preSave(this.mode, recToSave);
+        }
         this.convertDatatypesToIdl(recToSave);
         this.pcrud[this.mode]([recToSave]).toPromise().then(
-            result => this.close(result),
-            error  => this.error(error)
+            result => {
+                this.recordSaved.emit(result);
+                this.successStr.current().then(msg => this.toast.success(msg));
+                if (this.isDialog()) { this.record = undefined; this.close(result); }
+            },
+            error => {
+                this.recordError.emit(error);
+                this.failStr.current().then(msg => this.toast.warning(msg));
+                if (this.isDialog()) { this.error(error); }
+            }
         );
     }
 
+    remove() {
+        this.confirmDel.open().subscribe(confirmed => {
+            if (!confirmed) { return; }
+            const recToRemove = this.idl.clone(this.record);
+            this.pcrud.remove(recToRemove).toPromise().then(
+                result => {
+                    this.recordDeleted.emit(result);
+                    this.successStr.current().then(msg => this.toast.success(msg));
+                    if (this.isDialog()) { this.close(result); }
+                },
+                error => {
+                    this.recordError.emit(error);
+                    this.failStr.current().then(msg => this.toast.warning(msg));
+                    if (this.isDialog()) { this.error(error); }
+                }
+            );
+        });
+    }
+
     cancel() {
+        this.recordCanceled.emit(this.record);
+        this.record = undefined;
+        this.close();
+    }
+
+    closeEditor() {
+        this.record = undefined;
         this.close();
     }
 
@@ -459,6 +666,10 @@ export class FmRecordEditorComponent
             return 'template';
         }
 
+        if ( field.datatype === 'timestamp' && field.datetime ) {
+            return 'timestamp-timepicker';
+        }
+
         // Some widgets handle readOnly for us.
         if (   field.datatype === 'timestamp'
             || field.datatype === 'org_unit'
@@ -469,6 +680,10 @@ export class FmRecordEditorComponent
         if (field.readOnly) {
             if (field.datatype === 'money') {
                 return 'readonly-money';
+            }
+
+            if (field.datatype === 'link' && field.class === 'au') {
+                return 'readonly-au';
             }
 
             if (field.datatype === 'link' || field.linkedValues) {
@@ -495,6 +710,18 @@ export class FmRecordEditorComponent
         // datatype == text / interval / editable-pkey
         return 'text';
     }
-}
 
+    openTranslator(field: string) {
+        this.translator.fieldName = field;
+        this.translator.idlObject = this.record;
+
+        this.translator.open().subscribe(
+            newValue => {
+                if (newValue) {
+                    this.record[field](newValue);
+                }
+            }
+        );
+    }
+}
 

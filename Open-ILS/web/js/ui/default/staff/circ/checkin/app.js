@@ -41,13 +41,16 @@ function($scope , $q , $window , $location , $timeout , egCore , checkinSvc , eg
     $scope.checkins = checkinSvc.checkins;
     var today = new Date();
     $scope.checkinArgs = {backdate : today}
-    $scope.using_hatch_printer = egCore.hatch.usePrinting();
     $scope.modifiers = {};
     $scope.fine_total = 0;
     $scope.is_capture = $location.path().match(/capture$/);
     var suppress_popups = false;
     $scope.grid_persist_key = $scope.is_capture ? 
         'circ.checkin.capture' : 'circ.checkin.checkin';
+
+    egCore.hatch.usePrinting().then(function(useHatch) {
+        $scope.using_hatch_printer = useHatch;
+    });
 
     // TODO: add this to the setting batch lookup below
     egCore.hatch.getItem('circ.checkin.strict_barcode')
@@ -335,6 +338,20 @@ function($scope , $q , $window , $location , $timeout , egCore , checkinSvc , eg
             }
         });
 
+    }
+
+    $scope.showMarkDiscard = function(items) {
+        var copies = [];
+        angular.forEach(items, function(item) {
+            if (item.acp) {
+                copies.push(egCore.idl.toHash(item.acp));
+            }
+        });
+        if (copies.length) {
+            egCirc.mark_discard(copies).then(function() {
+                // update grid items?
+            });
+        }
     }
 
     $scope.abortTransit = function(items) {

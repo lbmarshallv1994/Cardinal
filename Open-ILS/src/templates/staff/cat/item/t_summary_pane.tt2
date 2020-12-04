@@ -4,6 +4,14 @@
     [% l('This item has been marked as Deleted.') %]
   </div>
 
+  <div class="flex-row" ng-if="copy.dummy_title() || copy.dummy_author()">
+    <div class="flex-cell" ng-if="copy.dummy_title()">[% l('Precat Title') %]</div>
+    <div class="flex-cell well" ng-if="copy.dummy_title()">{{copy.dummy_title()}}</div>
+    
+    <div class="flex-cell" ng-if="copy.dummy_author()">[% l('Precat Author') %]</div>
+    <div class="flex-cell well" ng-if="copy.dummy_author()">{{copy.dummy_author()}}</div>
+  </div>
+
   <div class="flex-row">
     <div class="flex-cell">[% l('Barcode') %]</div>
     <div class="flex-cell well">{{copy.barcode()}}</div>
@@ -53,13 +61,13 @@
     </div>
 
     <div class="flex-cell">[% l('Checkout Date') %]</div>
-    <div class="flex-cell well">{{circ.xact_start() | date:egDateAndTimeFormat}}</div>
+    <div class="flex-cell well">{{circ_summary.start_time() | date:egDateAndTimeFormat}}</div>
   </div>
 
   <div class="flex-row">
     <div class="flex-cell">[% l('ISBN') %]</div>
     <div class="flex-cell well">
-      {{copy.call_number().record().simple_record().isbn()}}
+      {{copy.call_number().record().simple_record().isbn() || copy.dummy_isbn()}}
     </div>
 
     <div class="flex-cell">[% l('Loan Duration') %]</div>
@@ -74,10 +82,11 @@
       <div ng-if="circ.opac_renewal() == 't'">[% l('OPAC') %]</div>
       <div ng-if="circ.desk_renewal() == 't'">[% l('Desk') %]</div>
       <div ng-if="circ.phone_renewal() == 't'">[% l('Phone') %]</div>
+      <div ng-if="circ.auto_renewal() == 't'">[% l('Automatic') %]</div>
     </div>
 
     <div class="flex-cell">[% l('Checkout Workstation') %]</div>
-    <div class="flex-cell well">{{circ.workstation().name()}}</div>
+    <div class="flex-cell well">{{circ_summary.checkout_workstation()}}</div>
   </div>
 
   <div class="flex-row">

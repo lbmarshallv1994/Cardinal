@@ -16,7 +16,8 @@ function(egCore , $q) {
         flesh : 3,
         flesh_fields : {
             acp : ['status','location','circ_lib','parts','age_protect','copy_alerts', 'latest_inventory'],
-            acn : ['prefix','suffix','copies'],
+            acn : ['prefix','suffix','copies','label_class','record'],
+            bre : ['simple_record'],
             alci : ['inventory_workstation']
         }
     }
@@ -87,6 +88,43 @@ function(egCore , $q) {
                     }
                 });
 
+                if (empty_org) {
+
+                    var empty_org_list = [];
+                    angular.forEach(svc.org_use_map,function(v,k){
+                        if (v == 0) empty_org_list.push(k);
+                    });
+
+                    angular.forEach(empty_org_list, function (oid) {
+                        var owner = egCore.org.get(oid);
+                        if (owner.ou_type().can_have_vols() != 't') return;
+
+                        var owner_list = [];
+                        while (owner.parent_ou()) { // we're going to skip the top of the tree...
+                            owner_list.unshift(owner.shortname());
+                            owner = egCore.org.get(owner.parent_ou());
+                        }
+
+                        var owner_label = owner_list.join(' ... ');
+
+                        svc.copies.push({
+                            index      : index++,
+                            id_list    : [],
+                            call_number: { label : '' },
+                            barcode    : '',
+                            owner_id   : oid,
+                            owner_list : owner_list,
+                            owner_label: owner_label,
+                            copy_count : 0,
+                            cn_count   : 0,
+                            copy_alert_count : 0
+                        });
+                    });
+                }
+
+                svc.ongoing = false;
+
+
                 svc.copies = svc.copies.sort(
                     function (a, b) {
                         function compare_array (x, y, i) {
@@ -130,13 +168,34 @@ function(egCore , $q) {
                     }
                 );
 
-                // create virtual field for copy alert count
+                // create virtual fields for copy alert count and most recent circ
                 angular.forEach(svc.copies, function (cp) {
                     if (cp.copy_alerts) {
                         cp.copy_alert_count = cp.copy_alerts.filter(function(aca) { return aca.ack_time == null ;}).length;
                     }
                     else cp.copy_alert_count = 0;
                 });
+
+                // Grab the open circulation (i.e. checkin_time=null) for
+                // all of the copies we're rendering so we can display
+                // due date info.  There should only ever be one circulation
+                // at most with checkin_time=null for any copy.
+                var copyIds = svc.copies.map(function(cp) {return cp.id})
+                    .filter(function(id) {return Boolean(id)}); // avoid nulls
+
+                egCore.pcrud.search('circ', 
+                    {target_copy: copyIds, checkin_time: null}
+                ).then(
+                    null, // complete
+                    null, // error
+                    function(circ) {
+                        var cp = svc.copies.filter(function(c) { 
+                            return c.id == circ.target_copy() })[0];
+                        cp._circ = egCore.idl.toHash(circ, true);
+                        cp._circ_lib = circ.circ_lib();
+                        cp._duration = circ.duration();
+                    }
+                );
 
                 // create a label using just the unique part of the owner list
                 var index = 0;
@@ -253,40 +312,6 @@ function(egCore , $q) {
                         new_list = cn_list;
     
                     }
-                }
-
-                if (empty_org) {
-
-                    var empty_org_list = [];
-                    angular.forEach(svc.org_use_map,function(v,k){
-                        if (v == 0) empty_org_list.push(k);
-                    });
-
-                    angular.forEach(empty_org_list, function (oid) {
-                        var owner = egCore.org.get(oid);
-                        if (owner.ou_type().can_have_vols() != 't') return;
-
-                        var owner_list = [];
-                        while (owner.parent_ou()) { // we're going to skip the top of the tree...
-                            owner_list.unshift(owner.shortname());
-                            owner = egCore.org.get(owner.parent_ou());
-                        }
-
-                        var owner_label = owner_list.join(' ... ');
-
-                        new_list.push({
-                            index      : index++,
-                            id_list    : [],
-                            call_number: { label : '' },
-                            barcode    : '',
-                            owner_id   : oid,
-                            owner_list : owner_list,
-                            owner_label: owner_label,
-                            copy_count : 0,
-                            cn_count   : 0,
-                            copy_alert_count : 0
-                        });
-                    });
                 }
 
                 svc.copies = new_list;
@@ -436,4 +461,5 @@ function(egCore , $q) {
             }]
     }
 })
+.filter('string_pick', function() { return function(i){ return arguments[i] || ''; }; })
 ;

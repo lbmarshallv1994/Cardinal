@@ -19,7 +19,7 @@
   </a> 
 </ng-template>
 
-<eg-grid #grid [dataSource]="gridSource"
+<eg-grid #grid [dataSource]="gridSource" [cellTextGenerator]="cellTextGenerator"
   persistKey="cat.vandelay.match_set.list"
   idlClass="vms" [dataSource]="queueSource">
   <eg-grid-toolbar-button label="New Match Set" i18n-label [action]="createNew">
