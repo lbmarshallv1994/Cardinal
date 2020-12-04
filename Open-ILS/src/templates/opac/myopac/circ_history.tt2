@@ -35,7 +35,7 @@
         no_next = ctx.circs.size < limit;
     END;
     %]
-
+    [% # TODO ADD BOOTSTRAP PAGINATION %]
     <div class="header_middle">
         <span class="float-left">[% l('Previously Checked Out Items') %]</span>
         <span class='float-left' style='padding-left: 10px;'>
@@ -51,7 +51,7 @@
                     [%- INCLUDE "opac/parts/preserve_params.tt2" %]
                     [% IF ctx.circs.size > 0 %]
                     <input type="hidden" name="filename" value="[% l('circ_history.csv') %]"/>
-                    <button type="submit">[% l('Download CSV') %]</button>
+                    <button class="opac-button" type="submit">[% l('Download CSV') %]</button>
                     [% END %]
                 </div>
             </form>
