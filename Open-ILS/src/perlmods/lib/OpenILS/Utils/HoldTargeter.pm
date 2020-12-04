@@ -1051,6 +1051,7 @@ sub find_nearest_copy {
 
     for my $prox (sort {$a <=> $b} keys %prox_map) {
         my %distance_matrix;
+        my %hub_by_target;
         my @copies = @{$prox_map{$prox}};
         next unless @copies;
         # run vicinity calculator if proximity is greater than or equal to 3
@@ -1060,7 +1061,7 @@ sub find_nearest_copy {
             }
             my @copy_ids = map {$_->{id}} @copies;
             # determine which shipping hub OU these copies would need to be sent to
-            my %hub_by_target = $vinc_calc->get_target_hubs(\@copy_ids);
+            %hub_by_target = $vinc_calc->get_target_hubs(\@copy_ids);
             my @hubs = values(%hub_by_target);
             %distance_matrix =  $vinc_calc->hub_matrix($req_hub,\@hubs);
         }
