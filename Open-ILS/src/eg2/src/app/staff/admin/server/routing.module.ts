@@ -30,6 +30,11 @@ const routes: Routes = [{
     data: [{schema: 'actor',
         table: 'org_unit_proximity_adjustment', disableOrgFilter: true}]
 }, {
+    path: 'actor/org_unit_shipping_hub_distance',
+    component: BasicAdminPageComponent,
+    data: [{schema: 'actor',
+        table: 'org_unit_shipping_hub_distance', disableOrgFilter: true}]
+}, {
     path: 'asset/call_number_prefix',
     component: BasicAdminPageComponent,
     data: [{schema: 'asset',
