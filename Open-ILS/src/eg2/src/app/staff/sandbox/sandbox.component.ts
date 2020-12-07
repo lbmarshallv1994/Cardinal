@@ -328,11 +328,6 @@ export class SandboxComponent implements OnInit {
         alert('I know, right?');
     }
 
-    // Example of click handler for row action
-    complimentEvergreen2(rows: IdlObject[]) {
-        alert('I know, right?');
-    }
-
     openEditor() {
         this.fmRecordEditor.open({size: 'lg'}).subscribe(
             pcrudResult => console.debug('Record editor performed action'),

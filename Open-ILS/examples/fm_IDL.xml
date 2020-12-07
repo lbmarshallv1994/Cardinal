@@ -3893,7 +3893,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 			<link field="name" reltype="has_a" key="name" map="" class="coust"/>
 		</links>
 	</class>
-    <class id="aoushd" controller="open-ils.cstore" oils_obj:fieldmapper="actor::org_unit_shipping_hub_distance" oils_persist:tablename="actor.org_unit_shipping_hub_distance" reporter:label="Organizational Unit Shipping Hub Distance">
+    <class id="aoushd" controller="open-ils.cstore open-ils.pcrud" oils_obj:fieldmapper="actor::org_unit_shipping_hub_distance" oils_persist:tablename="actor.org_unit_shipping_hub_distance" reporter:label="Organizational Unit Shipping Hub Distance">
 		<fields oils_persist:primary="id" oils_persist:sequence="actor.org_unit_shipping_hub_distance_id_seq">
 			<field name="id" />
 			<field name="orig_hub" reporter:datatype="org_unit"/>
