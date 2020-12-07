@@ -76,17 +76,8 @@ __PACKAGE__->register_method(
 
 sub get_distance_between_shipping_hubs {
     my ($self, $origin_hub, $dest_hub) = @_;
-    my @d = $self->{editor}->json_query({
-        select => {'aoushd' => [{column => 'distance'}]},
-        from => 'aoushd',
-        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>[$dest_hub]}
-    });
-    for my $ref (@d) {
-        for (@$ref){
-            return $_->{distance};
-        }
-    }
-    $logger->error("OU $origin_hub has no calculation to OU $dest_hub. open-ils.vicinity-calculator.build-distance-matrix must be run!");
-    return undef;
+    my $calculator = OpenILS::Utils::VicinityCalculator::Matrix->new();
+    $logger->info("calculating org unit shipping hub distances");
+    return $calculator->distance_between_hubs($origin_hub,$dest_hub);  
 }
 1;
