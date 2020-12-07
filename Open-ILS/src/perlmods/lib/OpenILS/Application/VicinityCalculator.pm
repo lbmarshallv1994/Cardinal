@@ -30,8 +30,40 @@ sub build_distance_matrix{
    if($key == undef || $key == ''){
    $logger->error("No Maps API key has been set up in opensrf xml.");  
    }
+   else{
    my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
    $calculator->calculate_distance_matrix();
+   }
+}
+
+__PACKAGE__->register_method(
+    method    => 'get_all_hubs',
+    api_name  => 'open-ils.vicinity-calculator.shipping-hubs.retrieve',
+    signature => {
+        desc     => q/Retrieve a list of all shipping hubs/,
+    }
+);
+
+sub get_all_hubs{
+   my ($self) = @_;
+   my $calculator = OpenILS::Utils::VicinityCalculator->new();
+   $logger->info("retreiving org unit shipping hubs");
+   return $calculator->get_all_hubs();    
+}
+
+__PACKAGE__->register_method(
+    method    => 'get_hub_from_ou',
+    api_name  => 'open-ils.vicinity-calculator.shipping-hub.retrieve',
+    signature => {
+        desc     => q/Retrieve a shipping hub from a given OU/,
+    }
+);
+
+sub get_hub_from_ou{
+   my ($self, $org_unit) = @_;
+   my $calculator = OpenILS::Utils::VicinityCalculator::Matrix->new();
+   $logger->info("retreiving org unit shipping hubs");
+   return $calculator->get_hub_from_ou($org_unit);    
 }
 
 1;

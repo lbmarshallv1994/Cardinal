@@ -1056,7 +1056,8 @@ sub find_nearest_copy {
         next unless @copies;
         # run vicinity calculator if proximity is greater than or equal to 3
         unless($prox < 3){
-            unless($req_hub){         
+            unless($req_hub){  
+                # assigning the shipping hub for this hold
                 $req_hub = $vinc_calc->get_hub_from_ou($hold->pickup_lib);
             }
             my @copy_ids = map {$_->{id}} @copies;
@@ -1087,6 +1088,7 @@ sub find_nearest_copy {
             # TODO what happens if two hubs are the same distance away from home hub?
             # TODO should we round distances so two hubs don't always choose from one another?
             for my $c (sort { $distance_matrix{$hub_by_target{$a->{id}}} <=> $distance_matrix{$hub_by_target{$b->{id}}} } @copies){
+                $self->log_hold("VicinityCalculator - Copy: ".$c->{id}." Shipping Hub:".$hub_by_target{$c->{id}}. "Physical Distance: ".$distance_matrix{$hub_by_target{$c->{id}}});
                 next if $seen{$c->{id}};
                 return $c if $self->copy_is_permitted($c);
                 $seen{$c->{id}} = 1;
