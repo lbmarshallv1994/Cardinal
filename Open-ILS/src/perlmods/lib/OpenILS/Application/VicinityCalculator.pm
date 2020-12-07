@@ -66,4 +66,27 @@ sub get_hub_from_ou{
    return $calculator->get_hub_from_ou($org_unit);    
 }
 
+__PACKAGE__->register_method(
+    method    => 'get_distance_between_shipping_hubs',
+    api_name  => 'open-ils.vicinity-calculator.shipping-hubs.distance',
+    signature => {
+        desc     => q/Retrieve the distance between two shipping hubs/,
+    }
+);
+
+sub get_distance_between_shipping_hubs {
+    my ($self, $origin_hub, $dest_hub) = @_;
+    my @d = $self->{editor}->json_query({
+        select => {'aoushd' => [{column => 'distance'}]},
+        from => 'aoushd',
+        where => {'orig_hub'=>[$origin_hub],'dest_hub'=>[$dest_hub]}
+    });
+    for my $ref (@d) {
+        for (@$ref){
+            return $_->{distance};
+        }
+    }
+    $logger->error("OU $origin_hub has no calculation to OU $dest_hub. open-ils.vicinity-calculator.build-distance-matrix must be run!");
+    return undef;
+}
 1;
