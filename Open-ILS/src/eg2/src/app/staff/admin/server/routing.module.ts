@@ -2,7 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {AdminServerSplashComponent} from './admin-server-splash.component';
 import {BasicAdminPageComponent} from '@eg/staff/admin/basic-admin-page.component';
-import {OrgUnitShippingHubDistanceComponent} from '@eg/staff/admin/server/org-unit-shipping-hub-distance.component';
+import {OrgUnitShippingHubDistanceComponent} from './org-unit-shipping-hub-distance.component';
 import {OrgUnitTypeComponent} from './org-unit-type.component';
 import {PrintTemplateComponent} from './print-template.component';
 import {PermGroupTreeComponent} from './perm-group-tree.component';
