@@ -2,6 +2,7 @@ import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
 import {AdminServerSplashComponent} from './admin-server-splash.component';
 import {BasicAdminPageComponent} from '@eg/staff/admin/basic-admin-page.component';
+import {OrgUnitShippingHubDistanceComponent} from '@eg/staff/admin/server/org-unit-shipping-hub-distance.component';
 import {OrgUnitTypeComponent} from './org-unit-type.component';
 import {PrintTemplateComponent} from './print-template.component';
 import {PermGroupTreeComponent} from './perm-group-tree.component';
@@ -31,7 +32,7 @@ const routes: Routes = [{
         table: 'org_unit_proximity_adjustment', disableOrgFilter: true}]
 }, {
     path: 'actor/org_unit_shipping_hub_distance',
-    component: BasicAdminPageComponent,
+    component: OrgUnitShippingHubDistanceComponent,
     data: [{schema: 'actor',
         table: 'org_unit_shipping_hub_distance'}]
 }, {
