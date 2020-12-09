@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {IdlService} from '@eg/core/idl.service';
+import {NetService} from '@eg/core/net.service';
 
 /**
  * Generic IDL class editor page.
@@ -12,7 +13,8 @@ import {IdlService} from '@eg/core/idl.service';
       </eg-title>
       <eg-staff-banner bannerText="{{classLabel}} Configuration" i18n-bannerText>
       </eg-staff-banner>
-      <button (click)="calculateDistances()">Calculate with API</button>
+      <button class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
+      <br>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
         configLinkBasePath="{{configLinkBasePath}}"
         readonlyFields="{{readonlyFields}}"
@@ -33,7 +35,8 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
 
     constructor(
         private route: ActivatedRoute,
-        private idl: IdlService
+        private idl: IdlService,
+        private net: NetService
     ) {
     }
 
@@ -94,7 +97,13 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
     }
     
     calculateDistances(){
-    alert("wowww I can't believe you actually clicked this.");
+            this.net.request(
+                'open-ils.vicinity-calculator',
+                'open-ils.vicinity-calculator.build-distance-matrix'
+            ).subscribe(
+                n => alert("success!"),
+                err  => console.warn('Failure!! ' + err)
+            );
     }
 }
 

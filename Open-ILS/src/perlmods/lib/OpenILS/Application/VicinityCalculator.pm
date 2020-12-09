@@ -10,11 +10,6 @@ use OpenSRF::Utils::Logger qw(:logger);
 __PACKAGE__->register_method(
     method    => 'build_distance_matrix',
     api_name  => 'open-ils.vicinity-calculator.build-distance-matrix',
-    api_level => 1,
-    argc      => 1,
-    stream    => 1,
-    # Caller is given control over how often to receive responses.
-    max_chunk_size => 0,
     signature => {
         desc     => q/Batch calculation of shipping hub distance matrix./,
         return => {desc => 'See API Options for return types'}
