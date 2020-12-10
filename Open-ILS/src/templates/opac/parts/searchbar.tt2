@@ -32,7 +32,7 @@ END;
 <div id="search-wrapper" class="pc-only">
 
     [% UNLESS took_care_of_form -%]
-    <form action="[% ctx.opac_root %]/results" method="get">
+    <form id="desktop-search" action="[% ctx.opac_root %]/results" method="get">
     [%- END %]
     [% IF ctx.page == 'rresult' && ctx.metarecord && search.metarecord_default %]
     <input type="hidden" name="modifier" value="metabib"/>
@@ -97,7 +97,7 @@ END;
             onclick='setTimeout(hideSearchButtons, 1)'/>
         [%- IF ctx.depth_sel_button AND NOT took_care_of_form %]
         <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
-            onclick='setTimeout(hideSearchButtons,1)' title="[% ctx.depth_sel_tooltip | html %]">[% ctx.depth_sel_button_label | html %]</button>
+            onclick='setTimeout(hideSearchButtons,1);' title="[% ctx.depth_sel_tooltip | html %]">[% ctx.depth_sel_button_label | html %]</button>
         [%- END %]
         [% IF (is_advanced AND NOT is_special) AND CGI.param('qtype') %]
             <span id="refine_search_link" ><a class="opac-button" href="[% mkurl(ctx.opac_root _ '/advanced') %]">[%
@@ -191,7 +191,7 @@ END;
 </div>
 <div id="search-wrapper" class="mobile-only">
     [% UNLESS took_care_of_form -%]
-    <form action="[% ctx.opac_root %]/results" method="get">
+    <form  id="mobile-search"  action="[% ctx.opac_root %]/results" method="get">
     [%- END %]
     <div id = "search-basic-options">
     [% IF ctx.page == 'rresult' && ctx.metarecord && search.metarecord_default %]
@@ -229,7 +229,7 @@ END;
     
     
     <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
-        onclick='setTimeout(hideSearchButtons,1)' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
+        onclick='setTimeout(hideSearchButtons,1);' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
     </button>
     </div>
     <div id="search-more-options" class="collapse">

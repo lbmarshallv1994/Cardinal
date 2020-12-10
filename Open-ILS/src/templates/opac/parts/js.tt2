@@ -122,6 +122,24 @@ if (element.classList) {
 function toggleClassByID(id,className){
     toggleClass(document.getElementById(id),className);
 }
+
+function resetForm(form) {
+    var $form = jQuery(form);
+    $form.find('input:text, input:password, input:file, select, textarea').val('');
+    $form.find('input:radio, input:checkbox')
+         .removeAttr('checked').removeAttr('selected');
+    return true;
+}
+
+function handleBasicSearchForms() {
+    if(jQuery("#search-wrapper.pc-only").is(":visible")){
+        jQuery("#search-wrapper.mobile-only").remove();
+    }
+    else if(jQuery("#search-wrapper.mobile-only").is(":visible")){
+        jQuery("#search-wrapper.pc-only").remove();
+    }
+    return true;
+}
 </script>
 [% INCLUDE opac/parts/modal_confirm.tt2 %]
 
