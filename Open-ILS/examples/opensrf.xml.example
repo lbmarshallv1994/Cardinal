@@ -1266,7 +1266,7 @@ vim:et:ts=4:sw=4:
                     <max_spare_children>5</max_spare_children>
                 </unix_config>
                 <app_settings>
-                <key></key>
+                <key>AosM-K7Hdbk-OMZ1jcJC1boNDGRpoYRL_bzgK6pqKNNVAc2-z0qbOVtc3itjfWj5</key>
                 </app_settings>
             </open-ils.vicinity-calculator>
 

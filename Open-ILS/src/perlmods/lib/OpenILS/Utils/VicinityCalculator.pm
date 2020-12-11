@@ -41,10 +41,14 @@ sub calculate_distance_matrix {
     my @hubs = $self->get_all_hubs();
     my %hub_coord;
     # find addresses of all hub OUs
+    $logger->info("Getting shipping hub addresses");
     my %hub_addr = $self->get_addr_from_ou(uniq(@hubs));
     while( my($k,$v) = each %hub_addr){
         # use Bing to find the longitude and latitude of all hub OUs
-        $hub_coord{$k} = $self->get_coord_from_address($v);
+        $logger->info("using API to retrieve for OU $k");
+        my $coord = $self->get_coord_from_address($v);
+        $hub_coord{$k} = $coord;
+        $logger->info("API got $coord");
     }
     my @origins = values(%hub_coord);
     my @destinations = values(%hub_coord);
