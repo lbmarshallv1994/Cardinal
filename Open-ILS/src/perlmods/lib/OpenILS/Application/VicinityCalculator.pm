@@ -22,7 +22,7 @@ sub build_distance_matrix{
    my $key = $config->config_value(
                 apps => 'open-ils.vicinity-calculator' => app_settings => 'key'
         );
-   if($key == undef || $key eq ''){
+   if(!defined($key) || $key eq ''){
    $logger->error("No Maps API key has been set up in opensrf xml.");  
    return undef;
    }
