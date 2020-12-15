@@ -111,8 +111,8 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
                 'open-ils.vicinity-calculator',
                 'open-ils.vicinity-calculator.build-distance-matrix'
             ).subscribe(
-                n => {alert("success!");this.calculating = false;return true;},
-                err  => {console.warn('Failure!! ' + err);this.calculating = false;return true;}
+                n => alert("success!"),
+                err  => console.warn('Failure!! ' + err)
             );
     }
 }
