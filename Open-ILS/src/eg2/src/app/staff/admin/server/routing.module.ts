@@ -29,7 +29,7 @@ const routes: Routes = [{
     path: 'actor/org_unit_proximity_adjustment',
     component: BasicAdminPageComponent,
     data: [{schema: 'actor',
-        table: 'org_unit_proximity_adjustment', disableOrgFilter: true}]
+        table: 'org_unit_proximity_adjustment'}]
 }, {
     path: 'actor/org_unit_shipping_hub_distance',
     component: OrgUnitShippingHubDistanceComponent,
