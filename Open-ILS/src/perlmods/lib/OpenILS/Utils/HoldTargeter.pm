@@ -1087,6 +1087,7 @@ sub find_nearest_copy {
             # select the target copy from the closest OU
             # TODO what happens if two hubs are the same distance away from home hub?
             # TODO should we round distances so two hubs don't always choose from one another?
+            # TODO what if this was stored in the Action.hold_copy_map like the prox is? 
             for my $c (sort { $distance_matrix{$hub_by_target{$a->{id}}} <=> $distance_matrix{$hub_by_target{$b->{id}}} } @copies){
                 $self->log_hold("VicinityCalculator - Copy: ".$c->{id}." Shipping Hub:".$hub_by_target{$c->{id}}. "Physical Distance: ".$distance_matrix{$hub_by_target{$c->{id}}});
                 next if $seen{$c->{id}};

@@ -16,7 +16,9 @@ import {NetService} from '@eg/core/net.service';
       <div class="alert alert-info" i18n>
         Entries in this table contain the distance in miles between shipping locations. Shipping hubs are configured from the Orginizational Units page. These numbers are used for sorting hold targets during inter-library lending. Entries can be created manually or calculated using the free Bing Maps API if a key has been set up in the opensrf core config file. <b>Running the API will remove any existing data from this table</b>.    
       </div>
-      <button class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
+      <div ngIf="!calculating"> 
+        <button class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
+      </div>
       <br>
       <br>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
@@ -34,6 +36,8 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
     readonlyFields = '';
     configLinkBasePath = '/staff/admin';
 
+    // API is currently calculating
+    calculating : boolean;
     // Tell the admin page to disable and hide the automagic org unit filter
     disableOrgFilter: boolean;
 
@@ -45,7 +49,7 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
     }
 
     ngOnInit() {
-        let schema = this.route.snapshot.paramMap.get('schema');
+        let schema = this.route.snapshot.paramMap.get('schema');       
         if (!schema) {
             // Allow callers to pass the schema via static route data
             const data = this.route.snapshot.data[0];
@@ -98,15 +102,17 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
         if (!this.idlClass) {
             throw new Error('Unable to find IDL class for table ' + fullTable);
         }
+        this.calculating = false;
     }
     
     calculateDistances(){
+        this.calculating = true;
             this.net.request(
                 'open-ils.vicinity-calculator',
                 'open-ils.vicinity-calculator.build-distance-matrix'
             ).subscribe(
-                n => alert("success!"),
-                err  => console.warn('Failure!! ' + err)
+                n => {alert("success!");this.calculating = false;},
+                err  => {console.warn('Failure!! ' + err);this.calculating = false;}
             );
     }
 }
