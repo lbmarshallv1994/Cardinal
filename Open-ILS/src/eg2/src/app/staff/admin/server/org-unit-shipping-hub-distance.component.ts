@@ -21,7 +21,8 @@ import {NetService} from '@eg/core/net.service';
       <br>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
         configLinkBasePath="{{configLinkBasePath}}"
-        readonlyFields="{{readonlyFields}}"></eg-admin-page>
+        readonlyFields="{{readonlyFields}}"
+        [disableOrgFilter]="disableOrgFilter"></eg-admin-page>
     `
 })
 
