@@ -13,12 +13,15 @@ import {NetService} from '@eg/core/net.service';
       </eg-title>
       <eg-staff-banner bannerText="{{classLabel}} Configuration" i18n-bannerText>
       </eg-staff-banner>
+      <div class="alert alert-info" i18n>
+        Entries in this table contain the distance in miles between shipping locations. Shipping hubs are configured from the Orginizational Units server admin page. These numbers are used for sorting hold targets during inter-library lending. Entries can be created manually or calculated using the free Bing Maps API if a key has been set up in the opensrf core config file.   
+      </div>
       <button class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
+      <br>
       <br>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
         configLinkBasePath="{{configLinkBasePath}}"
-        readonlyFields="{{readonlyFields}}"
-        [disableOrgFilter]="disableOrgFilter"></eg-admin-page>
+        readonlyFields="{{readonlyFields}}"></eg-admin-page>
     `
 })
 
