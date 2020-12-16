@@ -16,8 +16,7 @@ import {NetService} from '@eg/core/net.service';
       <div class="alert alert-info" i18n>
         Entries in this table contain the distance in miles between shipping locations. Shipping hubs are configured from the Orginizational Units page. These numbers are used for sorting hold targets during inter-library lending. Entries can be created manually or calculated using the free Bing Maps API if a key has been set up in the opensrf core config file. <b>Running the API will remove any existing data from this table</b>.    
       </div>
-      {{calculating}}
-        <button class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
+        <button ng-disabled="calculating" class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
  
       <br>
       <br>
@@ -111,8 +110,8 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
                 'open-ils.vicinity-calculator',
                 'open-ils.vicinity-calculator.build-distance-matrix'
             ).subscribe(
-                n => alert("success!"),
-                err  => console.warn('Failure!! ' + err)
+                n => {this.calculating = false; location.reload();},
+                err  => {alert('API failed to calculate' + err);this.calculating = false;}
             );
     }
 }
