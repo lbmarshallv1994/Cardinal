@@ -17,7 +17,7 @@ import {NetService} from '@eg/core/net.service';
         Entries in this table contain the distance in miles between shipping locations. Shipping hubs are configured from the Orginizational Units page. These numbers are used for sorting hold targets during inter-library lending. Entries can be created manually or calculated using the free Bing Maps API if a key has been set up in the opensrf core config file. <b>Running the API will remove any existing data from this table</b>.    
       </div>
       <button [disabled]="calculating" class="btn btn-outline-dark" (click)="calculateDistances()">Calculate with API</button>
-      <eg-progress-inline *ngIf="calculating></eg-progress-inline>
+      <eg-progress-inline *ngIf="calculating" ></eg-progress-inline>
       <br>
       <br>
       <eg-admin-page persistKeyPfx="{{persistKeyPfx}}" idlClass="{{idlClass}}"
