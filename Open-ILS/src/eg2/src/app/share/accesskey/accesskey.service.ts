@@ -34,7 +34,7 @@ export class AccessKeyService {
                     a.shadowed = true;
                 }
             }
-            list.push(a);
+            list.unshift(a);
         });
         list.unshift(assn);
 

@@ -569,7 +569,7 @@ export class GridContext {
             let columns = [];
             if (conf) {
                 columns = conf.columns;
-                if (conf.limit && !this.disablePaging) {
+                if (conf.limit) {
                     this.pager.limit = conf.limit;
                 }
             }

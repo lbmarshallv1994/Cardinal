@@ -171,8 +171,3 @@
 .eg-grid-filter-menu .dropdown-item:hover {
   background-color: transparent;
 }
-
-/* Popovers have a too-narrow max-width.  Override it */
-.popover {
-    max-width: initial;
-}

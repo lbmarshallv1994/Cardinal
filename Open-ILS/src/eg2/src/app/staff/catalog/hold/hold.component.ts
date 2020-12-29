@@ -89,13 +89,6 @@ export class HoldComponent implements OnInit {
 
     ngOnInit() {
 
-        // Respond to changes in hold type.  This currently assumes hold
-        // types only toggle post-init between copy-level types (C,R,F)
-        // and no other params (e.g. target) change with it.  If other
-        // types require tracking, additional data collection may be needed.
-        this.route.paramMap.subscribe(
-            (params: ParamMap) => this.holdType = params.get('type'));
-
         this.holdType = this.route.snapshot.params['type'];
         this.holdTargets = this.route.snapshot.queryParams['target'];
         this.holdFor = this.route.snapshot.queryParams['holdFor'] || 'patron';
@@ -331,10 +324,7 @@ export class HoldComponent implements OnInit {
     // Attempt hold placement on all targets
     placeHolds(idx?: number) {
         if (!idx) { idx = 0; }
-        if (!this.holdTargets[idx]) {
-            this.placeHoldsClicked = false;
-            return;
-        }
+        if (!this.holdTargets[idx]) { return; }
         this.placeHoldsClicked = true;
 
         const target = this.holdTargets[idx];
@@ -349,21 +339,9 @@ export class HoldComponent implements OnInit {
         ctx.processing = true;
         const selectedFormats = this.mrSelectorsToFilters(ctx);
 
-        let hType = this.holdType;
-        let hTarget = ctx.holdTarget;
-        if (hType === 'T' && ctx.holdMeta.part) {
-            // A Title hold morphs into a Part hold at hold placement time
-            // if a part is selected.  This can happen on a per-hold basis
-            // when placing T-level holds.
-            hType = 'P';
-            hTarget = ctx.holdMeta.part.id();
-        }
-
-        console.debug(`Placing ${hType}-type hold on ${hTarget}`);
-
         return this.holds.placeHold({
-            holdTarget: hTarget,
-            holdType: hType,
+            holdTarget: ctx.holdTarget,
+            holdType: this.holdType,
             recipient: this.user.id(),
             requestor: this.requestor.id(),
             pickupLib: this.pickupLib,
@@ -378,22 +356,20 @@ export class HoldComponent implements OnInit {
 
         }).toPromise().then(
             request => {
+                console.log('hold returned: ', request);
                 ctx.lastRequest = request;
                 ctx.processing = false;
 
-                if (!request.result.success) {
-                    console.debug('hold failed with: ', request);
+                // If this request failed and was not already an override,
+                // see of this user has permission to override.
+                if (!request.override &&
+                    !request.result.success && request.result.evt) {
 
-                    // If this request failed and was not already an override,
-                    // see of this user has permission to override.
-                    if (!request.override && request.result.evt) {
+                    const txtcode = request.result.evt.textcode;
+                    const perm = txtcode + '.override';
 
-                        const txtcode = request.result.evt.textcode;
-                        const perm = txtcode + '.override';
-
-                        return this.perm.hasWorkPermHere(perm).then(
-                            permResult => ctx.canOverride = permResult[perm]);
-                    }
+                    return this.perm.hasWorkPermHere(perm).then(
+                        permResult => ctx.canOverride = permResult[perm]);
                 }
             },
             error => {
@@ -442,22 +418,6 @@ export class HoldComponent implements OnInit {
                 this.applyUserSettings();
             }
         );
-    }
-
-    isItemHold(): boolean {
-        return this.holdType === 'C'
-            || this.holdType === 'R'
-            || this.holdType === 'F';
-    }
-
-    setPart(ctx: HoldContext, $event) {
-        const partId = $event.target.value;
-        if (partId) {
-            ctx.holdMeta.part =
-                ctx.holdMeta.parts.filter(p => +p.id() === +partId)[0];
-        } else {
-            ctx.holdMeta.part = null;
-        }
     }
 }
 

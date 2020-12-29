@@ -50,7 +50,6 @@ export interface HoldRequestTarget {
     bibId?: number;
     bibSummary?: BibRecordSummary;
     part?: IdlObject;
-    parts?: IdlObject[];
     callNum?: IdlObject;
     copy?: IdlObject;
     issuance?: IdlObject;

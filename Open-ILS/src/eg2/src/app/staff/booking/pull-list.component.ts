@@ -1,7 +1,7 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
-import {Observable, of, from} from 'rxjs';
-import {switchMap, mergeMap} from 'rxjs/operators';
+import {from, Observable, of} from 'rxjs';
+import {switchMap} from 'rxjs/operators';
 import {AuthService} from '@eg/core/auth.service';
 import {GridDataSource} from '@eg/share/grid/grid';
 import {IdlObject} from '@eg/core/idl.service';
@@ -10,8 +10,6 @@ import {OrgService} from '@eg/core/org.service';
 import {PcrudService} from '@eg/core/pcrud.service';
 import {ReservationActionsService} from './reservation-actions.service';
 import {CancelReservationDialogComponent} from './cancel-reservation-dialog.component';
-import {GridComponent} from '@eg/share/grid/grid.component';
-import {Pager} from '@eg/share/util/pager';
 
 // The data that comes from the API, along with some fleshing
 interface PullListRow {
@@ -31,14 +29,10 @@ export class PullListComponent implements OnInit {
     @ViewChild('confirmCancelReservationDialog', { static: true })
         private cancelReservationDialog: CancelReservationDialogComponent;
 
-    @ViewChild('pullList') private pullList: GridComponent;
-
-    public dataSource: GridDataSource = new GridDataSource();
+    public dataSource: GridDataSource;
 
     public disableOrgs: () => number[];
-    public handleOrgChange: (org: IdlObject) => void;
-
-    currentOrg: number;
+    public fillGrid: (orgId?: number) => void;
     pullListCriteria: FormGroup;
 
     constructor(
@@ -51,9 +45,9 @@ export class PullListComponent implements OnInit {
 
 
     ngOnInit() {
+        this.dataSource = new GridDataSource();
 
         const defaultDaysHence = 5;
-        this.currentOrg = this.auth.user().ws_ou();
 
         this.pullListCriteria = new FormGroup({
             'daysHence': new FormControl(defaultDaysHence, [
@@ -61,25 +55,22 @@ export class PullListComponent implements OnInit {
                 Validators.min(1)])
         });
 
-        this.pullListCriteria.valueChanges.subscribe(() => this.pullList.reload() );
+        this.pullListCriteria.valueChanges.subscribe(() => this.fillGrid() );
 
         this.disableOrgs = () => this.org.filterList( { canHaveVolumes : false }, true);
 
-        this.handleOrgChange = (org: IdlObject) => {
-            this.currentOrg = org.id();
-            this.pullList.reload();
-        };
-
-        this.dataSource.getRows = (pager: Pager) => {
+        this.fillGrid = (orgId = this.auth.user().ws_ou()) => {
+            this.dataSource.data = [];
             const numberOfSecondsInADay = 86400;
-            return this.net.request(
+            this.net.request(
                 'open-ils.booking', 'open-ils.booking.reservations.get_pull_list',
                 this.auth.token(), null,
                 (this.daysHence.value * numberOfSecondsInADay),
-                this.currentOrg
-            ).pipe(switchMap(arr => from(arr)), // Change the array we got into a stream
-            mergeMap(resource => this.fleshResource$(resource)) // Add info for cataloged resources
-            );
+                orgId
+            ).pipe(switchMap((resources) => from(resources)),
+                switchMap((resource: PullListRow) => this.fleshResource(resource))
+            )
+            .subscribe((resource) => this.dataSource.data.push(resource));
         };
     }
 
@@ -101,7 +92,7 @@ export class PullListComponent implements OnInit {
         this.cancelReservationDialog.open(rows.map(row => row['reservations'][0].id()));
     }
 
-    fleshResource$ = (resource: any): Observable<PullListRow> => {
+    fleshResource = (resource: PullListRow): Observable<PullListRow> => {
         if ('t' === resource['target_resource_type'].catalog_item()) {
             return this.pcrud.search('acp', {
                 'barcode': resource['current_resource'].barcode()
@@ -109,7 +100,7 @@ export class PullListComponent implements OnInit {
                     limit: 1,
                     flesh: 1,
                     flesh_fields: {'acp' : ['call_number', 'location' ]}
-            }).pipe(mergeMap((acp) => {
+            }).pipe(switchMap((acp) => {
                 resource['call_number'] = acp.call_number().label();
                 resource['call_number_sortkey'] = acp.call_number().label_sortkey();
                 resource['shelving_location'] = acp.location().name();

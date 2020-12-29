@@ -161,27 +161,16 @@ export class MatchSetExpressionComponent implements OnInit {
         return false;
     }
 
-    addChildNode(replace?: boolean) {
+    addChildNode() {
         this.changesMade = true;
 
-        const targetNode: TreeNode = this.tree.selectedNode();
-        let point;
-
-        if (replace) {
-            point = targetNode.callerData.point;
-            point.ischanged(true);
-            // Clear previous data
-            ['bool_op', 'svf', 'tag', 'subfield', 'heading']
-                .forEach(f => point[f](null));
-
-        } else {
-            point = this.idl.create('vmsp');
-            point.id(this.newId--);
-            point.isnew(true);
-            point.parent(targetNode.id);
-            point.match_set(this.matchSet_.id());
-            point.children([]);
-        }
+        const pnode = this.tree.selectedNode();
+        const point = this.idl.create('vmsp');
+        point.id(this.newId--);
+        point.isnew(true);
+        point.parent(pnode.id);
+        point.match_set(this.matchSet_.id());
+        point.children([]);
 
         const ptype = this.newPoint.values.pointType;
 
@@ -204,22 +193,13 @@ export class MatchSetExpressionComponent implements OnInit {
             point.quality(this.newPoint.values.matchScore);
         }
 
-        if (replace) {
+        const node: TreeNode = new TreeNode({
+            id: point.id(),
+            callerData: {point: point}
+        });
 
-            targetNode.label = null;
-            this.setNodeLabel(targetNode, point);
-
-        } else {
-
-            const node: TreeNode = new TreeNode({
-                id: point.id(),
-                callerData: {point: point}
-            });
-
-            // Match points are added to the DB only when the tree is saved.
-            this.setNodeLabel(node, point)
-                .then(() => targetNode.children.push(node));
-        }
+        // Match points are added to the DB only when the tree is saved.
+        this.setNodeLabel(node, point).then(() => pnode.children.push(node));
     }
 
     expressionAsString(): string {

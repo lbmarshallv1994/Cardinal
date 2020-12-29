@@ -79,7 +79,6 @@ export class QueueListComponent {
     }
 
     queueTypeChanged($event) {
-        if ($event.id === this.queueType) { return; }
         this.queueType = $event.id;
         this.queueSource.reset();
     }
