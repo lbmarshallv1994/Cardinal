@@ -11,6 +11,7 @@
     tablet_dash_width = "372px";
     mobile_dash_width = "48px";
     link_bar_height = "22px";
+    result_image_width = "120px";
 %]
 
 @font-face {
@@ -176,7 +177,15 @@ a, .link {
 #search-nav-wrapper{
     background-color: [% css_colors.background_menu %];
     padding-bottom: 0.5em;
-    display: grid;
+    padding-top: 0.5em;
+    display: flex;
+}
+
+@supports (display: grid){
+    #search-nav-wrapper{
+        display: grid;
+        padding-top: 0;
+    }
 }
 
 #search-wrapper input[type=text] {
@@ -1324,7 +1333,7 @@ collapse correctly when the window width decreases */
 }
 .result_table_pic_header{
     position: relative;
-    width: 120px;
+    width: [% result_image_width %];
 }
 
 .result_table_pic_header a{
@@ -1336,7 +1345,7 @@ collapse correctly when the window width decreases */
 }
 
 .result_table_pic_header a img{
-max-width: 90%;
+max-width: calc([% result_image_width %] - 12px);
 margin: auto;
 }
 
@@ -2376,8 +2385,22 @@ padding-bottom: 1em;
     [% ELSE -%]
 
     [% END -%]
-    display: contents;
+    display: inline;
 }
+
+
+@supports (display: contents) {
+    .results_header_btns, .results_header_sel {
+        [% IF rtl == 't' -%]
+
+        [% ELSE -%]
+
+        [% END -%]
+        display: contents;
+    }
+}
+
+
 
 /*
  * .various_containers a = shortcut to putting .opac-button on every 'a' with
