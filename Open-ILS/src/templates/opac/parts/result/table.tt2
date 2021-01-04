@@ -238,8 +238,7 @@ END;
                                                         [% END %]
                                                     [% END %]
                                                 </div>
-
-                                            <br>
+                                            
                                                <table 
                                                        role="presentation"
                                                        title="[% l('Record Holdings Summary') %]"

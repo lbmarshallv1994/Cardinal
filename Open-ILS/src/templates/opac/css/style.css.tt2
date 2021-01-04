@@ -12,6 +12,7 @@
     mobile_dash_width = "48px";
     link_bar_height = "22px";
     result_image_width = "120px";
+    result_facet_width = "20vw";
 %]
 
 @font-face {
@@ -97,14 +98,16 @@ h4 {
     
 }
 
-select.form-control{
-    -webkit-appearance: none;
-        
-}
+@supports(-webkit-appearance: none) {
+    select.form-control{
+        -webkit-appearance: none;
+            
+    }
 
-/* dropdown arrow only appears on selects that are one row */
-select.form-control:not([size]){
-   background: #fff url("[% ctx.media_prefix %]/images/gray-arrow-down.png") no-repeat 95% 50%; 
+    /* dropdown arrow only appears on selects that are one row */
+    select.form-control:not([size]){
+       background: #fff url("[% ctx.media_prefix %]/images/gray-arrow-down.png") no-repeat 95% 50%; 
+    }
 }
 
 select.form-control:focus{
@@ -195,6 +198,30 @@ a, .link {
 #search-wrapper select, .results_header_lbl select {
     padding:0;
     padding-left: 0.1em;
+}
+
+#search-basic-options{
+display: inline-flex;
+}
+
+#search-basic-options label{
+align-self: flex-end;
+}
+
+#search-basic-options #search_box_label{
+order: 1;
+}
+
+#search-basic-options #search_box{
+order: 2;
+}
+
+#search-basic-options #search_itype_label{
+order: 3;
+}
+
+#search-basic-options #search_itype_selector{
+order: 4;
 }
 
 .searchbar {
@@ -1361,10 +1388,8 @@ div.format_icon img, img.format_icon {
 
 .result_metadata {
     [% IF rtl == 't' -%]
-    float: right;
     padding-left: 3em;
     [% ELSE -%]
-    float: left;
     padding-right: 3em;
     [% END -%]
 }
@@ -1982,6 +2007,10 @@ a.remove_filter {
 
 #refine_search_link {
     display: inline-block;
+}
+
+.facet_box_wrapper{
+    max-width: [% result_facet_width %];
 }
 
 [%- IF we_want_to_turn_on_facet_styling.defined; %]
@@ -4073,6 +4102,19 @@ a.preflib_change {
     display: flex;
     width:100%;
     }
+    
+    #search-basic-options #search_box{
+        order: 2;
+    }
+
+    #search-basic-options #search-submit-go-depth{
+        order: 3;
+    }
+
+    #search-basic-options #search_itype_selector{
+        order: 1;
+    }
+    
     #search-nav-mobile{
     margin-left:1VW;
     margin-right:1VW;
@@ -4094,6 +4136,7 @@ a.preflib_change {
         margin: 0;
         padding: 0;
         padding-left:0.3em;
+        height: auto;
         width: 50VW;
         font-size: [% css_fonts.size_base %];
         border-color: [% css_colors.border_input %];
@@ -4101,6 +4144,7 @@ a.preflib_change {
         border-width: 1px;
         border-radius: 0;
     }
+
     #search-nav-wrapper{
     padding-bottom: 0;
     }

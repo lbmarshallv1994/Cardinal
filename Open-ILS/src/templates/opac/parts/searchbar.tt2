@@ -29,7 +29,7 @@ END;
 
  %]
 [%- INCLUDE "opac/parts/searchnav.tt2" -%]
-<div id="search-wrapper" class="pc-only">
+<div id="search-wrapper">
 
     [% UNLESS took_care_of_form -%]
     <form id="desktop-search" action="[% ctx.opac_root %]/results" method="get">
@@ -42,45 +42,54 @@ END;
     [% END %]
     
     <div class="searchbar [% is_home_page ? 'searchbar-home' : '' %]">
-        <span class='search_box_wrapper'>
-            [%- # autosuggest breaks accessibility, as the aria-label
-                # attribute is removed when the Dijit is created. :(  %]
-            <label id="search_box_label" for="search_box">[% l('Search: ') %]
-            <input type="text" class="form-control" id="search_box" name="query" aria-label="[%
-                    l('Enter search query:');
-                %]" value="[% is_advanced ? ctx.naive_query_scrub(ctx.user_query) : CGI.param('query') | html %]"
-                class="search-box"
-                [%- IF use_autosuggest.enabled == "t" %]
-                dojoType="openils.widget.AutoSuggest" type_selector="'qtype'"
-                submitter="this.textbox.form.submit();"
-                [%-     IF use_autosuggest.value.search('opac_visible') %]
-                store_args='{"org_unit_getter": function() { return [% ctx.search_ou %]; }}'
-                [%-     END # opac_visible -%]
-                [%- ELSE -%]
-                    [% IF basic_search != "f" AND is_home_page %] autofocus [% END %] x-webkit-speech
-                [%- END # autosuggest enabled %] />
-            </label>
-        </span>
+        
+    <div id = "search-basic-options">
+    [% IF ctx.page == 'rresult' && ctx.metarecord && search.metarecord_default %]
+    <input type="hidden" name="modifier" value="metabib"/>
+    [% END %]
+    [% IF (ctx.page == 'place_hold' || ctx.page == 'myopac' || ctx.page == 'home' || ctx.page == 'record') && search.metarecord_default %]
+    <input type="hidden" name="modifier" value="metabib"/>
+    [% END %]
+    <label class="pc-only" id="search_itype_label" for="search_itype_selector">[%- l('Format: ') -%]</label>
+    [%-
+    IF search.basic_config.type == 'attr';
+        INCLUDE "opac/parts/coded_value_selector.tt2"
+            attr=search.basic_config.group none_ok=1 
+            id='search_itype_selector'
+            none_label=search.basic_config.none_label;
+    ELSIF search.basic_config.type == 'filter';
+        INCLUDE "opac/parts/filter_group_selector.tt2"
+            filter_group=search.basic_config.group none_ok=1 
+            id='search_itype_selector'
+            none_label=search.basic_config.none_label;
+    END;
+    -%]
+    <label class="pc-only" id="search_box_label" for="search_box">[%- l('Search: ') -%]</label>
+    <input type="text" id="search_box" name="query" aria-label="[%
+        l('Enter search query:');
+    %]" value="[% is_advanced ? ctx.naive_query_scrub(ctx.user_query) : CGI.param('query') | html %]"
+    class="form-control search-box"
+    [%- IF use_autosuggest.enabled == "t" %]
+    dojoType="openils.widget.AutoSuggest" type_selector="'qtype'"
+    submitter="this.textbox.form.submit();"
+    [%-     IF use_autosuggest.value.search('opac_visible') %]
+    store_args='{"org_unit_getter": function() { return [% ctx.search_ou %]; }}'
+    [%-     END # opac_visible -%]
+    [%- ELSE -%]
+        [% IF basic_search != "f" AND is_home_page %] autofocus [% END %] x-webkit-speech
+    [%- END # autosuggest enabled %] />
+    
+    
+    <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="mobile-only [% ctx.depth_sel_button_class %]"
+        onclick='setTimeout(hideSearchButtons,1);' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
+    </button>
+    </div>
+        
+        
         <label id="search_qtype_label" for="qtype">
         [%- 
             l('Type: ');
             INCLUDE "opac/parts/qtype_selector.tt2" id="qtype";
-        -%]
-        </label>
-        <label id="search_itype_label" for="search_itype_selector">
-        [%-
-            l('Format: ');
-            IF search.basic_config.type == 'attr';
-                INCLUDE "opac/parts/coded_value_selector.tt2"
-                    attr=search.basic_config.group none_ok=1 
-                    id='search_itype_selector'
-                    none_label=search.basic_config.none_label;
-            ELSIF search.basic_config.type == 'filter';
-                INCLUDE "opac/parts/filter_group_selector.tt2"
-                    filter_group=search.basic_config.group none_ok=1 
-                    id='search_itype_selector'
-                    none_label=search.basic_config.none_label;
-            END;
         -%]
         </label>
         <label id="search_locg_label" for="search_org_selector">
@@ -93,7 +102,7 @@ END;
         </label>
       <span id="search_bar_submit_buttons" >
         <input id="detail" type="hidden" name="detail_record_view" value="[% show_detail_view %]"/>
-        <input id='search-submit-go' type="submit" value="[% l('Search') %]" class="opac-button"
+        <input id='search-submit-go' type="submit" value="[% l('Search') %]" class="pc-only opac-button"
             onclick='setTimeout(hideSearchButtons, 1)'/>
         [%- IF ctx.depth_sel_button AND NOT took_care_of_form %]
         <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
@@ -193,45 +202,7 @@ END;
     [% UNLESS took_care_of_form -%]
     <form  id="mobile-search"  action="[% ctx.opac_root %]/results" method="get">
     [%- END %]
-    <div id = "search-basic-options">
-    [% IF ctx.page == 'rresult' && ctx.metarecord && search.metarecord_default %]
-    <input type="hidden" name="modifier" value="metabib"/>
-    [% END %]
-    [% IF (ctx.page == 'place_hold' || ctx.page == 'myopac' || ctx.page == 'home' || ctx.page == 'record') && search.metarecord_default %]
-    <input type="hidden" name="modifier" value="metabib"/>
-    [% END %]
-    [%-
-    IF search.basic_config.type == 'attr';
-        INCLUDE "opac/parts/coded_value_selector.tt2"
-            attr=search.basic_config.group none_ok=1 
-            id='search_itype_selector'
-            none_label=search.basic_config.none_label;
-    ELSIF search.basic_config.type == 'filter';
-        INCLUDE "opac/parts/filter_group_selector.tt2"
-            filter_group=search.basic_config.group none_ok=1 
-            id='search_itype_selector'
-            none_label=search.basic_config.none_label;
-    END;
-    -%]
-    <input type="text" id="search_box" name="query" aria-label="[%
-        l('Enter search query:');
-    %]" value="[% is_advanced ? ctx.naive_query_scrub(ctx.user_query) : CGI.param('query') | html %]"
-    class="search-box"
-    [%- IF use_autosuggest.enabled == "t" %]
-    dojoType="openils.widget.AutoSuggest" type_selector="'qtype'"
-    submitter="this.textbox.form.submit();"
-    [%-     IF use_autosuggest.value.search('opac_visible') %]
-    store_args='{"org_unit_getter": function() { return [% ctx.search_ou %]; }}'
-    [%-     END # opac_visible -%]
-    [%- ELSE -%]
-        [% IF basic_search != "f" AND is_home_page %] autofocus [% END %] x-webkit-speech
-    [%- END # autosuggest enabled %] />
-    
-    
-    <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="[% ctx.depth_sel_button_class %]"
-        onclick='setTimeout(hideSearchButtons,1);' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
-    </button>
-    </div>
+
     <div id="search-more-options" class="collapse">
         <div class="wrapper">
             <label id="search_qtype_label" for="qtype">
