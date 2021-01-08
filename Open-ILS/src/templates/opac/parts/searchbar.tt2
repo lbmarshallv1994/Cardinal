@@ -80,19 +80,19 @@ END;
     [%- END # autosuggest enabled %] />
     
     
-    <button id='search-submit-go-depth' type="submit" value="[% ctx.depth_sel_depth %]" name="depth" class="mobile-only [% ctx.depth_sel_button_class %]"
-        onclick='setTimeout(hideSearchButtons,1);' title="[% ctx.depth_sel_tooltip | html %]"><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
+    <button id='search-submit-go-mobile' type="submit" value="[% l('Search') %]" class="mobile-only [% ctx.depth_sel_button_class %]"
+        onclick='setTimeout(hideSearchButtons,1);'><img id="search-icon" src="[% ctx.media_prefix %]/images/search.svg[% ctx.cache_key %]" alt="Search"/>
     </button>
     </div>
         
         
-        <label id="search_qtype_label" for="qtype">
+        <label id="search_qtype_label" class="mobile_collapse" for="qtype">
         [%- 
             l('Type: ');
             INCLUDE "opac/parts/qtype_selector.tt2" id="qtype";
         -%]
         </label>
-        <label id="search_locg_label" for="search_org_selector">
+        <label id="search_locg_label" class="mobile_collapse" for="search_org_selector">
         [%- 
             l('Library: ');
             select_lib_label = l("Select search library");
@@ -100,7 +100,7 @@ END;
               id='search_org_selector' show_loc_groups=1
         -%]
         </label>
-      <span id="search_bar_submit_buttons" >
+      <span id="search_bar_submit_buttons" class="mobile_collapse" >
         <input id="detail" type="hidden" name="detail_record_view" value="[% show_detail_view %]"/>
         <input id='search-submit-go' type="submit" value="[% l('Search') %]" class="pc-only opac-button"
             onclick='setTimeout(hideSearchButtons, 1)'/>
@@ -114,6 +114,7 @@ END;
             %]</a></span>
         [% END %]
         </span>
+        <a class="mobile-only" onclick="toggleClassByQuery('#search_qtype_label, #search_locg_label, #search_bar_submit_buttons','active')">Additional Search Options</a>
         <img id='search-bar-submit-spinner' src='[% ctx.media_prefix %]/opac/images/progressbar_green.gif[% ctx.cache_key %]' style='height:16px;width:16px;margin:auto;' class='hidden' alt='[% l("Search In Progress") %]'/>
         [%- IF took_care_of_form && !search.no_highlight %]
         <div style="display: inline-block;">
@@ -197,58 +198,6 @@ END;
     </div>
     -->
     <div class="clear-both"></div>
-</div>
-<div id="search-wrapper" class="mobile-only">
-    [% UNLESS took_care_of_form -%]
-    <form  id="mobile-search"  action="[% ctx.opac_root %]/results" method="get">
-    [%- END %]
-
-    <div id="search-more-options" class="collapse">
-        <div class="wrapper">
-            <label id="search_qtype_label" for="qtype">
-            [%- 
-                l('Search Type');
-                
-            -%]
-            </label>
-            [%- INCLUDE "opac/parts/qtype_selector.tt2" id="qtype"; -%]
-            <label id="search_locg_label" for="search_org_selector">
-            [%- 
-                l('Library'); -%]
-            </label>
-            [%-
-                select_lib_label = l("Select search library");
-                INCLUDE build_org_selector arialabel=select_lib_label 
-                  id='search_org_selector' show_loc_groups=1
-            -%]
-        </div>
-    </div>
-       <div id="search-filters" class="collapse">
-        [% IF fcount > 0 %]
-      <div class="refine_search result_block_visible">
-        <div id="filter_hits">[ <a href="#" onclick="getAdvLimits();return false;">[% l('[quant,_1,filter,filters] applied', fcount) %]</a> ]</div>
-      </div>
-    [% END %]
-    [% IF ctx.query_struct.filters.size > 0 %]
-        [% stuff = INCLUDE 'opac/parts/result/adv_filter.tt2' %]
-        [% IF stuff %]
-        <h3 class="sr-only">[% l('Search Results filters') %]</h3>
-        <div id="adv_filter_results_block" class="adv_filter_results_hide">
-        <span class="adv_filter_results_block_label">[% l('Filtered by:') %]</span>
-            [% stuff %]
-        </div>
-        [% END %]
-    [% END %]
-    </div>
-    <div id="search-nav-mobile">
-            [% IF fcount > 0 %]
-    <a href="#search-filters" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-filters">[% l('Filters') %]</a>/
-    [% END %]
-        <a href="#search-more-options" data-toggle="collapse" role="button" aria-expanded="false" aria-controls="search-more-options">[% l('More Search Options') %]</a>
-    </div>
-    [% UNLESS took_care_of_form -%]
-    </form>
-    [% END %]
 </div>
 <script>
 function hideSearchButtons(){

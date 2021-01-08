@@ -123,6 +123,10 @@ function toggleClassByID(id,className){
     toggleClass(document.getElementById(id),className);
 }
 
+function toggleClassByQuery(q,className){
+    jQuery(q).each( (i,e) => toggleClass(e,className))
+}
+
 function resetForm(form) {
     var $form = jQuery(form);
     $form.find('input:text, input:password, input:file, select, textarea').val('');
