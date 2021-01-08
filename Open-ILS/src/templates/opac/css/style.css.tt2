@@ -3568,6 +3568,10 @@ a.preflib_change {
         margin-right: 0;
     }
     
+    #search_org_selector {
+        max-width: 59VW;
+    }
+    
     #header #mobile_control_wrapper{
         width: [% mobile_dash_width %];
     }
