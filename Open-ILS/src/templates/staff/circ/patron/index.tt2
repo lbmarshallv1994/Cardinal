@@ -155,7 +155,7 @@ angular.module('egCoreMod').run(['egStrings', function(s) {
         </a>
       </li>
       <li ng-class="{active : tab == 'messages', disabled : !patron()}">
-        <a a-disabled="!patron()" href="./circ/patron/{{patron().id()}}/messages">[% l('Messages') %]</a>
+        <a a-disabled="!patron()" href="./circ/patron/{{patron().id()}}/messages">[% l('Messages') %] ({{patron().standing_penalties().length}})</a>
       </li>
       <li ng-class="{active : tab == 'edit', disabled : !patron()}">
         <a href="./circ/patron/{{patron().id()}}/edit">[% l('Edit') %]</a>
