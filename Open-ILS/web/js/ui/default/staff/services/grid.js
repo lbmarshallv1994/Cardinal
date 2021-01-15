@@ -109,8 +109,7 @@ angular.module('egGridMod',
         // TODO: avoid hard-coded url
         templateUrl : '/eg/staff/share/t_autogrid', 
 
-        link : function(scope, element, attrs) {     
-
+        link : function(scope, element, attrs) {                 
             // Give the grid config loading steps time to fetch the 
             // workstation setting and apply columns before loading data.
             var loadPromise = scope.configLoadPromise || $q.when();
@@ -1934,8 +1933,23 @@ angular.module('egGridMod',
                                 }
 
                                 var path = gridData.columnsProvider.findColumn(field).path || field;
+                                
                                 var comparator = gridData.columnsProvider.findColumn(field).comparator ||
-                                    function (x,y) { if (x < y) return -1; if (x > y) return 1; return 0 };
+                                    function (x,y) { 
+                                    switch(typeof x){
+                                        case "string":
+                                        var l_x = x.toLowerCase();
+                                        var l_y = y.toLowerCase();  
+                                        if (l_x < l_y) return -1; 
+                                        if (l_x > l_y) return 1; 
+                                        return 0;
+                                        break;
+                                        default:
+                                        if (x < y) return -1; 
+                                        if (x > y) return 1; 
+                                        return 0;
+                                    }
+                                    };
 
                                 sorter_cache[si] = {
                                     field       : path,
