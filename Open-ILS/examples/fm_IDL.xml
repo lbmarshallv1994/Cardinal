@@ -6251,6 +6251,8 @@ SELECT  usr,
 			<field name="street2" reporter:label="Street2" reporter:datatype="text"/>
 			<field name="valid" reporter:label="Is Valid?" reporter:datatype="bool" oils_obj:required="true"/>
 			<field name="san" reporter:label="SAN" reporter:datatype="text"/>
+            <field name="latitude" reporter:label="Latitude" reporter:datatype="number" />
+            <field name="longitude" reporter:label="Longitude" reporter:datatype="number" />
 		</fields>
 		<links>
 			<link field="org_unit" reltype="has_a" key="id" map="" class="aou"/>
