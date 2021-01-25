@@ -173,6 +173,57 @@ sub get_coord_from_address{
     return $org1geo->{point}{coordinates}[0].",".$org1geo->{point}{coordinates}[1];
 }
 
+# set the latitude and longitude for all addresses associated with an org unit
+sub set_coord_for_ou{
+    my( $self, $ou ) = @_;
+    my($self,@org_ids) = @_;
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'id',
+                },
+                {
+                    column => 'city',
+                },
+                {
+                    column => 'state',
+                },
+                {
+                    column => 'county',
+                },
+                {
+                    column => 'street1',
+                },
+                {
+                    column => 'street2',
+                },
+                {
+                    column => 'post_code',
+                }             
+            ]
+        },
+        from => {aou => 'aoa'},
+        where => {id=> $ou}
+    });
+    my %addrs;
+   
+    for my $ref (@ma) {
+        for (@$ref){
+            my $addr_string =  $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
+            my $org1geo = $self->{bing}->geocode($addr_string);
+            my $lat = $org1geo->{point}{coordinates}[0];
+            my $long = $org1geo->{point}{coordinates}[1];
+            my $addr = $e->retrieve_actor_org_address($_->{id});
+            $addr->latitude($lat);
+            $addr->longitude($long);
+            $e->update_actor_org_address($addr) or return $e->die_event;
+            $e->commit;
+        }
+    }
+    return 1;
+}
+
 sub vicinity_between_coord{
 my( $self, $origin_coord, $dest_coord ) = @_;
     my $b = $self->{bing};

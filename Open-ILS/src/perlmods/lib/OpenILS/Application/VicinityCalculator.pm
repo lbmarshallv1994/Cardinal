@@ -34,6 +34,21 @@ sub build_distance_matrix{
 }
 
 __PACKAGE__->register_method(
+    method    => 'set_coords',
+    api_name  => 'open-ils.vicinity-calculator.shipping-hub.retrieve',
+    signature => {
+        desc     => q/Calculate the latitude and longitude of an org unit's associated addresses/,
+    }
+);
+
+sub set_coords{
+   my ($self, $org_unit) = @_;
+   my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
+   $logger->info("calculating org unit coordinates");
+   return $calculator->set_coord_for_ou($org_unit);    
+}
+
+__PACKAGE__->register_method(
     method    => 'get_all_hubs',
     api_name  => 'open-ils.vicinity-calculator.shipping-hubs.retrieve',
     signature => {
