@@ -176,7 +176,6 @@ sub get_coord_from_address{
 # set the latitude and longitude for all addresses associated with an org unit
 sub set_coord_for_ou{
     my( $self, $ou ) = @_;
-    my($self,@org_ids) = @_;
     my @ma = $self->{editor}->json_query({
         select => {
             aoa => [
@@ -214,11 +213,11 @@ sub set_coord_for_ou{
             my $org1geo = $self->{bing}->geocode($addr_string);
             my $lat = $org1geo->{point}{coordinates}[0];
             my $long = $org1geo->{point}{coordinates}[1];
-            my $addr = $e->retrieve_actor_org_address($_->{id});
+            my $addr = $self->{editor}->retrieve_actor_org_address($_->{id});
             $addr->latitude($lat);
             $addr->longitude($long);
-            $e->update_actor_org_address($addr) or return $e->die_event;
-            $e->commit;
+            $self->{editor}->update_actor_org_address($addr) or return $self->{editor}->die_event;
+            $self->{editor}->commit;
         }
     }
     return 1;
