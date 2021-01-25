@@ -7,6 +7,14 @@ use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::Utils::SettingsClient;
 use OpenSRF::Utils::Logger qw(:logger);
 
+sub get_api_key {
+   my $config = OpenSRF::Utils::SettingsClient->new();
+   my $key = $config->config_value(
+                apps => 'open-ils.vicinity-calculator' => app_settings => 'key'
+        );
+   return $key;
+}
+
 __PACKAGE__->register_method(
     method    => 'build_distance_matrix',
     api_name  => 'open-ils.vicinity-calculator.build-distance-matrix',
@@ -18,17 +26,14 @@ __PACKAGE__->register_method(
 
 sub build_distance_matrix{
    my ($self) = @_;
-   my $config = OpenSRF::Utils::SettingsClient->new();
-   my $key = $config->config_value(
-                apps => 'open-ils.vicinity-calculator' => app_settings => 'key'
-        );
+   my $key = get_api_key();
    if(!defined($key) || $key eq ''){
-   $logger->error("No Maps API key has been set up in opensrf xml.");  
-   return undef;
+       $logger->error("No Maps API key has been set up in opensrf xml.");  
+       return undef;
    }
    else{
-   my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
-   $calculator->calculate_distance_matrix();
+       my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
+       $calculator->calculate_distance_matrix();
    return 1;
    }
 }
@@ -43,6 +48,7 @@ __PACKAGE__->register_method(
 
 sub set_coords{
    my ($self, $org_unit) = @_;
+   my $key = get_api_key();
    my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
    $logger->info("calculating org unit coordinates");
    return $calculator->set_coord_for_ou($org_unit);    
@@ -59,6 +65,11 @@ __PACKAGE__->register_method(
 sub get_all_hubs{
    my ($self) = @_;
    my $calculator = OpenILS::Utils::VicinityCalculator->new();
+   my $key = get_api_key();
+   if(!defined($key) || $key eq ''){
+       $logger->error("No Maps API key has been set up in opensrf xml.");  
+       return undef;
+   }
    $logger->info("retreiving org unit shipping hubs");
    return $calculator->get_all_hubs();    
 }
