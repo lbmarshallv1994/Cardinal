@@ -15,7 +15,7 @@
           [hideBanner]="true" displayMode="inline" hiddenFields="id"
           (recordSaved)="addrSaved($event)" 
           [record]="addr(type)"
-          fieldOrder="address_type,street1,street2,city,county,state,country,post_code,san,valid"
+          fieldOrder="address_type,street1,street2,city,county,state,country,post_code,san,latitude,longitude,valid"
           >
           <eg-fm-record-editor-action i18n-label label="Delete" *ngIf="!addr(type).isnew()"
             (actionClick)="deleteAddress($event)" buttonCss="btn-warning">
