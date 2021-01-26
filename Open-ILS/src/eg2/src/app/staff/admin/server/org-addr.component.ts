@@ -3,6 +3,7 @@ import {IdlService, IdlObject} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
 import {PcrudService} from '@eg/core/pcrud.service';
 import {NgbTabChangeEvent} from '@ng-bootstrap/ng-bootstrap';
+import {NetService} from '@eg/core/net.service';
 
 const ADDR_TYPES =
     ['billing_address', 'holds_address', 'mailing_address', 'ill_address'];
@@ -37,6 +38,7 @@ export class OrgAddressComponent {
     constructor(
         private idl: IdlService,
         private org: OrgService,
+        private net: NetService,
         private pcrud: PcrudService
     ) {
         this.addrChange = new EventEmitter<IdlObject>();
