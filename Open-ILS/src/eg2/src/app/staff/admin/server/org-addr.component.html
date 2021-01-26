@@ -17,13 +17,12 @@
           [record]="addr(type)"
           fieldOrder="address_type,street1,street2,city,county,state,country,post_code,san,latitude,longitude,valid"
           >
-          <button (click)="calculateCoords()" class="btn btn-light ml-3" i18n>Calculate Long/Lat</button>
-          <button class="btn btn-light ml-3" i18n>Invalidate Long/Lat</button>
           <eg-fm-record-editor-action i18n-label label="Delete" *ngIf="!addr(type).isnew()"
             (actionClick)="deleteAddress($event)" buttonCss="btn-warning">
           </eg-fm-record-editor-action>
         </eg-fm-record-editor>
-
+        <button (click)="calculateCoords()" class="btn btn-light ml-3" i18n>Calculate Long/Lat</button>
+        <button class="btn btn-light ml-3" i18n>Invalidate Long/Lat</button>
         <ng-container *ngIf="sharedAddress(addr(type).id())">
           <div class="alert alert-info">
             <span i18n>This address is used for multiple address types.</span>
