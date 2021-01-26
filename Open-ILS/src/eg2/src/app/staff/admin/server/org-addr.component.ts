@@ -17,6 +17,7 @@ export class OrgAddressComponent {
     private tabName: string;
 
     private _orgId: number;
+    calculating: boolean;
 
     get orgId(): number { return this._orgId; }
 
@@ -158,6 +159,20 @@ export class OrgAddressComponent {
 
         return org;
     }
-
+    
+    clearCoords(){
+    }
+    
+    calculateCoords(){
+        this.calculating = true;
+            this.net.request(
+                'open-ils.vicinity-calculator',
+                'open-ils.vicinity-calculator.set_coords',
+                this.orgId;
+            ).subscribe(
+                n => {this.calculating = false; location.reload();},
+                err  => {alert('API failed to calculate' + err);this.calculating = false;}
+            );
+    }
 }
 
