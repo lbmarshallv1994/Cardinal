@@ -202,8 +202,8 @@ sub set_coord_for_ou{
                 }             
             ]
         },
-        from => {aou => 'aoa'},
-        where => {id=> $ou}
+        from => 'aoa',
+        where => {org_unit => $ou}
     });
     my %addrs;
    
