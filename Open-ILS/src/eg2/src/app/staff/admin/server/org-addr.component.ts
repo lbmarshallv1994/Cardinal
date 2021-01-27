@@ -169,11 +169,11 @@ export class OrgAddressComponent {
         this.calculating = true;
             this.net.request(
                 'open-ils.vicinity-calculator',
-                'open-ils.vicinity-calculator.set_coords',
+                'open-ils.vicinity-calculator.set-coords',
                 this.orgId
             ).subscribe(
                 n => {this.calculating = false; location.reload();},
-                err  => {alert('API failed to calculate' + err);this.calculating = false;}
+                err  => {alert('API failed to calculate ' + err);this.calculating = false;}
             );
     }
 }

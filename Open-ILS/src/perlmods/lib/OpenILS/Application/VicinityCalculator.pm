@@ -40,7 +40,7 @@ sub build_distance_matrix{
 
 __PACKAGE__->register_method(
     method    => 'set_coords',
-    api_name  => 'open-ils.vicinity-calculator.shipping-hub.retrieve',
+    api_name  => 'open-ils.vicinity-calculator.shipping-hub.set-coords',
     signature => {
         desc     => q/Calculate the latitude and longitude of an org unit's associated addresses/,
     }
