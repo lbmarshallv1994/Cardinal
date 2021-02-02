@@ -7,9 +7,6 @@ import {Pager} from '@eg/share/util/pager';
 import {OrgService} from '@eg/core/org.service';
 import {GridDataSource, GridColumn, GridCellTextGenerator} from '@eg/share/grid/grid';
 import {GridComponent} from '@eg/share/grid/grid.component';
-import {BroadcastService} from '@eg/share/util/broadcast.service';
-import {CourseService} from '@eg/staff/share/course.service';
-import {PermService} from '@eg/core/perm.service';
 
 @Component({
   selector: 'eg-catalog-copies',
@@ -19,8 +16,6 @@ export class CopiesComponent implements OnInit {
 
     recId: number;
     initDone = false;
-    usingCourseModule = false;
-    editableCopyLibs: number[] = [];
     gridDataSource: GridDataSource;
     copyContext: any; // grid context
     @ViewChild('copyGrid', { static: true }) copyGrid: GridComponent;
@@ -39,26 +34,15 @@ export class CopiesComponent implements OnInit {
     openHoldingsEditor: (item: number) => void;
 
     constructor(
-        private course: CourseService,
         private net: NetService,
         private org: OrgService,
         private staffCat: StaffCatalogService,
-        private broadcaster: BroadcastService,
-        private perm: PermService
     ) {
         this.gridDataSource = new GridDataSource();
     }
 
     ngOnInit() {
         this.initDone = true;
-        this.course.isOptedIn().then(res => {
-            this.usingCourseModule = res;
-        });
-
-        this.perm.hasWorkPermAt(['UPDATE_COPY'], true)
-            .then(result => {
-                this.editableCopyLibs = result.UPDATE_COPY as number[];
-            });
 
         this.gridDataSource.getRows = (pager: Pager, sort: any[]) => {
             // sorting not currently supported
@@ -66,12 +50,6 @@ export class CopiesComponent implements OnInit {
         };
 
         this.copyContext = {
-            editable: (copy: any) => {
-                return this.editableCopyLibs.some(lib => {
-                    return copy.circ_lib === lib
-                        || copy.call_number_owning_lib === lib;
-                });
-            },
             holdable: (copy: any) => {
                 return copy.holdable === 't'
                     && copy.location_holdable === 't'
@@ -86,16 +64,13 @@ export class CopiesComponent implements OnInit {
             barcode: row => row.barcode
         };
 
-        this.broadcaster.listen('eg.holdings.update').subscribe(data => {
-            if (data && data.records && data.records.includes(this.recId)) {
-                this.copyGrid.reload();
-            }
-        });
-
         this.openHoldingsEditor = (item: number) => {
             window.open('/eg/staff/cat/item/' + item + '/edit', '_blank');
         };
+    }
 
+    collectData() {
+        if (!this.recId) { return; }
     }
 
     orgName(orgId: number): string {
@@ -121,13 +96,6 @@ export class CopiesComponent implements OnInit {
             pager.offset,
             this.staffCat.prefOrg ? this.staffCat.prefOrg.id() : null
         ).pipe(map(copy => {
-            this.org.settings('circ.course_materials_opt_in').then(res => {
-                if (res['circ.course_materials_opt_in']) {
-                    this.course.getCoursesFromMaterial(copy.id).then(courseList => {
-                        copy._courses = courseList;
-                    });
-                }
-            });
             copy.active_date = copy.active_date || copy.create_date;
             return copy;
         }));
