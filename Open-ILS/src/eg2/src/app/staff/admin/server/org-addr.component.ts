@@ -163,7 +163,7 @@ export class OrgAddressComponent {
     }
     
     clearCoords(addrType : string){
-        const addr = const addr = this.addr(addrType);
+       const addr = this.addr(addrType);
         const tmpOrg = this.updatableOrg();
         console.log(addr);
         /*
