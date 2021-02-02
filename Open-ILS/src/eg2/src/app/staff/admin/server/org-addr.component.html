@@ -9,8 +9,9 @@
         (type === 'mailing_address' ? 'Mailing Address' : 'ILL Address'))}}">
 
       <ng-template ngbTabContent>
+        <br/>
         <button (click)="calculateCoords()" class="btn btn-light ml-3" i18n>Calculate Long/Lat</button>
-        <button class="btn btn-light ml-3" i18n>Invalidate Long/Lat</button> 
+        <button (click)="clearCoords($event)" class="btn btn-light ml-3" i18n>Invalidate Long/Lat</button> 
         <eg-fm-record-editor idlClass="aoa" readonlyFields="org_unit" 
           [mode]="addr(type).isnew() ? 'create': 'update'" 
           [hideBanner]="true" displayMode="inline" hiddenFields="id"

@@ -162,7 +162,23 @@ export class OrgAddressComponent {
         return org;
     }
     
-    clearCoords(){
+    clearCoords($event: any){
+        const addr = $event.record;
+        const tmpOrg = this.updatableOrg();
+        console.log(addr);
+        /*
+        ADDR_TYPES.forEach(aType => {
+            const a = this.addr(aType);
+            if (a && a.id() === addr.id()) {
+                tmpOrg[aType](null);
+                this.createAddress(aType);
+            }
+        });
+
+        this.pcrud.update(tmpOrg).toPromise()
+        .then(_ => this.pcrud.remove(addr).toPromise())
+        .then(_ => this.addrChange.emit(addr));
+        */
     }
     
     calculateCoords(){
