@@ -374,7 +374,52 @@ my @sh = $self->{editor}->json_query({
     return $sh[0][0]->{'hub'};
 }
 
-=begin work zone
+
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'id',
+                },
+                {
+                    column => 'city',
+                },
+                {
+                    column => 'state',
+                },
+                {
+                    column => 'county',
+                },
+                {
+                    column => 'street1',
+                },
+                {
+                    column => 'street2',
+                },
+                {
+                    column => 'post_code',
+                }             
+            ]
+        },
+        from => 'aoa',
+        where => {org_unit => $ou}
+    });
+    my %addrs;
+   
+    for my $ref (@ma) {
+        for (@$ref){
+            my $addr_string =  $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
+            my $org1geo = $self->{bing}->geocode($addr_string);
+            my $lat = $org1geo->{point}{coordinates}[0];
+            my $long = $org1geo->{point}{coordinates}[1];
+            my $addr = $self->{editor}->retrieve_actor_org_address($_->{id});
+            $addr->latitude($lat);
+            $addr->longitude($long);
+            $self->{editor}->update_actor_org_address($addr) or return $self->{editor}->die_event;
+            $self->{editor}->commit;
+        }
+    }
+=begin OLD work zone
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
     my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
     Fieldmapper->import(IDL => $idl);
