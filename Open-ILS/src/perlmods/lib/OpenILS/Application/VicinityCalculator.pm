@@ -47,7 +47,7 @@ __PACKAGE__->register_method(
 );
 
 sub set_coords{
-   my ($self, $org_unit) = @_;
+   my ($self, $client, $org_unit) = @_;
    my $key = get_api_key();
    my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
    $logger->info("calculating org unit coordinates");

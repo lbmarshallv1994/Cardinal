@@ -162,8 +162,8 @@ export class OrgAddressComponent {
         return org;
     }
     
-    clearCoords($event: any){
-        const addr = $event.record;
+    clearCoords(addrType : string){
+        const addr = this.addr(addrType);
         const tmpOrg = this.updatableOrg();
         console.log(addr);
         /*
@@ -181,14 +181,15 @@ export class OrgAddressComponent {
         */
     }
     
-    calculateCoords(){
+    calculateCoords(addrType : string){
+        const addr = this.addr(addrType);
         this.calculating = true;
             this.net.request(
                 'open-ils.vicinity-calculator',
                 'open-ils.vicinity-calculator.set-coords',
                 this.orgId
             ).subscribe(
-                n => {this.calculating = false; location.reload();},
+                n => {this.calculating = false; if(addr){this.addrChange.emit(addr)}},
                 err  => {alert('API failed to calculate ' + err);this.calculating = false;}
             );
     }
