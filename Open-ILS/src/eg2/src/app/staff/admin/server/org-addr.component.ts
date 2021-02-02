@@ -166,6 +166,10 @@ export class OrgAddressComponent {
        const addr = this.addr(addrType);
         const tmpOrg = this.updatableOrg();
         console.log(addr);
+        addr.latitude(null);
+        addr.longitude(null);
+        this.pcrud.update(addr).toPromise()
+        .then(_ => this.addrChange.emit(addr));
         /*
         ADDR_TYPES.forEach(aType => {
             const a = this.addr(aType);
@@ -189,7 +193,7 @@ export class OrgAddressComponent {
                 'open-ils.vicinity-calculator.set-coords',
                 this.orgId
             ).subscribe(
-                n => {this.calculating = false; if(addr){this.addrChange.emit(addr)}},
+                n => {this.calculating = false; if(addr){this.addrChange.emit(addr);this.init();}},
                 err  => {alert('API failed to calculate ' + err);this.calculating = false;}
             );
     }
