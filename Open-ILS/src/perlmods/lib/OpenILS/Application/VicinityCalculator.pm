@@ -42,16 +42,16 @@ __PACKAGE__->register_method(
     method    => 'set_coords',
     api_name  => 'open-ils.vicinity-calculator.set-coords',
     signature => {
-        desc     => q/Calculate the latitude and longitude of an org unit's associated addresses/,
+        desc     => q/Calculate the latitude and longitude of an address/,
     }
 );
 
 sub set_coords{
-   my ($self, $client, $org_unit) = @_;
+   my ($self, $client, $addr) = @_;
    my $key = get_api_key();
    my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
-   $logger->info("calculating org unit coordinates");
-   return $calculator->set_coord_for_ou($org_unit);    
+   $logger->info("calculating address coordinates");
+   return $calculator->set_coord_for_addr($addr);    
 }
 
 __PACKAGE__->register_method(

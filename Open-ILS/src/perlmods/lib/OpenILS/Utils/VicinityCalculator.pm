@@ -207,7 +207,6 @@ sub set_coord_for_ou{
         from => 'aoa',
         where => {org_unit => $ou}
     });
-    my %addrs;
     $self->{editor}->xact_begin;
     for my $ref (@ma) {
         for (@$ref){
@@ -224,6 +223,60 @@ sub set_coord_for_ou{
     }
     $self->{editor}->xact_commit;
     return 1;
+}
+
+sub set_coord_for_addr{
+    my $self = shift;
+    my $addr = int(shift);
+    $logger->info("using API to retrieve Long/Lat for address with ID $addr");
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aoa => [
+                {
+                    column => 'id',
+                },
+                {
+                    column => 'city',
+                },
+                {
+                    column => 'state',
+                },
+                {
+                    column => 'county',
+                },
+                {
+                    column => 'street1',
+                },
+                {
+                    column => 'street2',
+                },
+                {
+                    column => 'post_code',
+                }             
+            ]
+        },
+        from => 'aoa',
+        where => {id => $addr}
+    });
+    
+    for my $ref (@ma) {
+        for (@$ref){
+            $self->{editor}->xact_begin;
+            my $addr_string =  $self->format_street_address($_->{street1},$_->{street2},$_->{city},$_->{county},$_->{state},$_->{post_code});
+            my $org1geo = $self->{bing}->geocode($addr_string);
+            my $lat = $org1geo->{point}{coordinates}[0];
+            my $long = $org1geo->{point}{coordinates}[1];
+            my $address = $self->{editor}->retrieve_actor_org_address($addr);
+            $address->latitude($lat);
+            $address->longitude($long);
+            $logger->info("Got $lat $long for address $addr");
+            $self->{editor}->update_actor_org_address($address) or return $self->{editor}->die_event; 
+            $self->{editor}->xact_commit;
+            my @val = ($lat,$long);
+            return \@val;
+        }
+    }    
+    return $self->{editor}->die_event;
 }
 
 sub vicinity_between_coord{
@@ -380,7 +433,15 @@ my @sh = $self->{editor}->json_query({
 
 
 
-=begin OLD work zone
+
+=begin work zone
+
+OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
+    my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
+    Fieldmapper->import(IDL => $idl);
+my $pc = OpenILS::Utils::VicinityCalculator->new("VbVe1thIFfqm2ghCuREV~3BmYd1kV23t34b_u1DXhQw~AvpRMvRV37o03fEBAq24KnW_R7I7M9CqwzezfKINgNG-LcwMuk7u7ihsBWZCPFE4");
+print Dumper($pc->set_coord_for_addr(2));
+
 OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
     my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
     Fieldmapper->import(IDL => $idl);
@@ -388,11 +449,7 @@ my $pc = OpenILS::Utils::VicinityCalculator::Matrix->new();
 my @hubs = (7,11,4);
 print Dumper($pc->hub_matrix(13,\@hubs));
 
-OpenSRF::System->bootstrap_client(config_file =>'/openils/conf/opensrf_core.xml');
-    my $idl = OpenSRF::Utils::SettingsClient->new->config_value("IDL");
-    Fieldmapper->import(IDL => $idl);
-my $pc = OpenILS::Utils::VicinityCalculator->new("VbVe1thIFfqm2ghCuREV~3BmYd1kV23t34b_u1DXhQw~AvpRMvRV37o03fEBAq24KnW_R7I7M9CqwzezfKINgNG-LcwMuk7u7ihsBWZCPFE4");
-$pc->set_coord_for_ou(2);
+
 
 my @copy_id = (4007,3507,3807,3307,3707,3207,3607,3107, 4819);
 

@@ -191,9 +191,9 @@ export class OrgAddressComponent {
             this.net.request(
                 'open-ils.vicinity-calculator',
                 'open-ils.vicinity-calculator.set-coords',
-                this.orgId
+                addr.id()
             ).subscribe(
-                n => {this.calculating = false; if(addr){this.addrChange.emit(addr);this.init();}},
+                coords => { addr.latitude(coords[0]);addr.longitude(coords[1]);this.addrChange.emit(addr);},
                 err  => {alert('API failed to calculate ' + err);this.calculating = false;}
             );
     }
