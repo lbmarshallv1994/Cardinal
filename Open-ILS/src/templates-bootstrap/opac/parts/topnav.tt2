@@ -1,16 +1,54 @@
+[% IF !ctx.is_staff && !ctx.readonly %]
+<div id="header-dock">
+    <div id="header-wrap" class="fixed">
+    <div id="header" [% IF ctx.user %]class="user-active"[% END %]>
+        <div id="topnav_logo_wrapper">
+            [% INCLUDE "opac/parts/topnav_logo.tt2" %]
+                [%- IF ctx.branch_name -%]
+            <a id='header-branch-link' href="[% ctx.branch_link ? ctx.branch_link : ctx.opac_root %]">
+                <div id="header-branch">[% ctx.branch_name %]</div>
+            </a>
+        [%- END -%]
+  
+        </div>
+        <div id="mobile_control_wrapper" class="mobile-only">
+            <a id="mobile_control_button" href="javascript:void(0);" class="icon opac-button-header" id="home_myopac_link" aria-expanded="false" aria-controls="mobile_links" onclick="toggleClassByID('mobile_links','active'); copyHeaderLinks();">
+                <svg class="bi" width="100%" height="100%" fill="currentColor">
+                  <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#list"/>
+                </svg>
+            </a>
+        </div>       
+        <div id="header-login-wrapper">
+            [% IF !ctx.user %]
+            
+            <div id="your-acct-login" class="pc-only">
+                [% IF ctx.get_org_setting(ctx.physical_loc || ctx.aou_tree.id, 'opac.allow_pending_user') %]
+                    <a href="[% mkurl(ctx.opac_root _ '/register') %]" class="opac-button-header">[% 
+                l('Sign Up') %]</a>
+                [% END %]
+                <a href="#loginModal" data-toggle="modal" data-target="#loginModal" class="opac-button-header">                     
+                    [% l('My Account') %]
+                </a>
+            </div>
+            [% ELSE %]
+            [% INCLUDE "opac/parts/topnav_dash.tt2" %]
+            [% END %]
+        </div>
+        [%- INCLUDE "opac/parts/locale_picker.tt2" %]
+        <div class="common-no-pad"></div>    
+    </div>
+    [% INCLUDE "opac/parts/topnav_holds.tt2" %]
+    [% INCLUDE "opac/parts/topnav_links.tt2" %]
+    </div>
+</div>
 [%- IF ctx.maintenance_message -%]
-<div class="alert alert-[% ctx.maintenance_type %] alert-dismissible mb-0 text-center" role="alert">
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-[% ctx.maintenance_message %]
-</div>
+<div [%- IF ctx.maintenance_message_class -%]class="alert-[% ctx.maintenance_type %]" [%- END -%] id="maintenance_message">[% ctx.maintenance_message %]</div>
 [%- END -%]
-[% IF !ctx.is_staff %]
-
-<div id="header-wrap">
-[% INCLUDE "opac/parts/topnav_links.tt2" %]
-</div>
+[% INCLUDE "opac/parts/topnav_mobile.tt2" %]
+[%- ELSE -%]
+    [%- IF ctx.maintenance_message && ctx.maintenance_message_staff -%]
+    <div id="maintenance_message">[% ctx.maintenance_message %]</div>
+    [%- END -%]
 [% END %]
 <div id="subheader-wrap">
  [% INCLUDE "opac/parts/topnav_subnav.tt2" %]

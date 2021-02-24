@@ -1,0 +1,62 @@
+<div id="mobile_links">
+    [% IF !ctx.user %]
+    [% IF ctx.get_org_setting(ctx.physical_loc || ctx.aou_tree.id, 'opac.allow_pending_user') %]
+    <div>
+    <h4>
+        <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+          <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#person-plus-fill"/>
+        </svg>
+        <a href="[% mkurl(ctx.opac_root _ '/register') %]">[%l('Sign Up') %]</a></h4>
+    </div>
+    [% END %]
+    <div>
+        <h4>
+            <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+              <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#person-check-fill"/>
+            </svg>
+            <a href="[% mkurl(ctx.opac_root _ '/myopac/main') %]" 
+                 id="home_myopac_link">
+                [% l('My Account') %]
+            </a>
+        </h4>
+    </div>
+    [% ELSE %]
+    <h3><b>My Account</b></h3>
+    <h4>
+    <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+        <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#envelope-fill"/>
+    </svg>
+    <a href="[% mkurl(ctx.opac_root _ '/myopac/messages', {}, ['single', 'message_id', 'hid']) %]">
+            [% l('Messages') %]
+        </a></h4>
+        [% IF ctx.user_stats.messages.unread %]
+            <p>
+                ([%- ctx.user_stats.messages.unread -%] unread)
+            </p>
+        [% END %]
+
+        <h4>
+        <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+            <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#file-text-fill"/>
+        </svg>
+        <a href="[% mkurl(ctx.opac_root _ '/myopac/lists', {}, ['single', 'message_id', 'hid', 'from_basket']) %]">[% l('Lists') %]</a></h4>
+        <h4>
+        <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+            <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#book-half"/>
+        </svg>
+        <a href="[% mkurl(ctx.opac_root _ '/myopac/holds', {},['available', 'single', 'message_id', 'sort','sort_type', 'hid'])%]">[% l('Holds') %]</a></h4>
+        <h4>
+        <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+            <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#person-circle"/>
+        </svg>
+        <a href="[% mkurl(ctx.opac_root _ '/myopac/main', {}, ['single', 'message_id', 'sort','sort_type', 'hid']) %]">[% l('Account') %]</a></h4>
+        <h4>
+         <svg class="bi" width="1.4em" height="1.4em" fill="currentColor">
+            <use xlink:href="[% ctx.media_prefix %]/images/bootstrap-icons.svg#door-open-fill"/>
+        </svg>       
+        <a href="[% mkurl(ctx.opac_root _ '/logout', {}, 1) %]">[% l('Logout') %]</a></h4>
+    [% END %]
+
+    <div id="mobile_header_links">
+    </div>
+</div>

@@ -2,6 +2,17 @@
     PROCESS "opac/parts/css/colors.tt2";
     PROCESS "opac/parts/css/fonts.tt2";
     rtl = ctx.get_i18n_l(ctx.eg_locale).rtl;
+    header_height = "58px";
+    header_logo_size = "45px";
+    header_mobile_height = "48px";
+    header_mobile_logo_size = "35px";
+    header_dash_width = "575px";
+    header_dash_inactive_width = "185px";
+    tablet_dash_width = "372px";
+    mobile_dash_width = "48px";
+    link_bar_height = "22px";
+    result_image_width = "120px";
+    result_facet_width = "20vw";
 %]
 
 .adv_filters{
@@ -314,6 +325,18 @@ Novelist Styling
     color: [% css_colors.non_zero_count %] !important;
 }
 
+.dash_div {
+    background-color: rgba(0,0,0,0.25);
+    border-radius: 5px;
+    padding: 0em 1em;
+}
+
+.dash_divider {
+    margin: 1em;
+    color: [% css_colors.primary_fade %];
+    display:inline-block;
+}
+
 .remove_filter{
     padding: .25rem .25rem !important;
     font-size: .875rem;
@@ -495,27 +518,17 @@ div.select-box-wrapper {
     [%- END %]
 }
 
-#dash_wrapper {
-    [% IF rtl == 't' -%]
-    margin-right: 0.5em;
-    [%- ELSE %]
-    margin-left: 0.5em;
-    [%- END %]
+
+#dashboard, #dashboard_e {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+    height: 3em;
 }
 
-#dash_wrapper div {
-    background-color: [% css_colors.primary %];
-    border-radius: 5px;
-    padding: 0em 1em;
+#dashboard span.dash-align a, #dashboard_e span.dash-align a {
+    font-weight: bold;
+    text-decoration: none;
 }
-
-.dash_divider {
-    margin: 0 20px;
-    color: #fff;
-    display:inline-block;
-}
-
-
 
 #dash_user {
     font-weight: bold;
@@ -529,13 +542,17 @@ div.select-box-wrapper {
     [%- END %]
 }
 
+#dash_checked, #dash_e_checked { color: [% css_colors.text_attention %]; }
+#dash_holds, #dash_e_holds { color: [% css_colors.text_attention %]; }
+#dash_pickup, #dash_e_pickup { color: [% css_colors.text_goodnews %]; }
 
-/*
+/*  
 #dash_fines { color: [% css_colors.text_badnews %]; }
 the color contrast between "text_badnews" and "primary"
-is too low for WCAG compliance.  Use "text_attention"
+is too low for WCAG compliance.  Use "text_attention" 
 for now until a better color is picked - if needed.
 */
+#dash_fines { color: [% css_colors.text_attention %]; }
 
 #dash_wrapper #dash_user_message_button_container {
     display: inline;
@@ -547,10 +564,11 @@ for now until a better color is picked - if needed.
     padding-left: 0.2em;
     padding-right: 0.2em;
     display: inline-block;
-    font-size: 95%;
-    border-radius: 0;
+    font-size: 90%;
+    border-radius: 3px;
     z-index: 2;
-    margin-top: 0.2em;
+    margin-top: 0.1em;
+    filter: drop-shadow(.1rem .1rem .1rem black);
     [% IF rtl == 't' -%]
     margin-right: -1.5em;
     [%- ELSE %]
@@ -558,19 +576,27 @@ for now until a better color is picked - if needed.
     [%- END %]
 }
 
-#header-wrap {
-    /* border-bottom: 5px solid [% css_colors.nav_separation %]; */
-    background-color: [% css_colors.header_primary_fade %];
-    background-image: -moz-linear-gradient([% css_colors.header_primary %], [% css_colors.header_primary_fade %]);
-    background-image: -o-linear-gradient([% css_colors.header_primary %], [% css_colors.header_primary_fade %]);
-    background-image: -webkit-linear-gradient([% css_colors.header_primary %], [% css_colors.header_primary_fade %]);
-    background-image: linear-gradient([% css_colors.header_primary %], [% css_colors.header_primary_fade %]);
+#header-dock{
+    width: 100%;
+    height: calc([% header_height %] + [% link_bar_height %] );
 }
+#header-wrap {
+    background-image: linear-gradient([% css_colors.primary %], [% css_colors.primary_fade %]);
+    flex-wrap: wrap;
+    position: fixed;
+    width: 100%;
+    height: calc([% header_height %] + [% link_bar_height %] );
+    z-index: 100;
+   /* box-shadow: 0px 0.001em 10px 0.006em; */
+}
+
 #header {
     color: [% css_colors.background %];
-    margin-left: 1em;
-    margin-right: 1em;
+    display:flex;
+    height: [% header_height %];    
     font-size: [% css_fonts.size_small %];
+    padding-left: 1em;
+    padding-right: 1em;
 }
 
 #header a {
@@ -584,30 +610,41 @@ for now until a better color is picked - if needed.
 
 #header-links {
     color: [% css_colors.text_invert %];
-    font-size: [% css_fonts.size_small %];
     font-weight: bold;
     position: relative;
-    top:4px;
+    display: flex;
+    flex-wrap: wrap;
+}
 
+#header-branch-link{
+    width: calc(99% - [% header_logo_size %]);
+    height:100%;
+    overflow: hidden;
+}
+
+#header-branch{
+    align-content: center;
+    align-items: center;
+    display: inline-flex;
+    text-align: left;
+    font-size: [% css_fonts.size_huge %];
+    font-weight: bold;
+    width: 100%;
+    height: 100%;
 }
 
 #header-links a {
     color: [% css_colors.text_invert %];
     display: block;
+    text-align: center;
     text-decoration: none;
-    [% IF rtl == 't' -%]
-    float: right;
-    margin-left: 22px;
-    [%- ELSE %]
-    float:left;
-    margin-right:22px;
-    [%- END %]
+    margin-left: 10px;
+    font-size: [% css_fonts.size_base %];
 }
 
 #header-links a:hover {
     color: [% css_colors.text_invert %];
-    text-shadow: 0 0 0.2em [% css_colors.primary %], 0 0 0.2em [% css_colors.primary %];
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 #header #header-links2 {
@@ -626,7 +663,39 @@ for now until a better color is picked - if needed.
 }
 
 #your-acct-login {
-    padding-top:2em;
+    display:inline-flex;
+    align-items: center;
+}
+
+#header-login-wrapper{
+    display:inline-flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+#hold-wrapper.active{
+display:flex;
+}
+
+#hold-wrapper:not(.active){
+display:none;
+}
+
+#hold-wrapper{
+    background-color: black;
+    margin-top: 0;
+    margin-bottom: 0;    
+}
+
+#hold-wrapper #dashboard{
+    margin-top: 0;
+    margin-bottom: 0; 
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+#hold-wrapper #dashboard a, #hold-wrapper #dashboard .dash_divider{
+    color: white; 
 }
 
 #gold-links {
@@ -649,8 +718,16 @@ for now until a better color is picked - if needed.
 }
 
 #gold-links-holder {
-    height: 24px;
-    background-color: [% css_colors.background_invert %];
+    align-content: center;
+    align-items: center;
+    display: inline-flex;
+    background-color: black;
+    width: 100VW;
+    height: [% link_bar_height %];
+}
+
+#mobile_links{
+    display:none;
 }
 
 #util-bar {
@@ -2339,14 +2416,27 @@ button.opac-button::-moz-focus-inner, input.opac-button::-moz-focus-inner {
     border: 0;
 }
 
-.opac-button-header, #dash_wrapper .opac-button {
-    background-color: [% css_colors.control %];
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    font-size: [% css_fonts.size_base %];
+.opac-button-header{
+    font-size: [% css_fonts.size_big %];
+    font-weight: bold; 
+    text-decoration: none;
+    cursor: pointer !important;
+    border-radius: 5px;
+    border: 1px solid [% css_colors.accent_light %];
+    transition: background-color 0.10s;
+    margin: 0.2em;
+    padding: 0.3em;
+    display: inline-block;
+}
+.opac-button-header.icon{
+    width: 2.4em;
+    height: 2.4em;
 }
 a.opac-button-header:hover, #dash_wrapper a.opac-button:hover {
     border-color: [% css_colors.control %];
+    background-color: [% css_colors.primary_fade %];
 }
+
 
 .opac-multiline-button > a {
     display: inline-block;
@@ -3041,6 +3131,12 @@ a.preflib_change {
     margin-top: .2rem;
 }
 
+@media only screen and (min-width: 600px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
 @media only screen and (min-width: 992px) {
     .nav-fr{
         float: right;
@@ -3083,6 +3179,9 @@ a.preflib_change {
 }
 
 @media only screen and (max-width: 600px) {
+    .pc-only{
+        display: none !important;
+    }
     input, select {
         font-size: [% css_fonts.size_big %];
     }
@@ -3092,7 +3191,53 @@ a.preflib_change {
     #header {
         padding: 0px;
         margin: 0px;
+        display: flex;
+        flex-direction: row;
+        height: [% header_mobile_height %];
     }
+    #header-login-wrapper {
+        display:none;        
+    }
+    #homesearch_main_logo img {
+        width:100%;
+    }
+    #header #mobile_control_wrapper{
+        width: [% mobile_dash_width %];
+        margin-left: auto;
+        display: block;
+        padding-top: 0.2em;
+    }
+    
+
+    #header #topnav_logo_wrapper{
+        width: calc(100% - [% mobile_dash_width %]);
+    }
+
+    #header #mobile_control_wrapper{
+        width: [% mobile_dash_width %];
+    }
+
+    #header:not(.user-active) #topnav_logo_wrapper{
+        width: calc(100% - [% mobile_dash_width %]);
+    }
+
+    #header.user-active #topnav_logo_wrapper{
+        width: calc(100% - [% mobile_dash_width %]);
+    }
+
+    
+    #header-wrap {
+        height: [% header_mobile_height %];
+        padding-left: 0.15em;
+        padding-right: 0.15em;
+    }
+    #header-dock {
+        height: [% header_mobile_height %];
+    }
+    #header-branch p{
+    font-size: [% css_fonts.size_bigger %];
+    }
+
     #homesearch_main_logo img {
         width:75%;
     }
@@ -3263,6 +3408,43 @@ a.preflib_change {
     #dash_wrapper .opac-button {
         top: 0px;
     }
+    
+    #mobile_links{
+        background-color: [% css_colors.accent_darker %];
+        display:flex;
+        position: fixed;
+        top: [% header_mobile_height %];
+        color: white;
+        width: 100vw;
+        z-index: 100;
+        flex-direction: column;
+        padding-top: 0.3em;
+        padding-left: 0.3em;
+        padding-right: 0.3em;
+    }
+    
+    #mobile_links.active{
+        display: flex;
+    }
+    
+    #mobile_links:not(.active){
+        display: none;
+    }
+    
+    #mobile_links svg{
+        vertical-align: bottom;
+    }
+    
+    #mobile_links a{
+        color: white;
+    }
+    
+    #mobile_control_wrapper{
+        margin-left: auto;
+        display:block;
+        padding-top: 0.2em;
+    }
+    
     .small_view_only, #filter_hits {
         display: inline !important;
     }

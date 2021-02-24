@@ -119,7 +119,56 @@
 <script  src="[% ctx.media_prefix %]/js/dojo/opensrf/opensrf.js?[% ctx.eg_cache_hash %]"></script>
 <script  src="[% ctx.media_prefix %]/js/dojo/opensrf/opensrf_xhr.js?[% ctx.eg_cache_hash %]"></script>
 <script  src="[% ctx.media_prefix %]/js/dojo/opensrf/JSON_v1.js?[% ctx.eg_cache_hash %]"></script>
+<!-- Resize branch info to fit screen -->
+<script>
+    function resizeBranch(){
+        //remove any boxfit
+        var branchName = jQuery('#header-branch').text();
+        jQuery('#header-branch').html(branchName);
+        jQuery('#header-branch').css('display',"");
+        jQuery('#header-branch').css('white-space',"");
+        jQuery('#header-branch').boxfit({maximum_font_size:'28',align_center: false, multiline: branchName.length > 40 && window.screen.width < 1024 });
+    }
+    
+    function toggleClassByID(id,className){
+        toggleClass(document.getElementById(id),className);
+    }
 
+    function toggleClassByQuery(q,className){
+        jQuery(q).each( (i,e) => toggleClass(e,className))
+    }
+    
+    function toggleClass(element,className){
+        if (element.classList) {
+          element.classList.toggle(className);
+        } else {
+          // For IE9
+          var classes = element.className.split(" ");
+          var i = classes.indexOf(className);
+
+          if (i >= 0)
+            classes.splice(i, 1);
+          else
+            classes.push(className);
+            element.className = classes.join(" ");
+        }
+    }
+    
+    function copyHeaderLinks(){
+        var mhl = jQuery("#mobile_header_links");
+        mhl.empty();
+        mhl.append("<h3><b>Other Resources</b></h3>");
+        var links = jQuery("#header-links a");
+        if(links.length > 0){
+            var list = "<ul>";
+            links.each(function(i) {
+                list += "<li>"+this.outerHTML+"</li>";
+            });
+            list = list + "</ul>";
+            mhl.append(list);
+        }
+    }
+</script>
 [% IF use_autosuggest.enabled == "t" AND basic_search != "f"; %]
 <script >
     dojo.require("openils.widget.AutoSuggest");
@@ -150,7 +199,6 @@
     [% INCLUDE "opac/parts/ebook_api/base_js.tt2" %]
     [% INCLUDE "opac/parts/ebook_api/login_js.tt2" IF (ctx.page == 'login') %]
 [% END %]
-
 <!-- provide a JS friendly org unit hash -->
 <script >
 var aou_hash = {
