@@ -1294,7 +1294,12 @@ function($scope , $routeParams , $q , $uibModal , $window , egCore ,
     function set_new_patron_defaults(prs) {
         if (!$scope.patron.passwd) {
             // passsword may originate from staged user.
-            $scope.generate_password();
+            if ($scope.patron.day_phone &&
+                $scope.org_settings['patron.password.use_phone']) {
+                $scope.patron.passwd = $scope.patron.day_phone.substr(-4);
+            } else {
+                $scope.generate_password();
+            }
         }
 
         var notify = 'phone:email'; // hard-coded default when opac.hold_notify has no reg_default
@@ -1915,9 +1920,7 @@ function($scope , $routeParams , $q , $uibModal , $window , egCore ,
                 notify = notify_stype.reg_default();
             } else {
                 // no setting and no default: set phone and email to true
-                $scope.hold_notify_type.phone = true;
-                $scope.hold_notify_type.email = true;
-                return;
+                notify = 'phone:email';
             }
         }
 
