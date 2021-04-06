@@ -66,13 +66,7 @@
         
 }
 
-<!-- Modal confirm -->
-function modalConfirm(event,text){
-    console.log(event);       
-    jQuery("#modal_confirm").modal("show");
-    return false;
-}
-
+<!-- Copy links from topnav_links to the mobile bar -->
 function copyHeaderLinks(){
     var mhl = jQuery("#mobile_header_links");
     mhl.empty();
@@ -145,8 +139,6 @@ function handleBasicSearchForms() {
     return true;
 }
 </script>
-[% INCLUDE opac/parts/modal_confirm.tt2 %]
-
 
 [%- IF ctx.use_stripe %]
     <script type="text/javascript">unHideMe($("pay_fines_now"));[%# the DOM is loaded now, right? %]</script>

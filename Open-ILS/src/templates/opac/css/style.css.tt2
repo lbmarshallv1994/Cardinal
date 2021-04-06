@@ -4319,7 +4319,26 @@ a.preflib_change {
        .mobile_search_lbl_clr{
           margin-right: 0.2em;
        }
-      
+       
+       #myopac_prefs_div .data_grid.full-width{
+       }
+       
+       #myopac_prefs_div .data_grid.full-width tbody{
+        display:inline-flex;
+        flex-direction: column;
+       }
+       
+       #myopac_prefs_div .data_grid.full-width tr{
+           width:100%;
+           display:inline-block;
+           border-bottom: 3px solid #fff;
+       }
+       #myopac_prefs_div .data_grid.full-width tr td{
+           width:100%;
+           display:block;
+           padding: 4px 8px 4px 8px;
+           border-bottom: 0;
+       }
 }
 
 /* extra small phone mode */
