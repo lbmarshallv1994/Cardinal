@@ -48,7 +48,7 @@
             <div id="results_header_inner">
                 <a class="opac-button" href="[% mkurl(ctx.opac_root _ '/home', {$loc_name => loc_value, 'detail_record_view' => show_detail_view}, 1) %]">[% l('Another Search') %]</a>
                 <a class="opac-button" href="[% mkurl(ctx.opac_root _ '/advanced',{}, expert_search_parms.merge(browse_search_parms, facet_search_parms)) %]">[% l('Advanced Search') %]</a>
-                <div id="refine_hits" class="results_header_btns result_block_visible"><a onclick="getFacety();">[% l('Refine these results') %]</a></div>
+                <div id="refine_hits" class="results_header_btns result_block_visible"><a class="opac-button" onclick="getFacety();">[% l('Refine these results') %]</a></div>
                 <div id="return_to_hits"><a class="opac-button" onclick="getResulty();">[% l('Back to results') %]</a></div>
                 [% IF ctx.mylist.size %]
                 <div class="results_header_btns">
