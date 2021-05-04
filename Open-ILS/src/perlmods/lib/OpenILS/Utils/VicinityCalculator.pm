@@ -39,17 +39,9 @@ sub calculate_distance_matrix {
     my $self = shift;
     # find hubs for all OUs
     my @hubs = $self->get_all_hubs();
-    my %hub_coord;
     # find addresses of all hub OUs
     $logger->info("Getting shipping hub addresses");
-    my %hub_addr = $self->get_addr_from_ou(uniq(@hubs));
-    while( my($k,$v) = each %hub_addr){
-        # use Bing to find the longitude and latitude of all hub OUs
-        $logger->info("using API to retrieve for OU $k");
-        my $coord = $self->get_coord_from_address($v);
-        $hub_coord{$k} = $coord;
-        $logger->info("API got $coord");
-    }
+    my %hub_coord = $self->get_coord_from_ou(uniq(@hubs));
     my @origins = values(%hub_coord);
     my @destinations = values(%hub_coord);
     my @hub_ids = keys(%hub_coord);
@@ -114,6 +106,31 @@ my($self,@org_ids) = @_;
         }
     }
     return %addrs; 
+}
+
+sub get_coord_from_ou {
+my($self,@org_ids) = @_;
+    my @ma = $self->{editor}->json_query({
+        select => {
+            aou => [
+                {
+                    column => 'id',
+                    column => 'latitude',
+                    column => 'longitude',
+                }            
+            ]
+        },
+        from => 'aou',
+        where => {id=>[@org_ids]}
+    });
+    my %coords;
+   
+    for my $ref (@ma) {
+        for (@$ref){
+            $coords{$_->{id}} = $_->{latitude}.",".$_->{longitude};
+        }
+    }
+    return %coords; 
 }
 
 # gets the address into the proper format for API
