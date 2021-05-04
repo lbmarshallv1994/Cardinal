@@ -112,27 +112,27 @@ sub get_coord_from_ou {
 my($self,@org_ids) = @_;
     my @ma = $self->{editor}->json_query({
         select => {
-            aou => [
-                {
-                    column => 'id',
-                }            
-            ],
             aoa => [
+                {
+                    column => 'org_unit',
+                },
                 {
                     column => 'latitude',
                 },{
                     column => 'longitude',
+                },{
+                    column => 'address_type',
                 }             
             ]
         },
-        from => {aou => 'aoa'},
-        where => {id=>[@org_ids]}
+        from => {'aoa'},
+        where => {org_unit=>[@org_ids], address_type=>['MAILING']}
     });
     my %coords;
    
     for my $ref (@ma) {
         for (@$ref){
-            $coords{$_->{id}} = $_->{latitude}.",".$_->{longitude};
+            $coords{$_->{org_unit}} = $_->{latitude}.",".$_->{longitude};
         }
     }
     return %coords;
