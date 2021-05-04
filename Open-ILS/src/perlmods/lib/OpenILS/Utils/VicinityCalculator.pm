@@ -115,12 +115,17 @@ my($self,@org_ids) = @_;
             aou => [
                 {
                     column => 'id',
-                    column => 'latitude',
-                    column => 'longitude',
                 }            
+            ],
+            aoa => [
+                {
+                    column => 'latitude',
+                },{
+                    column => 'longitude',
+                }             
             ]
         },
-        from => 'aou',
+        from => {aou => 'aoa'},
         where => {id=>[@org_ids]}
     });
     my %coords;
@@ -130,7 +135,7 @@ my($self,@org_ids) = @_;
             $coords{$_->{id}} = $_->{latitude}.",".$_->{longitude};
         }
     }
-    return %coords; 
+    return %coords;
 }
 
 # gets the address into the proper format for API
