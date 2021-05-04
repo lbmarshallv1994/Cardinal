@@ -125,7 +125,7 @@ my($self,@org_ids) = @_;
                 }             
             ]
         },
-        from => {'aoa'},
+        from => 'aoa',
         where => {org_unit=>[@org_ids], address_type=>['MAILING']}
     });
     my %coords;
