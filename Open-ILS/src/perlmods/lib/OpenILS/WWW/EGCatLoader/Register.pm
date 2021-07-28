@@ -150,6 +150,12 @@ sub collect_opt_in_settings {
         $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
 }
 
+sub get_context_org {
+    my $self = shift;
+    my $vhash = $self->ctx->{register}{values};
+    return $vhash->{stgu}{home_ou};
+}
+
 # if the username is in use by an actor.usr OR a 
 # pending user treat it as taken and warn the user.
 sub test_requested_username {
@@ -177,7 +183,7 @@ sub collect_register_validation_settings {
     my $self = shift;
     my $ctx = $self->ctx;
     my $e = new_editor();
-    my $ctx_org = $ctx->{physical_loc} || $self->_get_search_lib;
+    my $ctx_org = $self->get_context_org || $ctx->{physical_loc} || $self->_get_search_lib;
     my $shash = $self->{register}{settings} = {};
 
     # retrieve the org unit setting types and values
