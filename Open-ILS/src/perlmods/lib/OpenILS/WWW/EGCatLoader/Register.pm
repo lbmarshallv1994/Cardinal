@@ -152,8 +152,10 @@ sub collect_opt_in_settings {
 
 sub get_context_org {
     my $self = shift;
-    my $vhash = $self->ctx->{register}{values};
-    return $vhash->{stgu}{home_ou};
+    my $cgi = $self->cgi;
+    my $home = $cgi->param('stgu.home_ou');
+    $logger->info("Setting context Org to $home");
+    return $home;
 }
 
 # if the username is in use by an actor.usr OR a 
