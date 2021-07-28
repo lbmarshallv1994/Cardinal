@@ -150,12 +150,15 @@ sub collect_opt_in_settings {
         $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
 }
 
+# get the org unit to validate against
+# use the one they've selected in the form
+# otherwise the physical loc or search lib
 sub get_context_org {
     my $self = shift;
     my $cgi = $self->cgi;
+    my $ctx = $self->ctx;
     my $home = $cgi->param('stgu.home_ou');
-    $logger->info("Setting context Org to $home");
-    return $home;
+    return $home || $ctx->{physical_loc} || $self->_get_search_lib;
 }
 
 # if the username is in use by an actor.usr OR a 
@@ -185,7 +188,7 @@ sub collect_register_validation_settings {
     my $self = shift;
     my $ctx = $self->ctx;
     my $e = new_editor();
-    my $ctx_org = $self->get_context_org || $ctx->{physical_loc} || $self->_get_search_lib;
+    my $ctx_org = $self->get_context_org;
     my $shash = $self->{register}{settings} = {};
 
     # retrieve the org unit setting types and values
