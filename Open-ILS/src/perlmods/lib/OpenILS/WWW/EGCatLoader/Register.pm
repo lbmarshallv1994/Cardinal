@@ -21,11 +21,20 @@ sub load_patron_reg {
     # in the home org unit selector, we only want to present 
     # org units to the patron which support self-registration.
     # all other org units will be disabled
-    $ctx->{register}{valid_orgs} = 
-        $self->setting_is_true_for_orgs('opac.allow_pending_user');
-
+        
+    my $physical_loc = $ctx->{get_aou}->($ctx->{physical_loc} || $self->_get_search_lib);
+    my @valid_orgs;
+    my $test_org;
+    $test_org = sub {
+        my $org = shift;
+        push (@valid_orgs, $org->id) if
+            $ctx->{get_org_setting}->($org->id, 'opac.allow_pending_user');
+        $test_org->($_) for @{$org->children};
+    };
+    $test_org->($physical_loc);
+    $ctx->{register}{valid_orgs} = \@valid_orgs;
     $self->collect_opt_in_settings;
-
+    $self->collect_opac_visible_settings;
     # just loading the form
     return Apache2::Const::OK
         unless $cgi->request_method eq 'POST';
@@ -33,6 +42,8 @@ sub load_patron_reg {
     my $user = Fieldmapper::staging::user_stage->new;
     my $addr = Fieldmapper::staging::mailing_address_stage->new;
 
+    $self->inspect_required_fields;
+    
     # user
     foreach (grep /^stgu\./, $cgi->param) {
         my $val = $cgi->param($_);
@@ -64,17 +75,18 @@ sub load_patron_reg {
     # attempt to create a pending address
     $addr = undef unless $has_addr;
 
-    # opt-in settings
+    #settings
     my $settings = [];
     foreach (grep /^stgs\./, $cgi->param) {
-        my $val = $cgi->param($_);
-        next unless $val; # opt-in settings are always Boolean,
-                          # so just skip if not set
+        my $val = $cgi->param($_);        
+        next unless $val; # skip settings without values
+        # all opt-ins must be boolean
+        if($self->is_opt_in_setting($_)){$val = 'true';}
         $self->inspect_register_value($_, $val);
         s/^stgs.//g;
         my $setting = Fieldmapper::staging::setting_stage->new;
         $setting->setting($_);
-        $setting->value('true');
+        $setting->value($val);
         push @$settings, $setting;
     }
 
@@ -150,6 +162,30 @@ sub collect_opt_in_settings {
         $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
 }
 
+sub collect_opac_visible_settings {
+    my $self = shift;
+    my $e = $self->editor;
+
+    my $types = $e->json_query({
+        select => {cust => ['name']},
+        from => 'cust',
+        where => {opac_visible => 't'}
+    });
+    $self->ctx->{register}{opac_visible_settings} =
+        $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
+}
+
+# get the org unit to validate against
+# use the one they've selected in the form
+# otherwise the physical loc or search lib
+sub get_context_org {
+    my $self = shift;
+    my $cgi = $self->cgi;
+    my $ctx = $self->ctx;
+    my $home = $cgi->param('stgu.home_ou');
+    return $home || $ctx->{physical_loc} || $self->_get_search_lib;
+}
+
 # if the username is in use by an actor.usr OR a 
 # pending user treat it as taken and warn the user.
 sub test_requested_username {
@@ -177,7 +213,7 @@ sub collect_register_validation_settings {
     my $self = shift;
     my $ctx = $self->ctx;
     my $e = new_editor();
-    my $ctx_org = $ctx->{physical_loc} || $self->_get_search_lib;
+    my $ctx_org = $self->get_context_org;
     my $shash = $self->{register}{settings} = {};
 
     # retrieve the org unit setting types and values
@@ -252,36 +288,59 @@ sub collect_register_validation_settings {
         $ctx->{get_org_setting}->($ctx_org, 'opac.self_register.timeout');
 }
 
+# inspects the settings to see which fields are required
+# and ensure that there's a non-null param for each.
+sub inspect_required_fields {
+    my $self = shift;
+    my $ctx = $self->ctx; 
+    my $cgi = $self->cgi;
+    foreach my $scls (keys %{$self->{register}{settings}}) {
+        next unless($scls eq 'stgu' || $scls eq 'stgma' || $scls eq 'stgs');
+        foreach my $field (keys %{$self->{register}{settings}{$scls}}) {
+            my $param = $cgi->param("$scls.$field");
+            if(!$param && $self->{register}{settings}{$scls}{$field}{require}){
+                $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
+                $logger->info("patron register field $scls.$field ".
+            "requires a value, but none was entered");                
+            }
+        }
+    }
+    
+}
+
+sub is_opt_in_setting{
+    my($self, $setting) = @_;
+    my $found = 0;
+    my ($scls, $field) = split(/\./, $setting, 2);
+    foreach my $type (@{ $self->ctx->{register}{opt_in_settings} }) {
+        if ($field eq $type->name) {
+            $found = 1;
+        }
+    }
+    return $found;
+}
+
 # inspects each value and determines, based on org unit settings, 
-# if the value is invalid.  Invalid is defined as not providing 
-# a value when one is required or not matching the configured regex.
+# if the value is invalid.  Invalid is defined as not matching 
+# the configured regex.
 sub inspect_register_value {
     my ($self, $field_path, $value) = @_;
     my $ctx = $self->ctx;
     my ($scls, $field) = split(/\./, $field_path, 2);
-
+    return unless $value;
+    
     if ($scls eq 'stgs') {
         my $found = 0;
-        foreach my $type (@{ $self->ctx->{register}{opt_in_settings} }) {
+		my @valid_settings = (@{ $self->ctx->{register}{opt_in_settings} }, @{ $self->ctx->{register}{opac_visible_settings} });
+        foreach my $type (@valid_settings) {
             if ($field eq $type->name) {
                 $found = 1;
             }
         }
         if (!$found) {
             $ctx->{register}{invalid}{$scls}{$field}{invalid} = 1;
-            $logger->info("patron register: trying to set an opt-in ".
+            $logger->info("patron register: trying to set a user ".
                           "setting $field that is not allowed.");
-        }
-        return;
-    }
-
-    if (!$value) {
-
-        if ($self->{register}{settings}{$scls}{$field}{require}) {
-            $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
-
-            $logger->info("patron register field $field ".
-                "requires a value, but none was entered");
         }
         return;
     }
