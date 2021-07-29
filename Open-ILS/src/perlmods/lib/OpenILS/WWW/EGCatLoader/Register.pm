@@ -33,6 +33,8 @@ sub load_patron_reg {
     my $user = Fieldmapper::staging::user_stage->new;
     my $addr = Fieldmapper::staging::mailing_address_stage->new;
 
+    $self->inspect_required_fields;
+    
     # user
     foreach (grep /^stgu\./, $cgi->param) {
         my $val = $cgi->param($_);
@@ -263,14 +265,32 @@ sub collect_register_validation_settings {
         $ctx->{get_org_setting}->($ctx_org, 'opac.self_register.timeout');
 }
 
+sub inspect_required_fields {
+    my $self = shift;
+    my $ctx = $self->ctx; 
+    my $cgi = $self->cgi;
+    foreach my $scls (keys $self->{register}{settings}) {
+        foreach my $field (keys $self->{register}{settings}{$scls}) {
+            my $param = $cgi->param($scls.$field);
+            if($self->{register}{settings}{$scls}{$field}{require} && (!$param || $param eq '')){
+                $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
+                $logger->info("patron register field $field ".
+            "requires a value, but none was entered");                
+            }
+        }
+    }
+    
+}
+
 # inspects each value and determines, based on org unit settings, 
-# if the value is invalid.  Invalid is defined as not providing 
-# a value when one is required or not matching the configured regex.
+# if the value is invalid.  Invalid is defined as not matching 
+# the configured regex.
 sub inspect_register_value {
     my ($self, $field_path, $value) = @_;
     my $ctx = $self->ctx;
     my ($scls, $field) = split(/\./, $field_path, 2);
-
+    return unless $value;
+    
     if ($scls eq 'stgs') {
         my $found = 0;
         foreach my $type (@{ $self->ctx->{register}{opt_in_settings} }) {
@@ -282,17 +302,6 @@ sub inspect_register_value {
             $ctx->{register}{invalid}{$scls}{$field}{invalid} = 1;
             $logger->info("patron register: trying to set an opt-in ".
                           "setting $field that is not allowed.");
-        }
-        return;
-    }
-
-    if (!$value) {
-
-        if ($self->{register}{settings}{$scls}{$field}{require}) {
-            $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
-
-            $logger->info("patron register field $field ".
-                "requires a value, but none was entered");
         }
         return;
     }
