@@ -269,8 +269,8 @@ sub inspect_required_fields {
     my $self = shift;
     my $ctx = $self->ctx; 
     my $cgi = $self->cgi;
-    foreach my $scls (keys $self->{register}{settings}) {
-        foreach my $field (keys $self->{register}{settings}{$scls}) {
+    foreach my $scls (keys %{$self->{register}{settings}}) {
+        foreach my $field (keys %{$self->{register}{settings}{$scls}}) {
             my $param = $cgi->param($scls.$field);
             if($self->{register}{settings}{$scls}{$field}{require} && (!$param || $param eq '')){
                 $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
