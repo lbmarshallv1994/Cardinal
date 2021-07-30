@@ -271,10 +271,10 @@ sub inspect_required_fields {
     my $cgi = $self->cgi;
     foreach my $scls (keys %{$self->{register}{settings}}) {
         foreach my $field (keys %{$self->{register}{settings}{$scls}}) {
-            my $param = $cgi->param($scls.$field);
-            if($self->{register}{settings}{$scls}{$field}{require} && (!$param || $param eq '')){
+            my $param = $cgi->param("$scls.$field");
+            if(!$param && $self->{register}{settings}{$scls}{$field}{require}){
                 $ctx->{register}{invalid}{$scls}{$field}{require} = 1;
-                $logger->info("patron register field $field ".
+                $logger->info("patron register field $scls.$field ".
             "requires a value, but none was entered");                
             }
         }
