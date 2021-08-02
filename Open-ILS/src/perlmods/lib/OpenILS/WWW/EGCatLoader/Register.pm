@@ -265,6 +265,8 @@ sub collect_register_validation_settings {
         $ctx->{get_org_setting}->($ctx_org, 'opac.self_register.timeout');
 }
 
+# inspects the settings to see which fields are required
+# and ensure that there's a non-null param for each.
 sub inspect_required_fields {
     my $self = shift;
     my $ctx = $self->ctx; 
