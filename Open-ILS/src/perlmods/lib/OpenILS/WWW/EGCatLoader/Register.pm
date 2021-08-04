@@ -272,6 +272,7 @@ sub inspect_required_fields {
     my $ctx = $self->ctx; 
     my $cgi = $self->cgi;
     foreach my $scls (keys %{$self->{register}{settings}}) {
+        next unless($scls eq 'stgu' || $scls eq 'stgma' || $scls eq 'stgs');
         foreach my $field (keys %{$self->{register}{settings}{$scls}}) {
             my $param = $cgi->param("$scls.$field");
             if(!$param && $self->{register}{settings}{$scls}{$field}{require}){
