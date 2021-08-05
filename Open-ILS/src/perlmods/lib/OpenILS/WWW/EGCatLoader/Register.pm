@@ -21,11 +21,20 @@ sub load_patron_reg {
     # in the home org unit selector, we only want to present 
     # org units to the patron which support self-registration.
     # all other org units will be disabled
-    $ctx->{register}{valid_orgs} = 
-        $self->setting_is_true_for_orgs('opac.allow_pending_user');
-
+        
+    my $physical_loc = $ctx->{get_aou}->($ctx->{physical_loc} || $self->_get_search_lib);
+    my @valid_orgs;
+    $logger->info("TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    my $test_org;
+    $test_org = sub {
+        my $org = shift;
+        push (@valid_orgs, $org->id) if
+            $ctx->{get_org_setting}->($org->id, 'opac.allow_pending_user');
+        $test_org->($_) for @{$org->children};
+    };
+    $test_org->($physical_loc);
+    $ctx->{register}{valid_orgs} = \@valid_orgs;
     $self->collect_opt_in_settings;
-
     # just loading the form
     return Apache2::Const::OK
         unless $cgi->request_method eq 'POST';
