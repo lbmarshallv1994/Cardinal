@@ -24,7 +24,6 @@ sub load_patron_reg {
         
     my $physical_loc = $ctx->{get_aou}->($ctx->{physical_loc} || $self->_get_search_lib);
     my @valid_orgs;
-    $logger->info("TEST!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     my $test_org;
     $test_org = sub {
         my $org = shift;
@@ -79,13 +78,12 @@ sub load_patron_reg {
     my $settings = [];
     foreach (grep /^stgs\./, $cgi->param) {
         my $val = $cgi->param($_);
-        next unless $val; # opt-in settings are always Boolean,
-                          # so just skip if not set
+        next unless $val; # skip settings without values
         $self->inspect_register_value($_, $val);
         s/^stgs.//g;
         my $setting = Fieldmapper::staging::setting_stage->new;
         $setting->setting($_);
-        $setting->value('true');
+        $setting->value($val);
         push @$settings, $setting;
     }
 
