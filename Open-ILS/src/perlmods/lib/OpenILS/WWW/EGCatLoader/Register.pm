@@ -34,6 +34,7 @@ sub load_patron_reg {
     $test_org->($physical_loc);
     $ctx->{register}{valid_orgs} = \@valid_orgs;
     $self->collect_opt_in_settings;
+    $self->collect_opac_visible_settings;
     # just loading the form
     return Apache2::Const::OK
         unless $cgi->request_method eq 'POST';
@@ -156,6 +157,19 @@ sub collect_opt_in_settings {
         }
     });
     $self->ctx->{register}{opt_in_settings} =
+        $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
+}
+
+sub collect_opac_visible_settings {
+    my $self = shift;
+    my $e = $self->editor;
+
+    my $types = $e->json_query({
+        select => {cust => ['name']},
+        from => 'cust',
+        where => {opac_visible => 't'}
+    });
+    $self->ctx->{register}{opac_visible_settings} =
         $e->search_config_usr_setting_type({name => [map {$_->{name}} @$types]});
 }
 
@@ -303,14 +317,15 @@ sub inspect_register_value {
     
     if ($scls eq 'stgs') {
         my $found = 0;
-        foreach my $type (@{ $self->ctx->{register}{opt_in_settings} }) {
+		my @valid_settings = (@{ $self->ctx->{register}{opt_in_settings} }, @{ $self->ctx->{register}{opac_visible_settings} });
+        foreach my $type (@valid_settings) {
             if ($field eq $type->name) {
                 $found = 1;
             }
         }
         if (!$found) {
             $ctx->{register}{invalid}{$scls}{$field}{invalid} = 1;
-            $logger->info("patron register: trying to set an opt-in ".
+            $logger->info("patron register: trying to set a user ".
                           "setting $field that is not allowed.");
         }
         return;
