@@ -1387,12 +1387,12 @@ function($scope , $routeParams , $q , $uibModal , $window , egCore ,
         if ($scope.user_settings['opac.default_pickup_location']) {
             $scope.patron._pickup_lib = egCore.org.get(
                 $scope.user_settings['opac.default_pickup_location']);
-        }
-
-        extract_hold_notify();
+        }        
 
         if ($scope.patron.isnew)
             set_new_patron_defaults(prs);
+        
+        extract_hold_notify();
 
         $scope.handle_home_org_changed();
 
