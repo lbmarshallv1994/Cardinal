@@ -948,7 +948,7 @@ angular.module('egCoreMod')
         }
 
         angular.forEach(cuser.settings, function(setting) {
-            service.user_settings[setting.setting()] = Boolean(setting.value());
+            service.user_settings[setting.setting()] = setting.value();
         });
     }
 
