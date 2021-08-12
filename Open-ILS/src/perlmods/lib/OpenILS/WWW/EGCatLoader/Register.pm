@@ -75,11 +75,13 @@ sub load_patron_reg {
     # attempt to create a pending address
     $addr = undef unless $has_addr;
 
-    # opt-in settings
+    #settings
     my $settings = [];
     foreach (grep /^stgs\./, $cgi->param) {
-        my $val = $cgi->param($_);
+        my $val = $cgi->param($_);        
         next unless $val; # skip settings without values
+        # all opt-ins must be boolean
+        if($self->is_opt_in_setting($_)){$val = 'true';}
         $self->inspect_register_value($_, $val);
         s/^stgs.//g;
         my $setting = Fieldmapper::staging::setting_stage->new;
@@ -304,6 +306,18 @@ sub inspect_required_fields {
         }
     }
     
+}
+
+sub is_opt_in_setting{
+    my($self, $setting) = @_;
+    my $found = 0;
+    my ($scls, $field) = split(/\./, $setting, 2);
+    foreach my $type (@{ $self->ctx->{register}{opt_in_settings} }) {
+        if ($field eq $type->name) {
+            $found = 1;
+        }
+    }
+    return $found;
 }
 
 # inspects each value and determines, based on org unit settings, 
