@@ -4,8 +4,8 @@
 
 angular.module('egCoreMod')
     .factory('egItem',
-       ['egCore','egCirc','$uibModal','$q','$timeout','$window','egConfirmDialog','egAlertDialog',
-function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog , egAlertDialog ) {
+       ['egCore','egOrg','egCirc','$uibModal','$q','$timeout','$window','ngToast','egConfirmDialog','egAlertDialog',
+function(egCore , egOrg , egCirc , $uibModal , $q , $timeout , $window , ngToast , egConfirmDialog , egAlertDialog ) {
 
     var service = {
         copies : [], // copy barcode search results
@@ -224,8 +224,9 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
         });
     }
 
-    service.add_copies_to_bucket = function(copy_list) {
-        if (copy_list.length == 0) return;
+    service.add_copies_to_bucket = function(list, bucket_type) {
+        if (list.length == 0) return;
+        if (!bucket_type) bucket_type = 'copy';
 
         return $uibModal.open({
             templateUrl: './cat/catalog/t_add_to_bucket',
@@ -244,20 +245,21 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                     'open-ils.actor',
                     'open-ils.actor.container.retrieve_by_class.authoritative',
                     egCore.auth.token(), egCore.auth.user().id(),
-                    'copy', 'staff_client'
+                    bucket_type, 'staff_client'
                 ).then(function(buckets) { $scope.allBuckets = buckets; });
 
                 $scope.add_to_bucket = function() {
                     var promises = [];
-                    angular.forEach(copy_list, function (cp) {
-                        var item = new egCore.idl.ccbi()
+                    angular.forEach(list, function (entry) {
+                        var item = bucket_type == 'copy' ? new egCore.idl.ccbi() : new egCore.idl.cbrebi();
                         item.bucket($scope.bucket_id);
-                        item.target_copy(cp);
+                        if (bucket_type == 'copy') item.target_copy(entry);
+                        if (bucket_type == 'biblio') item.target_biblio_record_entry(entry);
                         promises.push(
                             egCore.net.request(
                                 'open-ils.actor',
                                 'open-ils.actor.container.item.create',
-                                egCore.auth.token(), 'copy', item
+                                egCore.auth.token(), bucket_type, item
                             )
                         );
 
@@ -268,7 +270,7 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                 }
 
                 $scope.add_to_new_bucket = function() {
-                    var bucket = new egCore.idl.ccb();
+                    var bucket = bucket_type == 'copy' ? new egCore.idl.ccb() : new egCore.idl.cbreb();
                     bucket.owner(egCore.auth.user().id());
                     bucket.name($scope.newBucketName);
                     bucket.description('');
@@ -277,7 +279,7 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                     return egCore.net.request(
                         'open-ils.actor',
                         'open-ils.actor.container.create',
-                        egCore.auth.token(), 'copy', bucket
+                        egCore.auth.token(), bucket_type, bucket
                     ).then(function(bucket) {
                         $scope.bucket_id = bucket;
                         $scope.add_to_bucket();
@@ -350,76 +352,21 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
         });
     }
 
-    service.book_copies_now = function(items) {
-        var copies_by_record = {};
-        var record_list = [];
-        angular.forEach(
-            items,
-            function (item) {
-                var record_id = item['call_number.record.id'];
-                if (typeof copies_by_record[ record_id ] == 'undefined') {
-                    copies_by_record[ record_id ] = [];
-                    record_list.push( record_id );
-                }
-                copies_by_record[ record_id ].push(item.id);
-            }
-        );
-
-        var promises = [];
-        var combined_brt = [];
-        var combined_brsrc = [];
-        angular.forEach(record_list, function(record_id) {
-            promises.push(
-                egCore.net.request(
-                    'open-ils.booking',
-                    'open-ils.booking.resources.create_from_copies',
-                    egCore.auth.token(),
-                    copies_by_record[record_id]
-                ).then(function(results) {
-                    if (results && results['brt']) {
-                        combined_brt = combined_brt.concat(results['brt']);
-                    }
-                    if (results && results['brsrc']) {
-                        combined_brsrc = combined_brsrc.concat(results['brsrc']);
-                    }
-                })
-            );
-        });
-
-        $q.all(promises).then(function() {
-            if (combined_brt.length > 0 || combined_brsrc.length > 0) {
-                $uibModal.open({
-                    template: '<eg-embed-frame url="booking_admin_url" handlers="funcs"></eg-embed-frame>',
-                    backdrop: 'static',
-                    animation: true,
-                    size: 'md',
-                    controller:
-                           ['$scope','$location','egCore','$uibModalInstance',
-                    function($scope , $location , egCore , $uibModalInstance) {
-
-                        $scope.funcs = {
-                            ses : egCore.auth.token(),
-                            bresv_interface_opts : {
-                                booking_results : {
-                                     brt : combined_brt
-                                    ,brsrc : combined_brsrc
-                                }
-                            }
-                        }
-
-                        var booking_path = '/eg/booking/reservation';
-
-                        $scope.booking_admin_url =
-                            $location.absUrl().replace(/\/eg\/staff.*/, booking_path);
-
-                    }]
-                });
-            }
-        });
+    service.book_copies_now = function(barcode) {
+        location.href = "/eg2/staff/booking/create_reservation/for_resource/" + barcode;
     }
 
-    service.requestItems = function(copy_list) {
+    service.manage_reservations = function(barcode) {
+        location.href = "/eg2/staff/booking/manage_reservations/by_resource/" + barcode;
+    }
+
+    service.requestItems = function(copy_list,record_list) {
         if (copy_list.length == 0) return;
+        if (record_list) {
+            record_list = record_list.filter(function(v,i,s){ // dedup
+                return s.indexOf(v) == i;
+            });
+        }
 
         return $uibModal.open({
             templateUrl: './cat/catalog/t_request_items',
@@ -434,8 +381,11 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                 $scope.hold_data = {
                     hold_type : 'C',
                     copy_list : copy_list,
+                    record_list : record_list,
                     pickup_lib: egCore.org.get(egCore.auth.user().ws_ou()),
-                    user      : egCore.auth.user().id()
+                    user      : egCore.auth.user().id(),
+                    honor_user_settings : 
+                        egCore.hatch.getLocalItem('eg.cat.request_items.honor_user_settings')
                 };
 
                 egUser.get( $scope.hold_data.user ).then(function(u) {
@@ -447,12 +397,24 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
 
                 $scope.user_name = '';
                 $scope.barcode = '';
+                function user_preferred_pickup_lib(u) {
+                    var pickup_lib = u.home_ou();
+                    angular.forEach(u.settings(), function (s) {
+                        if (s.name() == "opac.default_pickup_location") {
+                            pickup_lib = s.value();
+                        }
+                    });
+                    return egOrg.get(pickup_lib);
+                }
                 $scope.$watch('barcode', function (n) {
                     if (!$scope.first_user_fetch) {
                         egUser.getByBarcode(n).then(function(u) {
                             $scope.user = u;
                             $scope.user_name = egUser.format_name(u);
                             $scope.hold_data.user = u.id();
+                            if ($scope.hold_data.honor_user_settings) {
+                                $scope.hold_data.pickup_lib = user_preferred_pickup_lib(u);
+                            }
                         }, function() {
                             $scope.user = null;
                             $scope.user_name = '';
@@ -460,6 +422,14 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                         });
                     }
                     $scope.first_user_fetch = false;
+                });
+                $scope.$watch('hold_data.honor_user_settings', function (n) {
+                    if (n && $scope.user) {
+                        $scope.hold_data.pickup_lib = user_preferred_pickup_lib($scope.user);
+                    } else {
+                        $scope.hold_data.pickup_lib = egCore.org.get(egCore.auth.user().ws_ou());
+                    }
+                    egCore.hatch.setLocalItem('eg.cat.request_items.honor_user_settings',n);
                 });
 
                 $scope.ok = function(h) {
@@ -473,8 +443,25 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                     egCore.net.request(
                         'open-ils.circ',
                         'open-ils.circ.holds.test_and_create.batch.override',
-                        egCore.auth.token(), args, h.copy_list
-                    );
+                        egCore.auth.token(), args,
+                        h.hold_type == 'T' ? h.record_list : h.copy_list,
+                        { 'all' : 1, 'honor_user_settings' : h.honor_user_settings }
+                    ).then(function(r) {
+                        console.log('request result',r);
+                        if (isNaN(r.result)) {
+                            if (typeof r.result.desc != 'undefined') {
+                                ngToast.danger(r.result.desc);
+                            } else {
+                                if (typeof r.result.last_event != 'undefined') {
+                                    ngToast.danger(r.result.last_event.desc);
+                                } else {
+                                    ngToast.danger(egCore.strings.FAILURE_HOLD_REQUEST);
+                                }
+                            }
+                        } else {
+                            ngToast.success(egCore.strings.SUCCESS_HOLD_REQUEST);
+                        }
+                    });
 
                     $uibModalInstance.close();
                 }
@@ -595,10 +582,28 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
             ).result.then(function() {
                 egCore.net.request(
                     'open-ils.cat',
-                    'open-ils.cat.asset.volume.fleshed.batch.update.override',
+                    'open-ils.cat.asset.volume.fleshed.batch.update',
                     egCore.auth.token(), cnList, 1, flags
-                ).then(function(){
-                    angular.forEach(items, function(cp){service.add_barcode_to_list(cp.barcode)});
+                ).then(function(resp){
+                    var evt = egCore.evt.parse(resp);
+                    if (evt) {
+                        egConfirmDialog.open(
+                            egCore.strings.OVERRIDE_DELETE_ITEMS_FROM_CATALOG_TITLE,
+                            egCore.strings.OVERRIDE_DELETE_ITEMS_FROM_CATALOG_BODY,
+                            {'evt_desc': evt.desc}
+                        ).result.then(function() {
+                            egCore.net.request(
+                                'open-ils.cat',
+                                'open-ils.cat.asset.volume.fleshed.batch.update.override',
+                                egCore.auth.token(), cnList, 1,
+                                { events: ['TITLE_LAST_COPY', 'COPY_DELETE_WARNING'] }
+                            ).then(function() {
+                                angular.forEach(items, function(cp){service.add_barcode_to_list(cp.barcode)});
+                            });
+                        });
+                    } else {
+                        angular.forEach(items, function(cp){service.add_barcode_to_list(cp.barcode)});
+                    }
                 });
             });
         },
@@ -644,9 +649,23 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
         });
     }
 
-    service.selectedHoldingsMissing = function (items) {
-        egCirc.mark_missing(items.map(function(el){return el.id;})).then(function(){
+    service.selectedHoldingsDiscard = function (items) {
+        egCirc.mark_discard(items.map(function(el){return {id : el.id, barcode : el.barcode};})).then(function(){
             angular.forEach(items, function(cp){service.add_barcode_to_list(cp.barcode)});
+        });
+    }
+
+    service.selectedHoldingsMissing = function (items) {
+        return egCirc.mark_missing(
+            items.map(function(el){return {id : el.id, barcode : el.barcode};})
+        ).then(function(){
+            var promise = $q.when();
+            angular.forEach(items, function(cp){
+                promise = promise.then(function() {
+                    return service.add_barcode_to_list(cp.barcode, true);
+                });
+            });
+            return promise;
         });
     }
 
@@ -699,7 +718,12 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
                     service.gatherSelectedHoldingsIds(items,r),
                     function (i) {
                         angular.forEach(items, function(item) {
-                            if (i == item.id) raw.push({owner : item['call_number.owning_lib']});
+                            if (i == item.id) {
+                                // owning_lib may be fleshed.
+                                var owner = item['call_number.owning_lib.id']
+                                    || item['call_number.owning_lib'];
+                                raw.push({owner : owner});
+                            }
                         });
                     }
                 );
@@ -989,3 +1013,4 @@ function(egCore , egCirc , $uibModal , $q , $timeout , $window , egConfirmDialog
     return service;
 }])
 .filter('string_pick', function() { return function(i){ return arguments[i] || ''; }; })
+

@@ -41,7 +41,8 @@ sysconf_DATA = $(examples)/action_trigger_filters.json.example \
 	       $(examples)/lib_ips.txt.example \
 	       $(examples)/oils_yaz.xml.example \
 	       $(examples)/kpac.xml.example \
-	       $(examples)/oils_z3950.xml.example 
+	       $(examples)/oils_z3950.xml.example \
+	       $(examples)/marc_stream_importer.conf.example
 
 #----------------------------
 # Build ILS CORE
@@ -64,14 +65,18 @@ core_scripts =   $(examples)/oils_ctl.sh \
 		 $(supportscr)/reshelving_complete.srfsh \
 		 $(supportscr)/clear_expired_circ_history.srfsh \
 		 $(supportscr)/update_hard_due_dates.srfsh \
+		 $(supportscr)/refresh_carousels.srfsh \
 		 $(supportscr)/juv_to_adult.srfsh \
 		 $(supportscr)/thaw_expired_frozen_holds.srfsh \
 		 $(supportscr)/long-overdue-status-update.pl \
+		 $(supportscr)/oils_header.pl \
+		 $(supportscr)/badge_score_generator.pl \
 		 $(supportscr)/purge_at_events.srfsh \
 		 $(supportscr)/purge_holds.srfsh \
 		 $(supportscr)/purge_circulations.srfsh \
 		 $(supportscr)/purge_pending_users.srfsh \
 		 $(supportscr)/clear_cc_number.srfsh \
+		 $(supportscr)/age_money.srfsh \
 		 $(supportscr)/sitemap_generator \
 		 $(srcdir)/extras/eg_config \
 		 $(srcdir)/extras/openurl_map.pl \
@@ -127,11 +132,13 @@ gen_scripts = \
 	@srcdir@/extras/import/marc2bre.pl \
 	@srcdir@/extras/import/marc2sre.pl \
 	@srcdir@/extras/import/parallel_pg_loader.pl \
+	$(supportscr)/action_trigger_aggregator.pl \
 	$(supportscr)/action_trigger_runner.pl \
 	$(supportscr)/authority_control_fields.pl \
 	$(supportscr)/authority_authority_linker.pl \
 	$(supportscr)/eg_db_config \
 	$(supportscr)/marc_export \
+	$(supportscr)/marc_stream_importer.pl \
 	$(supportscr)/offline-blocked-list.pl
 
 # config files that are generated from *.in files and can
@@ -208,6 +215,10 @@ uninstall-hook:
 	$(do_subst) @srcdir@/extras/import/parallel_pg_loader.pl.in > "$@"
 	chmod 755 "$@"
 
+$(supportscr)/action_trigger_aggregator.pl: Makefile $(supportscr)/action_trigger_aggregator.pl.in
+	$(do_subst) $(supportscr)/action_trigger_aggregator.pl.in > "$@"
+	chmod 755 "$@"
+
 $(supportscr)/action_trigger_runner.pl: Makefile $(supportscr)/action_trigger_runner.pl.in
 	$(do_subst) $(supportscr)/action_trigger_runner.pl.in > "$@"
 	chmod 755 "$@"
@@ -226,6 +237,10 @@ $(supportscr)/eg_db_config: Makefile $(supportscr)/eg_db_config.in
 
 $(supportscr)/marc_export: Makefile $(supportscr)/marc_export.in
 	$(do_subst) $(supportscr)/marc_export.in > "$@"
+	chmod 755 "$@"
+
+$(supportscr)/marc_stream_importer.pl: Makefile $(supportscr)/marc_stream_importer.pl.in
+	$(do_subst) $(supportscr)/marc_stream_importer.pl.in > "$@"
 	chmod 755 "$@"
 
 $(supportscr)/offline-blocked-list.pl: Makefile $(supportscr)/offline-blocked-list.pl.in
@@ -261,17 +276,21 @@ ilscore-install:
 	sed -i 's|LOCALSTATEDIR|@localstatedir@|g' '$(DESTDIR)@sysconfdir@/opensrf.xml.example'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@sysconfdir@/opensrf.xml.example'
 	sed -i 's|LIBDIR|@libdir@|g' '$(DESTDIR)@sysconfdir@/opensrf.xml.example'
+	sed -i 's|LOCALSTATEDIR|@localstatedir@|g' '$(DESTDIR)@sysconfdir@/marc_stream_importer.conf.example'
+	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@sysconfdir@/marc_stream_importer.conf.example'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/autogen.sh'
 	sed -i 's|LOCALSTATEDIR|@localstatedir@|g' '$(DESTDIR)@bindir@/autogen.sh'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/autogen.sh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/reshelving_complete.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/clear_expired_circ_history.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/update_hard_due_dates.srfsh'
+	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/refresh_carousels.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/juv_to_adult.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/long-overdue-status-update.pl'
 	sed -i 's|SYSCONFDIR|@sysconfdir@|g' '$(DESTDIR)@bindir@/long-overdue-status-update.pl'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/thaw_expired_frozen_holds.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/clear_cc_number.srfsh'
+	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/age_money.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/purge_at_events.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/purge_circulations.srfsh'
 	sed -i 's|BINDIR|@bindir@|g' '$(DESTDIR)@bindir@/purge_holds.srfsh'

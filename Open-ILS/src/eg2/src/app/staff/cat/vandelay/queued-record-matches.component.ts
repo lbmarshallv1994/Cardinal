@@ -4,7 +4,7 @@ import {Observable, of} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {Pager} from '@eg/share/util/pager';
 import {GridComponent} from '@eg/share/grid/grid.component';
-import {GridDataSource, GridColumn} from '@eg/share/grid/grid';
+import {GridDataSource, GridColumn, GridCellTextGenerator} from '@eg/share/grid/grid';
 import {IdlObject} from '@eg/core/idl.service';
 import {EventService} from '@eg/core/event.service';
 import {NetService} from '@eg/core/net.service';
@@ -21,8 +21,8 @@ export class QueuedRecordMatchesComponent implements OnInit {
 
     @Input() queueType: string;
     @Input() recordId: number;
-    @ViewChild('bibGrid') bibGrid: GridComponent;
-    @ViewChild('authGrid') authGrid: GridComponent;
+    @ViewChild('bibGrid', { static: false }) bibGrid: GridComponent;
+    @ViewChild('authGrid', { static: false }) authGrid: GridComponent;
 
     queuedRecord: IdlObject;
     bibDataSource: GridDataSource;
@@ -30,6 +30,8 @@ export class QueuedRecordMatchesComponent implements OnInit {
     markOverlayTarget: (rows: any[]) => any;
     matchRowClick: (row: any) => void;
     matchMap: {[id: number]: IdlObject};
+
+    cellTextGenerator: GridCellTextGenerator;
 
     constructor(
         private router: Router,
@@ -47,6 +49,12 @@ export class QueuedRecordMatchesComponent implements OnInit {
         this.bibDataSource.getRows = (pager: Pager) => {
             return this.getBibMatchRows(pager);
         };
+
+        this.cellTextGenerator = {
+            selected: row => this.isOverlayTarget(row.id) + '',
+            eg_record: row => row.eg_record + ''
+        };
+
 
         /* TODO
         this.authDataSource.getRows = (pager: Pager) => {

@@ -1,11 +1,12 @@
 import {Component, Input, Output, OnInit, AfterViewInit, EventEmitter,
-    OnDestroy, HostListener, ViewEncapsulation} from '@angular/core';
-import {Subscription} from 'rxjs';
+    OnDestroy, ViewChild, ViewEncapsulation} from '@angular/core';
 import {IdlService} from '@eg/core/idl.service';
 import {OrgService} from '@eg/core/org.service';
 import {ServerStoreService} from '@eg/core/server-store.service';
 import {FormatService} from '@eg/core/format.service';
-import {GridContext, GridColumn, GridDataSource, GridRowFlairEntry} from './grid';
+import {GridContext, GridColumn, GridDataSource,
+    GridCellTextGenerator, GridRowFlairEntry} from './grid';
+import {GridToolbarComponent} from './grid-toolbar.component';
 
 /**
  * Main grid entry point.
@@ -89,21 +90,25 @@ export class GridComponent implements OnInit, AfterViewInit, OnDestroy {
     // Pass in a default page size.  May be overridden by settings.
     @Input() pageSize: number;
 
-    // If true and an idlClass is specificed, the grid assumes
-    // datatype=link fields that link to classes which define a selector
-    // are fleshed with the linked object.  And, instead of displaying
-    // the raw field value, displays the selector value from the linked
-    // object.  The caller is responsible for fleshing the appropriate
-    // fields in the GridDataSource getRows handler.
-    //
-    // This only applies to auto-generated columns.
-    //
-    // For example, idlClass="aou" and field="ou_type", the display
-    // value will be ou_type().name() since "name" is the selector
-    // field on the "aout" class.
     @Input() showLinkSelectors: boolean;
 
     @Input() disablePaging: boolean;
+
+    // result filtering
+    //
+    // filterable: true if the result filtering controls
+    // should be displayed
+    @Input() filterable: boolean;
+
+    // sticky grid header
+    //
+    // stickyHeader: true of the grid header should be
+    // "sticky", i.e., remain visible if if the table is long
+    // and the user has scrolled far enough that the header
+    // would go out of view
+    @Input() stickyHeader: boolean;
+
+    @Input() cellTextGenerator: GridCellTextGenerator;
 
     context: GridContext;
 
@@ -111,6 +116,8 @@ export class GridComponent implements OnInit, AfterViewInit, OnDestroy {
     // They are defined here for ease of access to the caller.
     @Output() onRowActivate: EventEmitter<any>;
     @Output() onRowClick: EventEmitter<any>;
+
+    @ViewChild('toolbar', { static: true }) toolbar: GridToolbarComponent;
 
     constructor(
         private idl: IdlService,
@@ -134,15 +141,18 @@ export class GridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.context.dataSource = this.dataSource;
         this.context.persistKey = this.persistKey;
         this.context.isSortable = this.sortable === true;
+        this.context.isFilterable = this.filterable === true;
+        this.context.stickyGridHeader = this.stickyHeader === true;
         this.context.isMultiSortable = this.multiSortable === true;
         this.context.useLocalSort = this.useLocalSort === true;
         this.context.disableSelect = this.disableSelect === true;
-        this.context.showLinkSelectors = this.showLinkSelectors === true;
         this.context.disableMultiSelect = this.disableMultiSelect === true;
         this.context.rowFlairIsEnabled = this.rowFlairIsEnabled  === true;
         this.context.showDeclaredFieldsOnly = this.showDeclaredFieldsOnly;
         this.context.rowFlairCallback = this.rowFlairCallback;
         this.context.disablePaging = this.disablePaging === true;
+        this.context.cellTextGenerator = this.cellTextGenerator;
+
         if (this.showFields) {
             this.context.defaultVisibleFields = this.showFields.split(',');
         }
@@ -164,6 +174,11 @@ export class GridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.context.cellClassCallback =
             this.cellClassCallback || function() { return ''; };
 
+        if (this.showLinkSelectors) {
+            console.debug(
+                'showLinkSelectors is deprecated and no longer has any effect');
+        }
+
         this.context.init();
     }
 
@@ -175,9 +190,18 @@ export class GridComponent implements OnInit, AfterViewInit, OnDestroy {
         this.context.destroy();
     }
 
+    print = () => {
+        this.toolbar.printHtml();
+    }
+
     reload() {
         this.context.reload();
     }
+    reloadWithoutPagerReset() {
+        this.context.reloadWithoutPagerReset();
+    }
+
+
 }
 
 

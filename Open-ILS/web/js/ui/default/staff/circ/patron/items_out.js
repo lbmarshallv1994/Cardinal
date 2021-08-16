@@ -7,10 +7,10 @@ angular.module('egPatronApp')
 .controller('PatronItemsOutCtrl',
        ['$scope','$q','$routeParams','$timeout','egCore','egUser','patronSvc',
         '$location','egGridDataProvider','$uibModal','egCirc','egConfirmDialog',
-        'egBilling','$window','egBibDisplay',
+        'egProgressDialog','egBilling','$window','egBibDisplay',
 function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc , 
          $location , egGridDataProvider , $uibModal , egCirc , egConfirmDialog , 
-         egBilling , $window , egBibDisplay) {
+         egProgressDialog , egBilling , $window , egBibDisplay) {
 
     // list of noncatatloged circulations. Define before initTab to 
     // avoid any possibility of race condition, since they are loaded
@@ -30,6 +30,12 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
 
     // list of alt circs (lost, etc.) and/or check-in with fines circs
     $scope.alt_list = []; 
+    
+    egCore.org.settings([
+        'ui.circ.suppress_checkin_popups' // add other settings as needed
+    ]).then(function(set) {
+        $scope.suppress_popups = set['ui.circ.suppress_checkin_popups'];
+    });
 
     // these are fetched during startup (i.e. .configure())
     // By default, show lost/lo/cr items in the alt list
@@ -83,6 +89,15 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         // noncat_list always involves instantiating a new grid.
     }
 
+    $scope.colorizeItemsOutList = {
+        apply: function(item) {
+            var duedate = item.due_date();
+            if (duedate && duedate < new Date().toISOString()) {
+                return 'overdue-row';
+            }
+        }
+    }
+
     // Reload the user to pick up changes in items out, fines, etc.
     // Reload circs since the contents of the main vs. alt list may
     // have changed.
@@ -102,6 +117,8 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
 
         var deferred = $q.defer();
         var rendered = 0;
+
+        egProgressDialog.open();
 
         // fetch the lot of circs and stream the results back via notify
         egCore.pcrud.search('circ', {id : id_list},
@@ -125,7 +142,7 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
                 // we need an order-by to support paging
                 order_by : {circ : ['xact_start']} 
 
-        }).then(deferred.resolve, null, function(circ) {
+        }).then(null, null, function(circ) {
             circ.circ_lib(egCore.org.get(circ.circ_lib())); // local fleshing
 
             // Translate bib display field JSON blobs to JS.
@@ -145,21 +162,32 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
                 return part.label()
             }).join(',');
 
-	    // call open-ils to get overdue notice count and  Last notice date
-	    
-           egCore.net.request(
-               'open-ils.actor',
-               'open-ils.actor.user.itemsout.notices',
-               egCore.auth.token(), circ.id(), $scope.patron_id)
-           .then(function(notice){
-               if (notice.numNotices){
-                   circ.action_trigger_event_count = notice.numNotices;
-                   circ.action_trigger_latest_event_date = notice.lastDt;
-	       }
-               patronSvc.items_out.push(circ);
-           });
+           patronSvc.items_out.push(circ);
 
-	       if (rendered++ >= offset && rendered <= count){ deferred.notify(circ) };
+        }).then(function() {
+
+            var circIds = patronSvc.items_out.map(function(circ) { return circ.id() });
+
+            egCore.net.request(
+                'open-ils.actor',
+                'open-ils.actor.user.itemsout.notices',
+                egCore.auth.token(), circIds
+
+            ).then(deferred.resolve, null, function(notice) {
+
+                var circ = patronSvc.items_out.filter(
+                    function(circ) {return circ.id() == notice.circ_id})[0];
+
+                if (notice.numNotices) {
+                    circ.action_trigger_event_count = notice.numNotices;
+                    circ.action_trigger_latest_event_date = notice.lastDt;
+                }
+
+                if (rendered++ >= offset && rendered <= count) {
+                    egProgressDialog.close();
+                    deferred.notify(circ);
+                };
+            });
         });
 
         return deferred.promise;
@@ -398,11 +426,31 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         });
     }
 
+    function batch_action_with_flat_copies(items, action) {
+        if (!items.length) return;
+        var copies = items.map(function(circ) 
+            { return egCore.idl.toHash(circ.target_copy()) });
+        action(copies).then(reset_page);
+    }
     function batch_action_with_barcodes(items, action) {
         if (!items.length) return;
         var barcodes = items.map(function(circ) 
             { return circ.target_copy().barcode() });
         action(barcodes).then(reset_page);
+    }
+    $scope.mark_damaged = function(items) {
+        if (items.length == 0) return;
+
+        angular.forEach(items, function(circ) {
+            egCirc.mark_damaged({
+                id: circ.target_copy().id(),
+                barcode: circ.target_copy().barcode(),
+                circ_lib: circ.target_copy().circ_lib().id()
+            }).then(() => $timeout(reset_page,1000)) // reset after each, because rejecting one stops the $q.all() chain
+        });
+    }
+    $scope.mark_missing = function(items) {
+        batch_action_with_flat_copies(items, egCirc.mark_missing);
     }
     $scope.mark_lost = function(items) {
         batch_action_with_barcodes(items, egCirc.mark_lost);
@@ -477,11 +525,12 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
             controller : [
                         '$scope','$uibModalInstance',
                 function($scope , $uibModalInstance) {
+                    var now = new Date();
                     $scope.outOfRange = false;
-                    $scope.minDate = new Date();
+                    $scope.minDate = new Date(now);
                     $scope.args = {
                         barcodes : barcodes,
-                        date : new Date()
+                        date : new Date(now)
                     }
                     $scope.cancel = function() {$uibModalInstance.dismiss()}
 
@@ -511,26 +560,31 @@ function($scope , $q , $routeParams , $timeout , egCore , egUser , patronSvc ,
         if (!items.length) return;
         var copies = items.map(function(circ) { return circ.target_copy() });
         var barcodes = copies.map(function(copy) { return copy.barcode() });
-
-        return egConfirmDialog.open(
-            egCore.strings.CHECK_IN_CONFIRM, barcodes.join(' '), {
-
-        }).result.then(function() {
-            var copy;
-            function do_one() {
-                if (copy = copies.pop()) {
-                    // Checkin expects a barcode, but will pass other
-                    // parameters too.  Passing the copy ID allows
-                    // for the checkin of deleted copies on the server.
-                    egCirc.checkin(
-                        {copy_barcode: copy.barcode(), copy_id: copy.id()})
-                    .finally(do_one);
-                } else {
-                    reset_page();
-                }
+        
+        var copy;
+        function do_one() {
+            if (copy = copies.pop()) {
+                // Checkin expects a barcode, but will pass other
+                // parameters too.  Passing the copy ID allows
+                // for the checkin of deleted copies on the server.
+                egCirc.checkin(
+                    {copy_barcode: copy.barcode(), copy_id: copy.id()},
+                    {suppress_popups: $scope.suppress_popups})
+                .finally(do_one);
+            } else {
+                reset_page();
             }
-            do_one(); // kick it off
-        });
+        }
+        if ($scope.suppress_popups) {
+            do_one();
+        } else {
+            return egConfirmDialog.open(
+                egCore.strings.CHECK_IN_CONFIRM, barcodes.join(' '), {
+
+            }).result.then(function() {
+                do_one(); // kick it off
+            });
+        }
     }
 
     $scope.add_billing = function(items) {

@@ -1,14 +1,16 @@
 
 <div class="eg-grid" role="grid">
 
-  <eg-grid-toolbar
+  <eg-grid-toolbar #toolbar
     [gridContext]="context"
     [gridPrinter]="gridPrinter"
     [colWidthConfig]="colWidthConfig"
     [disableSaveSettings]="!persistKey || ('disabled' === persistKey)">
   </eg-grid-toolbar>
 
-  <eg-grid-header [context]="context"></eg-grid-header>
+  <div #egGridStickyHeader [ngClass]="{'eg-grid-sticky-header' : context.stickyGridHeader}">
+    <eg-grid-header [context]="context"></eg-grid-header>
+  </div>
 
   <eg-grid-column-width #colWidthConfig [gridContext]="context">
   </eg-grid-column-width>

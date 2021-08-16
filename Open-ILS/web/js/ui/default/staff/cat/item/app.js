@@ -86,6 +86,10 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         itemSvc.add_copies_to_bucket([$scope.args.copyId]);
     }
 
+    $scope.add_records_to_bucket = function() {
+        itemSvc.add_records_to_bucket([$scope.args.recordId], 'biblio');
+    }
+
     $scope.show_in_catalog = function() {
         window.open('/eg/staff/cat/catalog/record/' + $scope.args.recordId + '/catalog', '_blank');
     }
@@ -103,10 +107,7 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
     }
 
     $scope.book_copies_now = function() {
-        itemSvc.book_copies_now([{
-            id : $scope.args.copyId,
-            'call_number.record.id' : $scope.args.recordId
-        }]);
+        itemSvc.book_copies_now([$scope.args.copyBarcode]);
     }
 
     $scope.findAcquisition = function() {
@@ -144,8 +145,12 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         });
     }
 
+    $scope.manage_reservations = function() {
+        itemSvc.manage_reservations([$scope.args.copyBarcode]);
+    }
+
     $scope.requestItems = function() {
-        itemSvc.requestItems([$scope.args.copyId]);
+        itemSvc.requestItems([$scope.args.copyId],[$scope.args.recordId]);
     }
 
     $scope.update_inventory = function() {
@@ -219,10 +224,17 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         }]);
     }
 
+    $scope.selectedHoldingsDiscard = function () {
+        itemSvc.selectedHoldingsDiscard([{
+            id : $scope.args.copyId,
+            barcode : $scope.args.barcode
+        }]);
+    }
+
     $scope.selectedHoldingsMissing = function () {
         itemSvc.selectedHoldingsMissing([{
             id : $scope.args.copyId,
-            barcode : $scope.args.copyBarcode
+            barcode : $scope.args.barcode
         }]);
     }
 
@@ -351,6 +363,9 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
     };
 
     $scope.$watch('barcodesFromFile', function(newVal, oldVal) {
+        $scope.context.itemsNotFound = [];
+        $scope.context.fileDoneLoading = false;
+        $scope.context.numBarcodesInFile = 0;
         if (newVal && newVal != oldVal) {
             $scope.args.barcode = '';
             var barcodes = [];
@@ -377,25 +392,34 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
                     if(itemSvc.copies[0]){  // Were any copies actually retrieved
                         copyGrid.selectItems([itemSvc.copies[0].index]);
                     }
+                    $scope.context.fileDoneLoading = true;
                     return;
                 }
 
-                itemSvc.fetch(barcode).then(fetch_next_copy);
+                itemSvc.fetch(barcode).then(function(item) {
+                    if (!item) {
+                        $scope.context.itemsNotFound.push(barcode);
+                    }
+                    fetch_next_copy();
+                })
             }
 
             if (barcodes.length) {
+                $scope.context.numBarcodesInFile = barcodes.length;
                 egProgressDialog.open({value: 0, max: barcodes.length});
                 fetch_next_copy();
             }
         }
     });
 
-    $scope.context.search = function(args) {
-        if (!args.barcode) return;
+    $scope.context.search = function(args, noGridRefresh) {
+        if (!args.barcode) return $q.when();
         $scope.context.itemNotFound = false;
-        itemSvc.fetch(args.barcode).then(function(res) {
+        return itemSvc.fetch(args.barcode).then(function(res) {
             if (res) {
-                copyGrid.refresh();
+                if (!noGridRefresh) {
+                    copyGrid.refresh();
+                }
                 copyGrid.selectItems([res.index]);
                 $scope.args.barcode = '';
             } else {
@@ -406,9 +430,9 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         })
     }
 
-    var add_barcode_to_list = function (b) {
-        //console.log('listCtrl: add_barcode_to_list',b);
-        $scope.context.search({barcode:b});
+    var add_barcode_to_list = function (b, noGridRefresh) {
+        // console.log('listCtrl: add_barcode_to_list',b);
+        return $scope.context.search({barcode:b}, noGridRefresh);
     }
     itemSvc.add_barcode_to_list = add_barcode_to_list;
 
@@ -461,6 +485,17 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         return cp_id_list;
     }
 
+    function gatherSelectedHoldingsRecords() {
+        var record_id_list = [];
+        angular.forEach(
+            copyGrid.selectedItems(),
+            function (item) {
+                record_id_list.push(item['call_number.record.id']);
+            }
+        )
+        return record_id_list;
+    }
+
     $scope.refreshGridData = function() {
         var chain = $q.when();
         var all_items = itemSvc.copies.map(function(item) {
@@ -481,6 +516,11 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
     $scope.add_copies_to_bucket = function() {
         var copy_list = gatherSelectedHoldingsIds();
         itemSvc.add_copies_to_bucket(copy_list);
+    }
+
+    $scope.add_records_to_bucket = function() {
+        var record_list = gatherSelectedHoldingsRecords();
+        itemSvc.add_copies_to_bucket(record_list, 'biblio');
     }
 
     $scope.locateAcquisition = function() {
@@ -517,12 +557,21 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
     }
 
     $scope.book_copies_now = function() {
-        itemSvc.book_copies_now(copyGrid.selectedItems());
+        var item = copyGrid.selectedItems()[0];
+        if (item)
+            itemSvc.book_copies_now(item.barcode);
+    }
+
+    $scope.manage_reservations = function() {
+        var item = copyGrid.selectedItems()[0];
+        if (item)
+            itemSvc.manage_reservations(item.barcode);
     }
 
     $scope.requestItems = function() {
         var copy_list = gatherSelectedHoldingsIds();
-        itemSvc.requestItems(copy_list);
+        var record_list = gatherSelectedRecordIds();
+        itemSvc.requestItems(copy_list,record_list);
     }
 
     $scope.replaceBarcodes = function() {
@@ -557,8 +606,18 @@ function($scope , $q , $window , $location , $timeout , egCore , egNet , egGridD
         itemSvc.selectedHoldingsDamaged(copyGrid.selectedItems());
     }
 
+    $scope.selectedHoldingsDiscard = function () {
+        itemSvc.selectedHoldingsDiscard(copyGrid.selectedItems());
+    }
+
     $scope.selectedHoldingsMissing = function () {
-        itemSvc.selectedHoldingsMissing(copyGrid.selectedItems());
+        egProgressDialog.open();
+        itemSvc.selectedHoldingsMissing(copyGrid.selectedItems())
+        .then(function() { 
+            egProgressDialog.close();
+            console.debug('Marking missing complete, refreshing grid');
+            copyGrid.refresh();
+        });
     }
 
     $scope.checkin = function () {

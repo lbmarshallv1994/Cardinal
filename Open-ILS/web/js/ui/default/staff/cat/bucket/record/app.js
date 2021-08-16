@@ -401,6 +401,34 @@ function($scope,  $location,  $q,  $timeout,  $uibModal,
         });
     }
 
+    // allows user to create a carousel from the selected bucket
+    $scope.openCreateCarouselDialog = function() {
+        if (!bucketSvc.currentBucket || !bucketSvc.currentBucket.id()) {
+            return;
+        }
+        $uibModal.open({
+            templateUrl: './cat/bucket/record/t_create_carousel',
+            backdrop: 'static',
+            controller :
+                ['$scope', '$uibModalInstance', function($scope, $uibModalInstance) {
+                $scope.focusMe = true;
+                $scope.ok = function(args) {
+                    if (args && args.name) {
+                        return egCore.net.request(
+                            'open-ils.actor',
+                            'open-ils.actor.carousel.create.from_bucket',
+                            egCore.auth.token(), args.name, bucketSvc.currentBucket.id()
+                        ).then(function(carouselId) { $uibModalInstance.close(carouselId) });
+                    }
+                }
+                $scope.cancel = function() { $uibModalInstance.dismiss() }
+            }]
+        }).result.then(function(carouselId) {
+            // bouncing outside of AngularJS
+            $window.location.href = '/eg2/en-US/staff/admin/local/container/carousel';
+        });
+    }
+
     // opens the record export dialog
     $scope.openExportBucketDialog = function() {
         $uibModal.open({
@@ -664,8 +692,15 @@ function($scope,  $q , $routeParams,  bucketSvc,  egCore,  $window,
                     updateOneRecord($scope.lead_id, $scope.lead.marc_xml);
                 }
 
+                $scope.cancel_edit_lead_inplace = function() {
+                    $scope.editing_inplace = false;
+                    $scope.lead.marc_xml = $scope.lead.orig_marc_xml;
+                }
+
                 $scope.edit_lead_inplace = function() {
                     $scope.editing_inplace = true;
+                    let lead = { orig_marc_xml : $scope.lead.marc_xml };
+                    $scope.lead = lead;
                 }
                 $scope.edit_lead = function() {
                     var lead = { marc_xml : $scope.lead.marc_xml };

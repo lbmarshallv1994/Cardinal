@@ -1,8 +1,10 @@
 import {NgModule} from '@angular/core';
+import {FmRecordEditorModule} from '@eg/share/fm-editor/fm-editor.module';
 import {StaffCommonModule} from '@eg/staff/common.module';
 import {CatalogCommonModule} from '@eg/share/catalog/catalog-common.module';
 import {HttpClientModule} from '@angular/common/http';
 import {TreeModule} from '@eg/share/tree/tree.module';
+import {AdminPageModule} from '@eg/staff/share/admin-page/admin-page.module';
 import {VandelayRoutingModule} from './routing.module';
 import {VandelayService} from './vandelay.service';
 import {VandelayComponent} from './vandelay.component';
@@ -23,6 +25,7 @@ import {MatchSetExpressionComponent} from './match-set-expression.component';
 import {MatchSetQualityComponent} from './match-set-quality.component';
 import {MatchSetNewPointComponent} from './match-set-new-point.component';
 import {RecentImportsComponent} from './recent-imports.component';
+import {MarcEditModule} from '@eg/staff/share/marc-edit/marc-edit.module';
 
 @NgModule({
   declarations: [
@@ -48,6 +51,9 @@ import {RecentImportsComponent} from './recent-imports.component';
   imports: [
     TreeModule,
     StaffCommonModule,
+    FmRecordEditorModule,
+    AdminPageModule,
+    MarcEditModule,
     CatalogCommonModule,
     VandelayRoutingModule,
     HttpClientModule,

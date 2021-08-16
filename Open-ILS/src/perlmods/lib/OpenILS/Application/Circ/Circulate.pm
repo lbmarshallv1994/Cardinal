@@ -18,12 +18,7 @@ my $desk_renewal_use_circ_lib;
 
 sub determine_booking_status {
     unless (defined $booking_status) {
-        my $router_name = OpenSRF::Utils::Config
-            ->current
-            ->bootstrap
-            ->router_name || 'router';
-
-        my $ses = create OpenSRF::AppSession($router_name);
+        my $ses = create OpenSRF::AppSession("router");
         $booking_status = grep {$_ eq "open-ils.booking"} @{
             $ses->request("opensrf.router.info.class.list")->gather(1)
         };
@@ -128,6 +123,10 @@ __PACKAGE__->register_method(
     method    => "run_method",
     api_name  => "open-ils.circ.renew.auto",
     signature => q/@see open-ils.circ.renew/,
+    notes     => q/
+    The open-ils.circ.renew.auto API is deprecated.  Please use the
+    auto_renew => 1 option to open-ils.circ.renew, instead.
+    /
 );
 
 __PACKAGE__->register_method(
@@ -244,7 +243,7 @@ sub run_method {
     }
 
     $circulator->is_renewal(1) if $api =~ /renew/;
-    $circulator->is_autorenewal(1) if $api =~ /renew.auto/;
+    $circulator->auto_renewal(1) if $api =~ /renew.auto/;
     $circulator->is_checkin(1) if $api =~ /checkin/;
     $circulator->is_checkout(1) if $api =~ /checkout/;
     $circulator->override(1) if $api =~ /override/o;
@@ -262,7 +261,7 @@ sub run_method {
         # requesting a precat checkout implies that any required
         # overrides have been performed.  Go ahead and re-override.
         $circulator->skip_permit_key(1);
-        $circulator->override(1) if $circulator->request_precat;
+        $circulator->override(1) if ( $circulator->request_precat && $circulator->editor->allowed('CREATE_PRECAT') );
         $circulator->do_permit();
         $circulator->is_checkout(1);
         unless( $circulator->bail_out ) {
@@ -435,7 +434,6 @@ my @AUTOLOAD_FIELDS = qw/
     volume
     title
     is_renewal
-    is_autorenewal
     is_checkout
     is_res_checkout
     is_precat
@@ -487,6 +485,7 @@ my @AUTOLOAD_FIELDS = qw/
     phone_renewal
     desk_renewal
     sip_renewal
+    auto_renewal
     retarget
     matrix_test_result
     circ_matrix_matchpoint
@@ -565,8 +564,9 @@ sub new {
         ($self->circ_lib) ? $self->circ_lib : $self->editor->requestor->ws_ou);
 
     # if this is a renewal, default to desk_renewal
-    $self->desk_renewal(1) unless 
-        $self->opac_renewal or $self->phone_renewal or $self->sip_renewal;
+    $self->desk_renewal(1) unless
+        $self->opac_renewal or $self->phone_renewal or $self->sip_renewal
+        or $self->auto_renewal;
 
     $self->capture('') unless $self->capture;
 
@@ -2155,13 +2155,10 @@ sub build_checkout_circ_object {
       $circ->opac_renewal('t') if $self->opac_renewal;
       $circ->phone_renewal('t') if $self->phone_renewal;
       $circ->desk_renewal('t') if $self->desk_renewal;
+      $circ->auto_renewal('t') if $self->auto_renewal;
       $circ->renewal_remaining($self->renewal_remaining);
-      $circ->circ_staff($self->editor->requestor->id);
-   }
-
-   if ( $self->is_autorenewal ){
       $circ->auto_renewal_remaining($self->auto_renewal_remaining);
-      $circ->auto_renewal('t');
+      $circ->circ_staff($self->editor->requestor->id);
    }
 
     # if the user provided an overiding checkout time,
@@ -2426,6 +2423,8 @@ sub create_due_date {
 sub make_precat_copy {
     my $self = shift;
     my $copy = $self->copy;
+    return $self->bail_on_events(OpenILS::Event->new('PERM_FAILURE'))
+       unless $self->editor->allowed('CREATE_PRECAT') || $self->is_renewal;
 
    if($copy) {
         $logger->debug("circulator: Pre-cat copy already exists in checkout: ID=" . $copy->id);
@@ -2514,6 +2513,46 @@ sub checkout_noncat {
    }
 }
 
+# if an item is in transit but the status doesn't agree, then we need to fix things.
+# The next two subs will hopefully do that
+sub fix_broken_transit_status {
+    my $self = shift;
+
+    # Capture the transit so we don't have to fetch it again later during checkin
+    # This used to live in sub check_transit_checkin_interval and later again in
+    # do_checkin
+    $self->transit(
+        $self->editor->search_action_transit_copy(
+            {target_copy => $self->copy->id, dest_recv_time => undef, cancel_time => undef}
+        )->[0]
+    );
+
+    if ($self->transit && $U->copy_status($self->copy->status)->id != OILS_COPY_STATUS_IN_TRANSIT) {
+        $logger->warn("circulator: we have a copy ".$self->copy->barcode.
+            " that is in-transit but without the In Transit status... fixing");
+        $self->copy->status(OILS_COPY_STATUS_IN_TRANSIT);
+        # FIXME - do we want to make this permanent if the checkin bails?
+        $self->update_copy;
+    }
+
+}
+sub cancel_transit_if_circ_exists {
+    my $self = shift;
+    if ($self->circ && $self->transit) {
+        $logger->warn("circulator: we have a copy ".$self->copy->barcode.
+            " that is in-transit AND circulating... aborting the transit");
+        my $circ_ses = create OpenSRF::AppSession("open-ils.circ");
+        my $result = $circ_ses->request(
+            "open-ils.circ.transit.abort",
+            $self->editor->authtoken,
+            { 'transitid' => $self->transit->id }
+        )->gather(1);
+        $logger->warn("circulator: transit abort result: ".$result);
+        $circ_ses->disconnect;
+        $self->transit(undef);
+    }
+}
+
 # If a copy goes into transit and is then checked in before the transit checkin 
 # interval has expired, push an event onto the overridable events list.
 sub check_transit_checkin_interval {
@@ -2525,13 +2564,6 @@ sub check_transit_checkin_interval {
     # no interval, no problem
     my $interval = $U->ou_ancestor_setting_value($self->circ_lib, 'circ.transit.min_checkin_interval');
     return unless $interval;
-
-    # capture the transit so we don't have to fetch it again later during checkin
-    $self->transit(
-        $self->editor->search_action_transit_copy(
-            {target_copy => $self->copy->id, dest_recv_time => undef, cancel_time => undef}
-        )->[0]
-    ); 
 
     # transit from X to X for whatever reason has no min interval
     return if $self->transit->source == $self->transit->dest;
@@ -2644,6 +2676,7 @@ sub do_checkin {
         OpenILS::Event->new('ASSET_COPY_NOT_FOUND')) 
         unless $self->copy;
 
+    $self->fix_broken_transit_status; # if applicable
     $self->check_transit_checkin_interval;
     $self->checkin_retarget;
 
@@ -2659,6 +2692,7 @@ sub do_checkin {
         $logger->warn("circulator: we have ".scalar(@$circs).
             " open circs for copy " .$self->copy->id."!!") if @$circs > 1;
     }
+    $self->cancel_transit_if_circ_exists; # if applicable
 
     my $stat = $U->copy_status($self->copy->status)->id;
 
@@ -2730,14 +2764,6 @@ sub do_checkin {
     $self->override_events unless $self->is_renewal;
     return if $self->bail_out;
     
-    if( $self->copy and !$self->transit ) {
-        $self->transit(
-            $self->editor->search_action_transit_copy(
-                { target_copy => $self->copy->id, dest_recv_time => undef, cancel_time => undef }
-            )->[0]
-        ); 
-    }
-
     if( $self->circ ) {
         $self->checkin_handle_circ_start;
         return if $self->bail_out;
@@ -4055,7 +4081,7 @@ sub do_renew {
         if $circ->renewal_remaining < 1;
 
     $self->push_events(OpenILS::Event->new('MAX_AUTO_RENEWALS_REACHED'))
-        if $api =~ /renew.auto/ and $circ->auto_renewal_remaining < 1;
+        if $self->auto_renewal and $circ->auto_renewal_remaining < 1;
     # -----------------------------------------------------------------
 
     $self->parent_circ($circ->id);
@@ -4064,7 +4090,7 @@ sub do_renew {
     $self->circ($circ);
 
     # Opac renewal - re-use circ library from original circ (unless told not to)
-    if($self->opac_renewal or $api =~ /renew.auto/) {
+    if($self->opac_renewal or $self->auto_renewal) {
         unless(defined($opac_renewal_use_circ_lib)) {
             my $use_circ_lib = $self->editor->retrieve_config_global_flag('circ.opac_renewal.use_original_circ_lib');
             if($use_circ_lib and $U->is_true($use_circ_lib->enabled)) {

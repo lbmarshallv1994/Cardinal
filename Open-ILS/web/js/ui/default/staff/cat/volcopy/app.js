@@ -395,7 +395,7 @@ function(egCore , $q) {
     service.flesh = {   
         flesh : 3, 
         flesh_fields : {
-            acp : ['call_number','parts','stat_cat_entries', 'notes', 'tags'],
+            acp : ['call_number','parts','stat_cat_entries', 'notes', 'tags', 'creator', 'editor'],
             acn : ['label_class','prefix','suffix'],
             acptcm : ['tag']
         }
@@ -441,7 +441,9 @@ function(egCore , $q) {
 
     // create a new acp object with default values
     // (both hard-coded and coming from OU settings)
-    service.generateNewCopy = function(callNumber, owningLib, isFastAdd, isNew) {
+    service.generateNewCopy =
+        function(callNumber, owningLib, isFastAdd, isNew, delayCopyStatus) {
+
         var cp = new egCore.idl.acp();
         cp.id( --service.new_cp_id );
         if (isNew) {
@@ -462,31 +464,63 @@ function(egCore , $q) {
         cp.mint_condition('t');
         cp.empty_barcode = true;
 
-        var status_setting = isFastAdd ?
-            'cat.default_copy_status_fast' :
-            'cat.default_copy_status_normal';
-        egCore.org.settings(
-            [status_setting],
-            owningLib
-        ).then(function(set) {
-            var default_ccs = parseInt(set[status_setting]);
-            if (isNaN(default_ccs))
-                default_ccs = (isFastAdd ? 0 : 5); // 0 is Available, 5 is In Process
-            cp.status(default_ccs);
-        });
+        if (delayCopyStatus) { return cp; }
+
+        service.applyDefaultStatus([cp], isFastAdd);
 
         return cp;
+    }
+
+    // Apply the default copy status to a batch of copies
+    service.applyDefaultStatus = function(copies, isFastAdd) {
+
+        var setting = isFastAdd ?
+            'cat.default_copy_status_fast' :
+            'cat.default_copy_status_normal';
+
+        var orgs = {};
+        copies.forEach(function(copy) { orgs[copy.circ_lib()] = 1; });
+
+        var promise = $q.when();
+
+        // Fetch needed org settings; serialized
+        // Note in practice this is always one org unit since
+        // batches of copies are added to a single volume at a time.
+        Object.keys(orgs).forEach(function(org) {
+            promise = promise.then(function() {
+                return egCore.org.settings(setting, org)
+                .then(function(sets) {
+                    var stat = sets[setting] || (isFastAdd ? 0 : 5);
+                    orgs[org] = stat;
+                });
+            })
+        });
+
+        // All needed org settings retrieved.
+        // Appply values to matching copies
+        promise.then(function() {
+            Object.keys(orgs).forEach(function(org) {
+
+                var someCopies = copies.filter(function(copy) {
+                    return copy.circ_lib() == org});
+
+                someCopies.forEach(function(copy) { copy.status(orgs[org]); });
+            });
+        });
+
+        return promise;
     }
 
     return service;
 }])
 
-.directive("egVolCopyEdit", function () {
+.directive("egVolCopyEdit", ['egCore', function (egCore) {
     return {
         restrict: 'E',
         replace: true,
         template:
-            '<div class="row">'+
+            '<div class="row" ng-class="{'+"'new-cp'"+':is_new}">'+
+                '<span ng-if="is_new" class="sr-only">' + egCore.strings.VOL_COPY_NEW_ITEM + '</span>' +
                 '<div class="col-xs-5" ng-class="{'+"'has-error'"+':barcode_has_error}">'+
                     '<input id="{{callNumber.id()}}_{{copy.id()}}"'+
                     ' eg-enter="nextBarcode(copy.id())" class="form-control"'+
@@ -506,10 +540,18 @@ function(egCore , $q) {
                 $scope.barcode_has_error = false;
                 $scope.duplicate_barcode = false;
                 $scope.empty_barcode = false;
+                $scope.is_new = false;
                 $scope.duplicate_barcode_string = window.duplicate_barcode_string;
                 $scope.empty_barcode_string = window.empty_barcode_string;
+                var duplicate_check_count = 0;
 
                 if (!$scope.copy.barcode()) $scope.copy.empty_barcode = true;
+                if ($scope.copy.isnew() || $scope.copy.id() < 0) $scope.copy.is_new = $scope.is_new = true;
+
+                $scope.selectOnFocus = function($event) {
+                    if (!$scope.copy.empty_barcode)
+                        $event.target.select();
+                }
 
                 $scope.selectOnFocus = function($event) {
                     if (!$scope.copy.empty_barcode)
@@ -524,8 +566,13 @@ function(egCore , $q) {
                     if ($scope.barcode != '') {
                         $scope.copy.empty_barcode = $scope.empty_barcode = false;
                         $scope.barcode_has_error = !Boolean(itemSvc.checkBarcode($scope.barcode));
+
+                        var duplicate_check_id = ++duplicate_check_count;
                         itemSvc.checkDuplicateBarcode($scope.barcode, $scope.copy.id())
-                            .then(function (state) { $scope.copy.duplicate_barcode = $scope.duplicate_barcode = state });
+                            .then(function (state) {
+                                if (duplicate_check_id == duplicate_check_count)
+                                    $scope.copy.duplicate_barcode = $scope.duplicate_barcode = state;
+                            });
                     } else {
                         $scope.copy.empty_barcode = $scope.empty_barcode = true;
                     }
@@ -582,28 +629,29 @@ function(egCore , $q) {
         ]
 
     }
-})
+}])
 
-.directive("egVolRow", function () {
+.directive("egVolRow", ['egCore', function (egCore) {
     return {
         restrict: 'E',
         replace: true,
         transclude: true,
         template:
-            '<div class="row">'+
+            '<div class="row" ng-class="{'+"'new-cn'"+':!callNumber.not_ephemeral}">'+
+                '<span ng-if="!callNumber.not_ephemeral" class="sr-only">' + egCore.strings.VOL_COPY_NEW_CALL_NUMBER + '</span>' +
                 '<div class="col-xs-2">'+
                     '<button aria-label="Delete" style="margin:-5px -15px; float:left;" ng-hide="callNumber.not_ephemeral" type="button" class="close" ng-click="removeCN()">&times;</button>' +
-                    '<select class="form-control" ng-model="classification" ng-change="updateClassification()" ng-options="cl.name() for cl in classification_list"/>'+
+                    '<select class="form-control" ng-model="classification" ng-change="updateClassification()" ng-options="cl.name() for cl in classification_list"></select>'+
                 '</div>'+
                 '<div class="col-xs-1">'+
-                    '<select class="form-control" ng-model="prefix" ng-change="updatePrefix()" ng-options="p.label() for p in prefix_list"/>'+
+                    '<select class="form-control" ng-model="prefix" ng-change="updatePrefix()" ng-options="p.label() for p in prefix_list"></select>'+
                 '</div>'+
                 '<div class="col-xs-2">'+
                     '<input class="form-control" type="text" ng-change="updateLabel()" ng-model="label"/>'+
                     '<div class="label label-danger" ng-if="empty_label">{{empty_label_string}}</div>'+
                 '</div>'+
                 '<div class="col-xs-1">'+
-                    '<select class="form-control" ng-model="suffix" ng-change="updateSuffix()" ng-options="s.label() for s in suffix_list"/>'+
+                    '<select class="form-control" ng-model="suffix" ng-change="updateSuffix()" ng-options="s.label() for s in suffix_list"></select>'+
                 '</div>'+
                 '<div ng-hide="onlyVols" class="col-xs-1"><input class="form-control" type="number" ng-model="copy_count" min="{{orig_copy_count}}" ng-change="changeCPCount()"></div>'+
                 '<div ng-hide="onlyVols" class="col-xs-5">'+
@@ -798,17 +846,20 @@ function(egCore , $q) {
                 }
 
                 $scope.changeCPCount = function () {
+                    var newCopies = [];
                     while ($scope.copy_count > $scope.copies.length) {
                         var cp = itemSvc.generateNewCopy(
                             $scope.callNumber,
                             $scope.callNumber.owning_lib(),
                             $scope.fast_add,
-                            true
+                            true, true
                         );
                         $scope.copies.push( cp );
                         $scope.allcopies.push( cp );
-
+                        newCopies.push(cp);
                     }
+
+                    itemSvc.applyDefaultStatus(newCopies, $scope.fast_add);
 
                     if ($scope.copy_count >= $scope.orig_copy_count) {
                         var how_many = $scope.copies.length - $scope.copy_count;
@@ -830,7 +881,7 @@ function(egCore , $q) {
         ]
 
     }
-})
+}])
 
 .directive("egVolEdit", function () {
     return {
@@ -912,6 +963,7 @@ function(egCore , $q) {
                 $scope.$watch('cn_count', function (n) {
                     var o = Object.keys($scope.struct).length;
                     if (n > o) { // adding
+                        var newCopies = [];
                         for (var i = o; o < n; o++) {
                             var cn = new egCore.idl.acn();
                             cn.id( --itemSvc.new_cn_id );
@@ -926,9 +978,10 @@ function(egCore , $q) {
                                 cn,
                                 $scope.owning_lib.id(),
                                 $scope.fast_add,
-                                true
+                                true, true
                             );
 
+                            newCopies.push(cp);
                             $scope.struct[cn.id()] = [cp];
                             $scope.allcopies.push(cp);
                             if (!$scope.defaults.classification) {
@@ -940,6 +993,9 @@ function(egCore , $q) {
                                 });
                             }
                         }
+
+                        itemSvc.applyDefaultStatus(newCopies, $scope.fast_add);
+
                     } else if (n < o && n >= $scope.orig_cn_count) { // removing
                         var how_many = o - n;
                         var list = Object
@@ -1142,6 +1198,8 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
         return true;
     }
 
+    $scope.changed_fields = [];
+
     $scope.completeToWorking = function () {
         angular.forEach( $scope.completedGridControls.selectedItems(), function (c) {
             angular.forEach( $scope.completed_copies, function (w, i) {
@@ -1178,6 +1236,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                                 return;
                             }
                             if (cp[field]() !== newval) {
+                                $scope.changed_fields[cp.$$hashKey+field] = true;
                                 cp[field](newval);
                                 cp.ischanged(1);
                                 $scope.dirty = true;
@@ -1188,6 +1247,14 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
             }
         });
     }
+
+    // determine if any of the selected copies have had changed their value for this field:
+    $scope.field_changed = function (field){
+        // if objects controlling selection don't exist, assume the fields haven't changed
+        if(!$scope.workingGridControls || !$scope.workingGridControls.selectedItems){ return false; }
+        var selected = $scope.workingGridControls.selectedItems();
+        return selected.reduce((acc, cp) => acc || $scope.changed_fields[cp.$$hashKey+field], false);
+    };
 
     $scope.working = {
         MultiMap: {},
@@ -1223,6 +1290,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                 angular.forEach(
                     $scope.workingGridControls.selectedItems(),
                     function (cp) {
+                        if (!angular.isArray(cp.copy_alerts())) cp.copy_alerts([]);
                         $scope.dirty = true;
                         angular.forEach(alerts, function(alrt) {
                             var a = egCore.idl.fromHash('aca', alrt);
@@ -1247,6 +1315,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
             angular.forEach(
                 $scope.workingGridControls.selectedItems(),
                 function (cp) {
+                    if (!angular.isArray(cp.notes())) cp.notes([]);
                     $scope.dirty = true;
                     angular.forEach(notes, function(note) {
                         var n = egCore.idl.fromHash('acpn', note);
@@ -1478,7 +1547,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                 return y.id() == x;
             });
 
-            return s[0].name();
+            return s[0] ? s[0].name() : '';
         }
 
         $scope.locationName = function (x) {
@@ -2192,7 +2261,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                         { order_by : { 'acpt' : ['label'] } }, { atomic: true }
                     ).then(function(list) {
                         return list.map(function(item) {
-                            return item.label() + " (" + egCore.org.get(item.owner()).shortname() + ")";
+                            return { value: item.label(), display: item.label() + " (" + egCore.org.get(item.owner()).shortname() + ")" };
                         });
                     });
                 }
@@ -2295,6 +2364,7 @@ function($scope , $q , $window , $routeParams , $location , $timeout , egCore , 
                     if (typeof(copy_alert.note) != 'undefined' &&
                         copy_alert.note != '') {
                         angular.forEach(copy_list, function (cp) {
+                            if (!angular.isArray(cp.copy_alerts())) cp.copy_alerts([]);
                             var a = new egCore.idl.aca();
                             a.isnew(1);
                             a.create_staff(copy_alert.create_staff);

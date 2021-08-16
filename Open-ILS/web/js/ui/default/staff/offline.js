@@ -360,7 +360,7 @@ function($routeProvider , $locationProvider , $compileProvider) {
             if (setting !== undefined) $scope.do_check_changed = true;
         });
 
-        egCore.hatch.getItem('eg.workstation.all')
+        egCore.hatch.getWorkstations()
         .then(function(all) {
             if (all && all.length) {
                 $scope.workstations = all;
@@ -381,7 +381,7 @@ function($routeProvider , $locationProvider , $compileProvider) {
                     }
                 } else {
                     // no workstation requested; use the default
-                    egCore.hatch.getItem('eg.workstation.default')
+                    egCore.hatch.getDefaultWorkstation()
                     .then(function(ws) {
                         var ws_obj = all.filter(function(w) {
                             return ws == w.name
@@ -2088,6 +2088,14 @@ function($scope , $routeParams , $q , $uibModal , $window , egCore ,
             org.ou_type() &&
             org.ou_type().can_have_users() == 'f'
         );
+    }
+
+    $scope.edit_passthru.self_edit_disallowed = function() {
+        return false;
+    }
+
+    $scope.edit_passthru.group_edit_disallowed = function() {
+        return false;
     }
 
     // Returns true if the Save and Save & Clone buttons should be disabled.

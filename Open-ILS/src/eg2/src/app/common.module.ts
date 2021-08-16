@@ -1,21 +1,21 @@
 /**
  * Modules, services, and components used by all apps.
  */
-import {CommonModule, DatePipe, CurrencyPipe} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import {NgModule, ModuleWithProviders} from '@angular/core';
 import {RouterModule} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
+import {EgCoreModule} from '@eg/core/core.module';
 
 /*
 Note core services are injected into 'root'.
 They do not have to be added to the providers list.
 */
 
-// consider moving these to core...
-import {FormatService, FormatValuePipe} from '@eg/core/format.service';
-import {HatchService} from '@eg/share/print/hatch.service';
+import {HtmlToTxtService} from '@eg/share/util/htmltotxt.service';
 import {PrintService} from '@eg/share/print/print.service';
+import {AnonCacheService} from '@eg/share/util/anon-cache.service';
 
 // Globally available components
 import {PrintComponent} from '@eg/share/print/print.component';
@@ -26,6 +26,10 @@ import {PromptDialogComponent} from '@eg/share/dialog/prompt.component';
 import {ProgressInlineComponent} from '@eg/share/dialog/progress-inline.component';
 import {ProgressDialogComponent} from '@eg/share/dialog/progress.component';
 import {BoolDisplayComponent} from '@eg/share/util/bool.component';
+import {ToastService} from '@eg/share/toast/toast.service';
+import {ToastComponent} from '@eg/share/toast/toast.component';
+import {StringModule} from '@eg/share/string/string.module';
+
 
 @NgModule({
   declarations: [
@@ -36,20 +40,26 @@ import {BoolDisplayComponent} from '@eg/share/util/bool.component';
     PromptDialogComponent,
     ProgressInlineComponent,
     ProgressDialogComponent,
-    BoolDisplayComponent,
-    FormatValuePipe
+    ToastComponent,
+    BoolDisplayComponent
   ],
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterModule,
-    NgbModule
+    NgbModule,
+    EgCoreModule,
+    StringModule
   ],
   exports: [
     CommonModule,
     RouterModule,
     NgbModule,
     FormsModule,
+    EgCoreModule,
+    StringModule,
+    ReactiveFormsModule,
     PrintComponent,
     DialogComponent,
     AlertDialogComponent,
@@ -58,7 +68,7 @@ import {BoolDisplayComponent} from '@eg/share/util/bool.component';
     ProgressInlineComponent,
     ProgressDialogComponent,
     BoolDisplayComponent,
-    FormatValuePipe
+    ToastComponent
   ]
 })
 
@@ -69,11 +79,10 @@ export class EgCommonModule {
         return {
             ngModule: EgCommonModule,
             providers: [
-                DatePipe,
-                CurrencyPipe,
-                HatchService,
+                AnonCacheService,
+                HtmlToTxtService,
                 PrintService,
-                FormatService
+                ToastService
             ]
         };
     }

@@ -8,6 +8,7 @@ import {AuthService} from '@eg/core/auth.service';
 import {OrgService} from '@eg/core/org.service';
 import {EventService} from '@eg/core/event.service';
 import {ConfirmDialogComponent} from '@eg/share/dialog/confirm.component';
+import {HatchService} from '@eg/core/hatch.service';
 
 // Slim version of the WS that's stored in the cache.
 interface Workstation {
@@ -28,7 +29,7 @@ export class WorkstationsComponent implements OnInit {
     newName: string;
     defaultName: string;
 
-    @ViewChild('workstationExistsDialog')
+    @ViewChild('workstationExistsDialog', { static: true })
     private wsExistsDialog: ConfirmDialogComponent;
 
     // Org selector options.
@@ -46,17 +47,28 @@ export class WorkstationsComponent implements OnInit {
         private store: StoreService,
         private auth: AuthService,
         private org: OrgService,
+        private hatch: HatchService,
         private perm: PermService
     ) {}
 
     ngOnInit() {
-        this.workstations = this.store.getLocalItem('eg.workstation.all') || [];
-        this.defaultName = this.store.getLocalItem('eg.workstation.default');
-        this.selectedName = this.auth.workstation() || this.defaultName;
-        const rm = this.route.snapshot.paramMap.get('remove');
-        if (rm) {
-            this.removeSelected(this.removeWorkstation = rm);
-        }
+        this.store.getWorkstations()
+
+        .then(wsList => {
+            this.workstations = wsList || [];
+
+            // Populate the new WS name field with the hostname when available.
+            return this.setNewName();
+
+        }).then(
+            ok => this.store.getDefaultWorkstation()
+
+        ).then(def => {
+            this.defaultName = def;
+            this.selectedName = this.auth.workstation() || this.defaultName;
+            const rm = this.route.snapshot.paramMap.get('remove');
+            if (rm) { this.removeSelected(this.removeWorkstation = rm); }
+        });
 
         // TODO: use the org selector limitPerm option
         this.perm.hasWorkPermAt(['REGISTER_WORKSTATION'], true)
@@ -85,7 +97,7 @@ export class WorkstationsComponent implements OnInit {
     setDefault(): void {
       if (this.selected()) {
             this.defaultName = this.selected().name;
-            this.store.setLocalItem('eg.workstation.default', this.defaultName);
+            this.store.setDefaultWorkstation(this.defaultName);
         }
     }
 
@@ -95,12 +107,11 @@ export class WorkstationsComponent implements OnInit {
         }
 
         this.workstations = this.workstations.filter(w => w.name !== name);
-        this.store.setLocalItem('eg.workstation.all', this.workstations);
+        this.store.setWorkstations(this.workstations);
+    }
 
-        if (this.defaultName === name) {
-            this.defaultName = null;
-            this.store.removeLocalItem('eg.workstation.default');
-        }
+    setNewName() {
+        this.hatch.hostname().then(name => this.newName = name || '');
     }
 
     canDeleteSelected(): boolean {
@@ -170,7 +181,7 @@ export class WorkstationsComponent implements OnInit {
         };
 
         this.workstations.push(ws);
-        this.store.setLocalItem('eg.workstation.all', this.workstations);
+        this.store.setWorkstations(this.workstations);
         this.newName = '';
         // when registering our first workstation, mark it as the
         // default and show it as selected in the ws selector.

@@ -53,12 +53,12 @@ sub handler {
         $logger->info( "AUTORENEW: circ.target_copy: " . Dumper($_->target_copy()) );
         my $evt = $AppUtils->simplereq(
             'open-ils.circ',
-            'open-ils.circ.renew.auto',
+            'open-ils.circ.renew',
             $token,
             {
                 patron_id => $_->usr(),
                 copy_id => $_->target_copy(),
-                opac_renewal => 0
+                auto_renewal => 1
             }
         );
 
@@ -70,9 +70,10 @@ sub handler {
         my %user_data = (
             copy => $_->target_copy(),
             is_renewed => $is_renewed,
-            reason => !$is_renewed ? sprintf("%s : %s", $evt->{textcode}, substr($evt->{desc}, 0, 140)) : '',
+            reason => !$is_renewed ? $evt->{desc} : '',
             new_due_date => $is_renewed ? $evt->{payload}->{circ}->due_date : '',
             old_due_date => !$is_renewed ? $_->due_date() : '',
+            textcode => $evt->{textcode},
         );
 
         # Create the event from the source circ instead of the

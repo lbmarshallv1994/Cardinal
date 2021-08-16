@@ -1,5 +1,6 @@
 import {NgModule} from '@angular/core';
 import {EgCommonModule} from '@eg/common.module';
+import {CommonWidgetsModule} from '@eg/share/common-widgets.module';
 import {GridComponent} from './grid.component';
 import {GridColumnComponent} from './grid-column.component';
 import {GridHeaderComponent} from './grid-header.component';
@@ -13,6 +14,7 @@ import {GridToolbarActionsMenuComponent} from './grid-toolbar-actions-menu.compo
 import {GridColumnConfigComponent} from './grid-column-config.component';
 import {GridColumnWidthComponent} from './grid-column-width.component';
 import {GridPrintComponent} from './grid-print.component';
+import {GridFilterControlComponent} from './grid-filter-control.component';
 
 
 @NgModule({
@@ -30,10 +32,12 @@ import {GridPrintComponent} from './grid-print.component';
         GridToolbarActionsMenuComponent,
         GridColumnConfigComponent,
         GridColumnWidthComponent,
-        GridPrintComponent
+        GridPrintComponent,
+        GridFilterControlComponent
     ],
     imports: [
-        EgCommonModule
+        EgCommonModule,
+        CommonWidgetsModule
     ],
     exports: [
         // public components

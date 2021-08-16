@@ -1,10 +1,23 @@
+<!-- idlObject and fieldName applied programmatically -->
+<eg-translate #translator></eg-translate>
+
+<eg-string #successStr text="Update Succeeded" i18n-text></eg-string>
+<eg-string #failStr text="Update Failed" i18n-text></eg-string>
+
+<eg-confirm-dialog #confirmDel
+  dialogTitle="Delete?" i18n-dialogTitle
+  dialogBody="Delete {{recordLabel}}?" i18n-dialogBody>
+</eg-confirm-dialog>
+
 <ng-template #dialogContent>
-  <div class="modal-header bg-info">
+  <div class="modal-header bg-info" *ngIf="!hideBanner">
     <h4 class="modal-title" i18n>Record Editor: {{recordLabel}}</h4>
-    <button type="button" class="close" 
-      i18n-aria-label aria-label="Close" (click)="close()">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <ng-container *ngIf="isDialog()">
+      <button type="button" class="close" 
+        i18n-aria-label aria-label="Close" (click)="closeEditor()">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </ng-container>
   </div>
   <div class="modal-body">
     <form #fmEditForm="ngForm" role="form" class="form-validated common-form striped-odd">
@@ -15,10 +28,10 @@
       </ng-container>
       <ng-container *ngIf="record">
       <div class="form-group row" *ngFor="let field of fields">
-        <div class="col-lg-3 offset-lg-1">
+        <div class="col-lg-3">
           <label for="{{idPrefix}}-{{field.name}}">{{field.label}}</label>
         </div>
-        <div class="col-lg-7">
+        <div class="col-lg-9">
 
           <ng-container [ngSwitch]="inputType(field)">
 
@@ -45,9 +58,22 @@
             <ng-container *ngSwitchCase="'timestamp'">
               <eg-date-select
                 domId="{{idPrefix}}-{{field.name}}"
+                [readOnly]="field.readOnly"
                 (onChangeAsIso)="record[field.name]($event)"
                 initialIso="{{record[field.name]()}}">
               </eg-date-select>
+            </ng-container>
+
+            <ng-container *ngSwitchCase="'timestamp-timepicker'">
+              <eg-datetime-select
+                [showTZ]="timezone"
+                [timezone]="timezone"
+                domId="{{idPrefix}}-{{field.name}}"
+                (onChangeAsIso)="record[field.name]($event)"
+                i18n-validatorError
+                [readOnly]="field.readOnly"
+                initialIso="{{record[field.name]()}}">
+              </eg-datetime-select>
             </ng-container>
 
             <ng-container *ngSwitchCase="'org_unit'">
@@ -58,7 +84,7 @@
                 [limitPerms]="modePerms[mode]"
                 [readOnly]="field.readOnly"
                 [applyDefault]="field.orgDefaultAllowed"
-                [initialOrgId]="record[field.name]()"
+                [applyOrgId]="record[field.name]()"
                 (onChange)="record[field.name]($event)">
               </eg-org-select>
             </ng-container>
@@ -125,6 +151,13 @@
                 (ngModelChange)="record[field.name]($event)"/>
             </ng-container>
   
+	    <ng-container *ngSwitchCase="'readonly-au'">
+              <ng-container *ngIf="field.linkedValues">
+                <a href="/eg/staff/circ/patron/{{field.linkedValues[0].id}}/checkout" target="_blank">{{field.linkedValues[0].label}}
+                <span class="material-icons" i18n-title title="Open user record in new tab">open_in_new</span></a>
+              </ng-container>
+            </ng-container>
+
             <ng-container *ngSwitchCase="'list'">
               <eg-combobox
                 id="{{idPrefix}}-{{field.name}}" name="{{field.name}}"
@@ -132,23 +165,51 @@
                 [required]="field.isRequired()"
                 [entries]="field.linkedValues"
                 [asyncDataSource]="field.linkedValuesSource"
-                [startId]="record[field.name]()"
+                [selectedId]="record[field.name]()"
                 (onChange)="record[field.name]($event ? $event.id : null)">
               </eg-combobox>
             </ng-container>
           </ng-container> <!-- switch -->
+        </div>
+        <div class="col-lg-1" *ngIf="field.i18n && !field.readOnly">
+          <a (click)="openTranslator(field.name)"
+            i18n-title title="Translate">
+            <button class="btn btn-outline-info mat-icon-in-button">
+              <span class="material-icons">translate</span>
+            </button>
+          </a>
         </div>
       </div>
       </ng-container>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-success" *ngIf="mode == 'view'"
-      (click)="close()" i18n>Close</button>
+    <button type="button" class="btn {{action.buttonCss}}"
+      *ngFor="let action of actions" [disabled]="action.disabled"
+      (click)="action.actionClick.emit({action: action.key, record: record})">
+      {{action.label}}
+    </button>
+    <ng-container *ngIf="isDialog()">
+      <button type="button" class="btn btn-success" *ngIf="mode == 'view'"
+        (click)="closeEditor()" i18n>Close</button>
+      <button type="button" class="btn btn-warning ml-2" *ngIf="mode != 'view'"
+        (click)="cancel()" i18n>Cancel</button>
+    </ng-container>
+
+    <ng-container *ngIf="showDelete && mode != 'view'">
+      <button type="button" class="btn btn-warning" (click)="remove()"
+        [disabled]="record && record.isnew()" i18n>Delete</button>
+    </ng-container>
+
     <button type="button" class="btn btn-info" 
       [disabled]="fmEditForm.invalid" *ngIf="mode != 'view'"
       (click)="save()" i18n>Save</button>
-    <button type="button" class="btn btn-warning ml-2" *ngIf="mode != 'view'"
-      (click)="cancel()" i18n>Cancel</button>
   </div>
 </ng-template>
+
+<ng-container *ngIf="!isDialog()">
+  <!-- in "inline" mode, render the editor pane right here -->
+  <ng-container *ngTemplateOutlet="dialogContent">
+  </ng-container>
+</ng-container>
+

@@ -18,9 +18,9 @@ export class PartsComponent implements OnInit {
     recId: number;
     gridDataSource: GridDataSource;
     initDone: boolean;
-    @ViewChild('partsGrid') partsGrid: GridComponent;
-    @ViewChild('editDialog') editDialog: FmRecordEditorComponent;
-    @ViewChild('mergeDialog') mergeDialog: PartMergeDialogComponent;
+    @ViewChild('partsGrid', { static: true }) partsGrid: GridComponent;
+    @ViewChild('editDialog', { static: true }) editDialog: FmRecordEditorComponent;
+    @ViewChild('mergeDialog', { static: true }) mergeDialog: PartMergeDialogComponent;
 
     canCreate: boolean;
     canDelete: boolean;
@@ -36,6 +36,10 @@ export class PartsComponent implements OnInit {
         if (this.initDone) {
             this.partsGrid.reload();
         }
+    }
+
+    get recordId(): number {
+        return this.recId;
     }
 
     constructor(
@@ -80,7 +84,7 @@ export class PartsComponent implements OnInit {
         this.partsGrid.onRowActivate.subscribe(
             (part: IdlObject) => {
                 this.editDialog.mode = 'update';
-                this.editDialog.recId = part.id();
+                this.editDialog.recordId = part.id();
                 this.editDialog.open()
                     .subscribe(ok => this.partsGrid.reload());
             }
@@ -89,7 +93,7 @@ export class PartsComponent implements OnInit {
         this.createNew = () => {
 
             const part = this.idl.create('bmp');
-            part.record(this.recId);
+            part.record(this.recordId);
             this.editDialog.record = part;
 
             this.editDialog.mode = 'create';

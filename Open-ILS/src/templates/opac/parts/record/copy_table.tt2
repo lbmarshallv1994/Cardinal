@@ -117,7 +117,7 @@ END; # FOREACH bib
                     [% IF ctx.has_perm('UPDATE_COPY', copy_info.circ_lib) 
                         OR ctx.has_perm('UPDATE_COPY', copy_info.call_number_owning_lib) %]
                         <span> | </span>
-                        <a target="_blank" href="[% ctx.base_path %]/staff/cat/item/[% copy_info.id %]/edit">[% l('edit') %]</a>
+                        <a href="javascript:;" onclick='window.open("[% ctx.base_path %]/staff/cat/item/[% copy_info.id %]/edit", "_blank");'>[% l('edit') %]</a>
                     [% END %]
                   [% ELSE %]
                     <a onclick="xulG.new_tab(xulG.urls.XUL_COPY_STATUS, {}, {'from_item_details_new': true, 'barcodes': ['[%- copy_info.barcode | html | replace('\'', '\\\'') -%]']})"
@@ -236,7 +236,16 @@ END; # FOREACH bib
                 <tr class="copy_tag_row">
                     <td>&nbsp;</td>
                     <td class="copy_tag" colspan="4">
-                        <span class="copy_tag_value">[% tag.value | html %]</span>
+                        <span class="copy_tag_type_label">[% tag.tag_type.label _ ": " | html %]</span>
+                        <span class="copy_tag_value">
+                            [% IF tag.url %]
+                            <a href="[% tag.url | html %]">
+                            [% END %]
+                                [% tag.value | html %]
+                            [% IF tag.url %]
+                            </a>
+                            [% END %]
+                        </span>
                     </td>
                 <tr>
             [% END %]

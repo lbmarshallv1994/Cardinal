@@ -16,7 +16,7 @@
       label="[% l('Print Bills') %]" handler="printBills"></eg-grid-action>
 
     <eg-grid-field path="summary.balance_owed"></eg-grid-field>
-    <eg-grid-field path="id" label="[% l('Bill #') %]"></eg-grid-field>
+    <eg-grid-field path="id" label="[% l('Bill #') %]" required></eg-grid-field>
     <eg-grid-field path="xact_finish" label="[% l('Finish') %]" datatype="timestamp"></eg-grid-field>
     <eg-grid-field path="xact_start" label="[% l('Start') %]" datatype="timestamp"></eg-grid-field>
     <eg-grid-field path="summary.total_owed" label="[% l('Total Billed') %]"></eg-grid-field>
@@ -47,6 +47,10 @@
 
     <eg-grid-field path="summary.*" hidden></eg-grid-field>
     <eg-grid-field path="circulation.target_copy.*" hidden></eg-grid-field>
+    <eg-grid-field path="circulation.target_copy.circ_lib.shortname" label="[% l('Item Owning Library') %]"></eg-grid-field>
+    <eg-grid-field path="circulation.circ_lib.shortname" label="[% l('Checkout or Renewal Library') %]" hidden></eg-grid-field>
+    <eg-grid-field path="circulation.due_date" label="[% l('Due Date') %]" datefilter="egDueDate" hidden></eg-grid-field>
+    <eg-grid-field path="circulation.stop_fines" label="[% l('Fine Stop Reason') %]" hidden></eg-grid-field>
     <eg-grid-field path="circulation.target_copy.call_number.*" hidden></eg-grid-field>
     <eg-grid-field path="circulation.target_copy.call_number.prefix.label" label="[% l('CN Prefix') %]" hidden></eg-grid-field>
     <eg-grid-field path="circulation.target_copy.call_number.suffix.label" label="[% l('CN Suffix') %]" hidden></eg-grid-field>
