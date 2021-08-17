@@ -155,6 +155,7 @@ sub handler {
         my @isbns = grep {$_->{tag} eq '020'} @$key_data;
         my @issns = grep {$_->{tag} eq '022'} @$key_data;
         my @upcs  = grep {$_->{tag} eq '024'} @$key_data;
+        my @oclcs  = grep {$_->{tag} eq '035'} @$key_data;
 
         map {
             # Attempt to validate the ISBN.
@@ -180,19 +181,25 @@ sub handler {
             $_->{value} = $issn_str;
             undef $_ if !defined($_->{value});
         } @issns;
+        
+        map {
+            # strip out non-numeric characters from OCLC
+            $_->{value} =~ s/\D//g;
+        } @oclcs;
 
         #Remove undef values from @isbns and @issns.
         #Prevents empty requests to providers
         @isbns = grep {defined} @isbns;
         @issns = grep {defined} @issns;
+        @oclcs = grep {defined} @oclcs;
 
         $keyhash = {
             isbn => [map {$_->{value}} @isbns],
             issn => [map {$_->{value}} @issns],
-            upc  => [map {$_->{value}} @upcs]
+            upc  => [map {$_->{value}} @upcs],
+            oclc  => [map {$_->{value}} @oclcs]
         };
     }
-
     return Apache2::Const::NOT_FOUND unless @{$keyhash->{isbn}} || @{$keyhash->{issn}} || @{$keyhash->{upc}};
 
     try {
@@ -249,6 +256,11 @@ sub get_rec_keys {
                         {tag => '024'},
                         {subfield => 'a'},
                         {ind1 => 1}
+                    ]
+                },  {
+                    '-and' => [
+                        {tag => '035'},
+                        {subfield => 'a'}
                     ]
                 }
             ]

@@ -256,26 +256,30 @@ sub proxy_json {
 # returns the HTTP response object from the URL fetch
 sub fetch_response {
     my( $self, $key ) = @_;
+    foreach my $key_type (keys %{$key}) {
+        next unless $key_type eq 'isbn' || $key_type eq 'oclc' ||  $key_type eq 'lccn';
+        foreach my $key_data (@{$key->{$key_type}}){
+            my $key_url = "$key_type:$key_data";
+                my $url = $read_api . $key_url;
+                my $response = $AC->get_url($url)->content();
 
-    # TODO: OpenLibrary can also accept lccn, oclc, olid...
-    # Hardcoded to only accept ISBNs for now.
-    $key = "isbn:$key";
+                $logger->info("$key_url: response was $response");
+                next unless $response;
+                my $book_results = OpenSRF::Utils::JSON->JSON2perl($response);
+                my $record = $book_results->{$key_url};
 
-    my $url = $read_api . $key;
-    my $response = $AC->get_url($url)->content();
+                # We didn't find a matching book; short-circuit our response
+                if (!$record) {
+                    $logger->info("$key: no record found");
+                    next;
+                }
 
-    $logger->debug("$key: response was $response");
-
-    my $book_results = OpenSRF::Utils::JSON->JSON2perl($response);
-    my $record = $book_results->{$key};
-
-    # We didn't find a matching book; short-circuit our response
-    if (!$record) {
-        $logger->debug("$key: no found record");
-        return 0;
+                return $record;
+        }
     }
 
-    return $record;
+    $logger->info("no jacket found for record");
+    return 0;
 }
 
 sub fetch_data_response {
@@ -373,6 +377,10 @@ sub fetch_cover_response {
 
     # Return a blank image
     return $AC->get_url($blank_img);
+}
+
+sub expects_keyhash {
+    return 1;
 }
 
 1;
