@@ -15426,6 +15426,35 @@ SELECT  usr,
              <field reporter:label="Transaction Closed?" name="xact_closed" sr:suggest_filter="true" reporter:datatype="bool"/>
         </fields>
     </class>
+    
+	<class id="ahrrr" controller="open-ils.cstore" oils_obj:fieldmapper="action::hold_request_reset_reason" oils_persist:tablename="action.hold_request_reset_reason" reporter:label="Hold Request Reset Reason" oils_persist:field_safe="true">
+		<fields oils_persist:primary="id" oils_persist:sequence="action.hold_request_reset_reason_id_seq">
+			<field name="id" reporter:selector="name" reporter:datatype="id" reporter:label="ID"/>
+			<field name="name"  reporter:datatype="text" oils_persist:i18n="true" reporter:label="Name"/>
+            <field name="manual" reporter:datatype="bool" reporter:label="Manual"/>
+		</fields>
+	</class>
+
+	<class id="ahrrre" controller="open-ils.cstore" oils_obj:fieldmapper="action::hold_request_reset_reason_entry" oils_persist:tablename="action.hold_request_reset_reason_entry" reporter:label="Hold Request Reset Reason Entry" oils_persist:field_safe="true">
+		<fields oils_persist:primary="id" oils_persist:sequence="action.hold_request_reset_reason_entry_id_seq">
+			<field name="id" reporter:datatype="id" reporter:label="ID"/>
+            <field name="hold" reporter:label="ID" reporter:datatype="link"/>
+			<field name="reset_reason" reporter:label="ID" reporter:datatype="link"/>
+            <field name="reset_time" reporter:datatype="timestamp" reporter:label="Reset Date/Time"/>
+			<field name="note" reporter:datatype="text" oils_persist:i18n="true" reporter:label="Note"/>
+            <field name="requestor" reporter:label="Resetting User" reporter:datatype="link"/>
+            <field name="requestor_workstation" reporter:label="Resetting User Workstation" reporter:datatype="link"/>
+            <field name="previous_copy" reporter:label="Previous Copy" reporter:datatype="link"/>
+		</fields>
+		<links>
+            <link field="hold" reltype="has_a" key="id" map="" class="ahr"/>        
+            <link field="reset_reason" reltype="has_a" key="id" map="" class="ahrrr"/>        
+            <link field="requestor" reltype="might_have" key="id" map="" class="au"/>    
+            <link field="requestor_workstation" reltype="might_have" key="id" map="" class="aws"/>            
+            <link field="previous_copy" reltype="might_have" key="id" map="" class="acp"/>        
+        </links>
+	</class>
+
 
 	<!-- ********************************************************************************************************************* -->
 </IDL>

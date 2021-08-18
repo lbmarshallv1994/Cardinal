@@ -4,6 +4,7 @@ use warnings;
 use OpenILS::Application;
 use base qw/OpenILS::Application/;
 use OpenILS::Utils::HoldTargeter;
+use OpenILS::Const qw/:const/;
 use OpenSRF::Utils::Logger qw(:logger);
 
 __PACKAGE__->register_method(
@@ -80,12 +81,23 @@ sub hold_targeter {
     my $total = scalar(@hold_ids);
 
     $logger->info("targeter processing $total holds");
-
+    my $hold_ses = create OpenSRF::AppSession("open-ils.circ");
+    
     for my $hold_id (@hold_ids) {
         $count++;
 
         my $single = 
             OpenILS::Utils::HoldTargeter::Single->new(parent => $targeter);
+
+        # If targeter is issued without a hold
+        # it will retarget all of the holds that need it
+        # so we shoot off a RRE for all them.      		
+		$hold_ses->request(
+        "open-ils.circ.hold_reset_reason_entry.create",
+		$single->editor()->authtoken,
+        $hold_id,
+        OILS_HOLD_TIMED_OUT) 
+        unless defined $args->{hold};
 
         # Don't let an explosion on a single hold stop processing
         eval { $single->target($hold_id) };
@@ -105,9 +117,10 @@ sub hold_targeter {
             $client->respond($res);
 
             $logger->info("targeted $count of $total holds");
-        }
+        }        
     }
-
+    $hold_ses->disconnect;
+    
     return undef;
 }
 
