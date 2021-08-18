@@ -780,13 +780,12 @@ sub uncancel_hold {
     $hold->clear_prev_check_time;
     $hold->clear_shelf_expire_time;
     $hold->clear_current_shelf_lib;
-
+    create_reset_hold_note($e,$hold,"Hold Reset due to Uncancelation","Hold was reset due to Uncancelation.");
     $e->update_action_hold_request($hold) or return $e->die_event;
     $e->commit;
-
+        
     $U->simplereq('open-ils.hold-targeter',
         'open-ils.hold-targeter.target', {hold => $hold_id});
-
     return 1;
 }
 
@@ -862,6 +861,7 @@ sub cancel_hold {
     $hold->cancel_time('now');
     $hold->cancel_cause($cause);
     $hold->cancel_note($note);
+    create_reset_hold_note($e,$hold,"Hold Reset due to Cancelation","Hold Reset due to Cancelation.");
     $e->update_action_hold_request($hold)
         or return $e->die_event;
 
@@ -962,6 +962,7 @@ sub update_hold_impl {
     my($self, $e, $hold, $values) = @_;
     my $hold_status;
     my $need_retarget = 0;
+    my $note_body = "";
 
     unless($hold) {
         $hold = $e->retrieve_action_hold_request($values->{id})
@@ -973,9 +974,11 @@ sub update_hold_impl {
                 if (defined $values->{$k} && defined $hold->$k() && $values->{$k} ne $hold->$k()) {
                     # Value changed? RETARGET!
                     $need_retarget = 1;
+                    $note_body .= "$k value changed."
                 } elsif (defined $hold->$k() != defined $values->{$k}) {
                     # Value being set or cleared? RETARGET!
                     $need_retarget = 1;
+                    $note_body .= "$k value cleared."
                 }
             }
             if (defined $values->{$k}) {
@@ -1078,6 +1081,8 @@ sub update_hold_impl {
 
     if($U->is_true($hold->frozen)) {
         $logger->info("clearing current_copy and check_time for frozen hold ".$hold->id);
+        $note_body .= "Hold was Frozen.";
+        $note_body .= " Previous target was copy ID ".$hold->current_copy."." if defined($hold->current_copy);
         $hold->clear_current_copy;
         $hold->clear_prev_check_time;
         # Clear expire_time to prevent frozen holds from expiring.
@@ -1096,9 +1101,11 @@ sub update_hold_impl {
     if(!$U->is_true($hold->frozen) && $U->is_true($orig_hold->frozen)) {
         $logger->info("Reset expire_time on activated hold ".$hold->id);
         $hold->expire_time(calculate_expire_time($hold->request_lib));
+        $note_body .= "Hold was Unfrozen.";
     }
 
     $e->update_action_hold_request($hold) or return $e->die_event;
+    create_reset_hold_note($e,$hold,"Hold Reset due to Update",$note_body) unless $note_body eq "";
     $e->commit;
 
     if(!$U->is_true($hold->frozen) && $U->is_true($orig_hold->frozen)) {
@@ -1114,7 +1121,7 @@ sub update_hold_impl {
         $U->simplereq('open-ils.hold-targeter', 
             'open-ils.hold-targeter.target', {hold => $hold->id});
     }
-
+    
     return $hold->id;
 }
 
@@ -1200,6 +1207,7 @@ sub update_hold_if_frozen {
     } else {
         if($U->is_true($orig_hold->frozen)) {
             $logger->info("Running targeter on activated hold ".$hold->id);
+            create_reset_hold_note($e,$hold,"Hold Reset by Unfreezing","Running targeter on activated hold");
             $U->simplereq('open-ils.hold-targeter', 
                 'open-ils.hold-targeter.target', {hold => $hold->id});
         }
@@ -1959,6 +1967,23 @@ sub reset_hold {
     return 1;
 }
 
+sub create_reset_hold_note
+{
+    my($e, $hold, $title, $note_body) = @_;
+    my $ts = DateTime->now;
+    my $note = Fieldmapper::action::hold_request_note->new;  
+    my $last_copy = $hold->current_copy || 0;
+    $title.=" ".$ts->mdy." ".$ts->hms;
+    $note_body .= " It was previously targeting copy ID $last_copy." unless $last_copy == 0;
+    $note->hold($hold);
+    $note->staff(1);
+    $note->pub(0);
+    $note->title($title);
+    $note->body($note_body);
+    $e->create_action_hold_request_note($note) or return $e->die_event;
+    return 1;
+}
+
 
 __PACKAGE__->register_method(
     method   => 'reset_hold_batch',
@@ -1989,11 +2014,11 @@ sub _reset_hold {
     my ($self, $reqr, $hold) = @_;
 
     my $e = new_editor(xact =>1, requestor => $reqr);
-
-    $logger->info("reseting hold ".$hold->id);
-
     my $hid = $hold->id;
-
+    $logger->info("reseting hold ".$hid." requestor was ".$reqr->usrname." (ID ".$reqr->id.")");
+    
+    my $note_body = "Hold was reset by ".$reqr->usrname." (ID ".$reqr->id.").";
+    
     if( $hold->capture_time and $hold->current_copy ) {
 
         my $copy = $e->retrieve_asset_copy($hold->current_copy)
@@ -2001,6 +2026,7 @@ sub _reset_hold {
 
         if( $copy->status == OILS_COPY_STATUS_ON_HOLDS_SHELF ) {
             $logger->info("setting copy to status 'reshelving' on hold retarget");
+            $note_body.=" set copy to status 'reshelving'.";
             $copy->status(OILS_COPY_STATUS_RESHELVING);
             $copy->editor($e->requestor->id);
             $copy->edit_date('now');
@@ -2017,6 +2043,7 @@ sub _reset_hold {
                     $logger->info("Aborting transit [$transid] on hold [$hid] reset...");
                     my $evt = OpenILS::Application::Circ::Transit::__abort_transit($e, $trans, $copy, 1, 1);
                     $logger->info("Transit abort completed with result $evt");
+                    $note_body.=" Transit abort completed with result $evt.";
                     unless ("$evt" eq 1) {
                         $e->rollback;
                         return $evt;
@@ -2026,6 +2053,7 @@ sub _reset_hold {
         }
     }
 
+    create_reset_hold_note($e,$hold,"Hold Reset by Staff",$note_body);
     $hold->clear_capture_time;
     $hold->clear_current_copy;
     $hold->clear_shelf_time;
@@ -2033,8 +2061,9 @@ sub _reset_hold {
     $hold->clear_current_shelf_lib;
 
     $e->update_action_hold_request($hold) or return $e->die_event;
+   
     $e->commit;
-
+    
     $U->simplereq('open-ils.hold-targeter', 
         'open-ils.hold-targeter.target', {hold => $hold->id});
 
