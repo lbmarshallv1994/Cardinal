@@ -1057,11 +1057,13 @@ sub cancel_hold {
 
     my $e = new_editor(authtoken=>$auth, xact=>1);
     return $e->die_event unless $e->checkauth;
-
+    
+    my $req = $e->requestor->id;
+    
     my $hold = $e->retrieve_action_hold_request($holdid)
         or return $e->die_event;
 
-    if( $e->requestor->id ne $hold->usr ) {
+    if( $req ne $hold->usr ) {
         return $e->die_event unless $e->allowed('CANCEL_HOLDS');
     }
 
@@ -1105,7 +1107,10 @@ sub cancel_hold {
     $hold->cancel_time('now');
     $hold->cancel_cause($cause);
     $hold->cancel_note($note);
-    create_reset_hold_note($e,$hold,"Hold Reset due to Cancelation","Hold Reset due to Cancelation.");
+    my $note_body = "Hold Cancelation.";
+    $note_body .= " Cancel Cause ID - $cause;";
+    $note_body .= " Cancel Note - $note" unless $note eq "";
+    create_reset_hold_note($e,$hold,"Hold Reset due to Cancelation",$note_body);
     $e->update_action_hold_request($hold)
         or return $e->die_event;
 
@@ -2217,13 +2222,20 @@ sub create_reset_hold_note
     my $ts = DateTime->now;
     my $note = Fieldmapper::action::hold_request_note->new;  
     my $last_copy = $hold->current_copy || 0;
+    my $reqr = $e->requestor;
     $title.=" ".$ts->mdy." ".$ts->hms;
-    $note_body .= " It was previously targeting copy ID $last_copy." unless $last_copy == 0;
+    my $json = "{";
+    $json .= "\"Reset Reason\" : \"$note_body\",";
+    $json .= "\"Timestamp\" : \"".$ts->mdy." ".$ts->hms."\",";
+    $json .= "\"Previous Copy ID\" : \"$last_copy\"," unless $last_copy == 0;
+    $json .= "\"Requestor ID\" : \"".$reqr->id."\",";
+    $json .= "\"Requestor Usrname\" : \"".$reqr->usrname."\"";
+    $json .= "}";
     $note->hold($hold);
     $note->staff(1);
     $note->pub(0);
     $note->title($title);
-    $note->body($note_body);
+    $note->body($json);
     $e->create_action_hold_request_note($note) or return $e->die_event;
     return 1;
 }
@@ -2261,7 +2273,7 @@ sub _reset_hold {
     my $hid = $hold->id;
     $logger->info("reseting hold ".$hid." requestor was ".$reqr->usrname." (ID ".$reqr->id.")");
     
-    my $note_body = "Hold was reset by ".$reqr->usrname." (ID ".$reqr->id.").";
+    my $note_body = "Manually retargetted.";
     
     if( $hold->capture_time and $hold->current_copy ) {
 
