@@ -959,7 +959,13 @@ angular.module('egCoreMod')
         }
 
         angular.forEach(cuser.settings, function(setting) {
-            service.user_settings[setting.setting()] = Boolean(setting.value());
+            var val = setting.value();
+            if(val === 'true'){
+                service.user_settings[setting.setting()] = Boolean(setting.value());
+            }
+            else{
+                service.user_settings[setting.setting()] = setting.value();
+            }
         });
     }
 
@@ -1401,12 +1407,12 @@ function($scope , $routeParams , $q , $uibModal , $window , egCore ,
             $scope.patron._pickup_lib = egCore.org.get(
                 $scope.user_settings['opac.default_pickup_location']);
         }
-
-        extract_hold_notify();
-
+      
         if ($scope.patron.isnew)
             set_new_patron_defaults(prs);
 
+        extract_hold_notify();  
+        
         $scope.handle_home_org_changed();
 
         if ($scope.org_settings['ui.patron.edit.default_suggested'])
