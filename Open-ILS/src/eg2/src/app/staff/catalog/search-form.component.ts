@@ -317,16 +317,9 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
             }
             
 	    this.ccvmMap[cType].forEach(ccvm => {
-              if(ccvm.is_simple()){
+              if(ccvm.is_simple() === 't'){
                   this.ccvmSimpleMap[cType].push(ccvm);
               }});
-        });
-
-        Object.keys(this.ccvmSimpleMap).forEach(cType => {
-            this.ccvmSimpleMap[cType] =
-                this.ccvmSimpleMap[cType].sort((a, b) => {
-                    return a.value() < b.value() ? -1 : 1;
-                });
         });
     }
 }
