@@ -30,6 +30,7 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
 
     context: CatalogSearchContext;
     ccvmMap: {[ccvm: string]: IdlObject[]} = {};
+    ccvmSimpleMap: {[ccvm: string]: IdlObject[]} = {};
     cmfMap: {[cmf: string]: IdlObject} = {};
     showSearchFilters = false;
     copyLocations: IdlObject[];
@@ -54,13 +55,16 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-        this.ccvmMap = this.cat.ccvmMap;
+        this.ccvmMap = this.cat.ccvmMap;       
         this.cmfMap = this.cat.cmfMap;
         this.context = this.staffCat.searchContext;
 
         // Start with advanced search options open
         // if any filters are active.
         this.showSearchFilters = this.filtersActive();
+        
+        //create our simple sort list
+        this.CompileSimpleSelector(this.ccvmMap);
 
         // Some search scenarios, like rendering a search template,
         // will not be searchable and thus not resovle to a specific
@@ -302,6 +306,26 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
     }
     showExcludeElectronic(): boolean {
         return this.staffCat.showExcludeElectronic;
+    }
+
+    //filters out CCVMs based on their is_simple attribute
+    CompileSimpleSelector(ccvms: IdlObject[]): void {     
+        ccvms.forEach(ccvm => {
+            if (!this.ccvmMap[ccvm.ctype()]) {
+                //creates simple sort list even if there might be no entries
+                this.ccvmMap[ccvm.ctype()] = [];
+            }
+            if(ccvm.is_simple()){
+                this.ccvmSimpleMap[ccvm.ctype()].push(ccvm);
+            }
+        });
+
+        Object.keys(this.ccvmSimpleMap).forEach(cType => {
+            this.ccvmSimpleMap[cType] =
+                this.ccvmSimpleMap[cType].sort((a, b) => {
+                    return a.value() < b.value() ? -1 : 1;
+                });
+        });
     }
 }
 
