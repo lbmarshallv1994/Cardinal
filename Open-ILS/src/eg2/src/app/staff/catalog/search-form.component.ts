@@ -64,7 +64,7 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
         this.showSearchFilters = this.filtersActive();
         
         //create our simple sort list
-        this.CompileSimpleSelector(this.ccvmMap);
+        this.CompileSimpleSelector();
 
         // Some search scenarios, like rendering a search template,
         // will not be searchable and thus not resovle to a specific
@@ -309,15 +309,17 @@ export class SearchFormComponent implements OnInit, AfterViewInit {
     }
 
     //filters out CCVMs based on their is_simple attribute
-    CompileSimpleSelector(ccvms: IdlObject[]): void {     
-        ccvms.forEach(ccvm => {
-            if (!this.ccvmMap[ccvm.ctype()]) {
+    CompileSimpleSelector(): void {     
+        Object.keys(this.ccvmMap).forEach(cType => {
+            if (!this.ccvmSimpleMap[cType]) {
                 //creates simple sort list even if there might be no entries
-                this.ccvmMap[ccvm.ctype()] = [];
+                this.ccvmSimpleMap[cType] = [];
             }
-            if(ccvm.is_simple()){
-                this.ccvmSimpleMap[ccvm.ctype()].push(ccvm);
-            }
+            
+	    this.ccvmMap[cType].forEach(ccvm => {
+              if(ccvm.is_simple()){
+                  this.ccvmSimpleMap[cType].push(ccvm);
+              }});
         });
 
         Object.keys(this.ccvmSimpleMap).forEach(cType => {

@@ -4,9 +4,11 @@
     <ng-container *ngIf="ccv.opac_visible() === 'f'" i18n>(Hidden)</ng-container>
   </option>
   <option *ngIf="simple.length && list.length" disabled='true'>-----</option>
-  <option *ngFor="let ccv of list" *ngIf="!ccv.is_simple()" value="{{ccv.code()}}">
-    {{ccv.search_label() || ccv.value()}}
-    <ng-container *ngIf="ccv.opac_visible() === 'f'" i18n>(Hidden)</ng-container>
+  <option *ngFor="let ccv of list"  value="{{ccv.code()}}">
+    <ng-container *ngIf="!ccv.is_simple()">
+      {{ccv.search_label() || ccv.value()}}
+      <ng-container *ngIf="ccv.opac_visible() === 'f'" i18n>(Hidden)</ng-container>
+    </ng-container>
   </option>
 </ng-template>
 
@@ -178,7 +180,7 @@
                 [(ngModel)]="context.termSearch.ccvmFilters.item_form">
                 <option value='' i18n>All Item Forms</option>
                 <ng-container
-                  *ngTemplateOutlet="ccvmOption;context:{list:ccvmMap.item_form, simple:ccvmSimpleMap.item_type}">
+                  *ngTemplateOutlet="ccvmOption;context:{list:ccvmMap.item_form, simple:ccvmSimpleMap.item_form}">
                 </ng-container> 
               </select>
             </div>
@@ -196,7 +198,7 @@
                 [(ngModel)]="context.termSearch.ccvmFilters.audience" multiple="true">
                 <option value='' i18n>All Audiences</option>
                 <ng-container
-                  *ngTemplateOutlet="ccvmOption;context:{list:ccvmMap.audience, , simple:ccvmSimpleMap.audience}">
+                  *ngTemplateOutlet="ccvmOption;context:{list:ccvmMap.audience, simple:ccvmSimpleMap.audience}">
                 </ng-container> 
               </select>
             </div>
