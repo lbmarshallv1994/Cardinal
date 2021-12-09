@@ -14,6 +14,24 @@
         <div id="acct_sum_block" class="container">
             <h3>[% l('My Account Summary') %]</h3>
                 <div class="row">
+                    <br>
+                    [% IF ctx.password_age && ctx.password_age_reminder && ctx.disable_password_change != 'true' %]
+                    [% need_password_change = ctx.password_age == -1 || ctx.password_age >= ctx.password_age_reminder %]
+                    <div class="col-12">
+                            [% IF ctx.password_age == -1 %]
+                            You have never changed your password. Please consider updating your password.
+                            [% ELSIF ctx.password_age >= (ctx.password_age_reminder - 7) %]
+                            Your password is <b>[% ctx.password_age %]</b> days old[%- IF !need_password_change %], you will be asked to change it soon.[%- ELSE %]. We recommend passwords be updated every <b>[% ctx.password_age_reminder %]</b> days. Please consider updating your password.[% END %]
+                            [% END %]
+                            [% IF need_password_change %]
+                            <br>
+                            <a class="btn btn-sm btn-action" href='update_password'
+                            title="[% l('Change Password') %]"><i class="fas fa-user-cog"></i> [% l("Change Password") %]</a>
+                            <br>
+                            [% END %]
+                    </div>
+                    <br>
+                    [% END %]  
                     <div class="col-12">
                      <span [% IF ctx.expired_card %]class="danger"[% END %]>
                         [% l("Account Expiration Date - ") %]
@@ -29,7 +47,7 @@
                         </span>
                         [% END %]
                     </div>
-                    <br>
+                    <br>               
                     <div class="col-12">
                      <a href="[% mkurl(ctx.opac_root _ '/myopac/circs') %]"
                             title="[% l('View My Checked Out Items') %]">

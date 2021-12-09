@@ -157,10 +157,26 @@ function($routeProvider , $locationProvider) {
     function($scope, $window,egCore) {
 		
     $scope.focus_search = true;
-	
+	$scope.can_self_update = false;
+    
 	egCore.strings.setPageTitle(
         egCore.strings['PAGE_TITLE_SPLASH']);
-
+    egCore.org.settingsFromServer(['global.password_reset_age','global.password_regex']).then(function(settings) {
+            $scope.password_reset_age = parseInt(settings['global.password_reset_age']);
+        });
+    egCore.net.request(
+                'open-ils.actor', 
+                'open-ils.actor.get_password_age',
+                egCore.auth.token(),
+                egCore.auth.user().id()
+            ).then(function(age) {
+                $scope.password_age = parseInt(age);
+            });
+    egCore.perm.hasPermHere('EDIT_SELF_IN_CLIENT')
+    .then(function(bool){
+        $scope.can_self_update = bool;
+        $scope.self_update_link = './circ/patron/' + egCore.auth.user().id() + '/edit'
+        });
     $scope.catalog_search = function($event) {
         $scope.focus_search = true;
         if (!$scope.cat_query) return;

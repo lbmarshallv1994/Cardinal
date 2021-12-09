@@ -525,6 +525,7 @@ sub update_patron {
     my $old_patron;
     my $barred_hook = '';
     my $renew_hook = '';
+    my $password_hook = '';
 
     if($patron->isnew()) {
         ( $new_patron, $evt ) = _add_patron($e, _clone_patron($patron));
@@ -555,6 +556,8 @@ sub update_patron {
             modify_migrated_user_password($e, $patron->id, $patron->passwd);
             $new_patron->passwd(''); # subsequent update will set
                                      # actor.usr.passwd to MD5('')
+            #$U->create_events_for_hook('au.passwd_changed', $db_user, $e->requestor->ws_ou);
+            $password_hook = 'au.passwd_changed';
         }
     }
 
@@ -603,6 +606,9 @@ sub update_patron {
 
         $tses->request('open-ils.trigger.event.autocreate', $barred_hook,
             $new_patron, $new_patron->home_ou) if $barred_hook;
+
+        $tses->request('open-ils.trigger.event.autocreate', $password_hook,
+            $new_patron, $new_patron->home_ou) if $password_hook;
     }
 
     $e->xact_begin; # $e->rollback is called in new_flesh_user
@@ -1650,9 +1656,9 @@ sub update_passwd {
         # NOTE: with access to the plain text password we could crypt
         # the password without the extra MD5 pre-hashing.  Other changes
         # would be required.  Noting here for future reference.
-        modify_migrated_user_password($e, $db_user->id, $new_val);
+        modify_migrated_user_password($e, $db_user->id, $new_val);     
         $db_user->passwd('');
-
+        $U->create_events_for_hook('au.passwd_changed', $db_user, $e->requestor->ws_ou);
     } else {
 
         # if we don't clear the password, the user will be updated with
@@ -4427,7 +4433,8 @@ sub commit_password_reset {
 
     # All is well; update the password
     modify_migrated_user_password($e, $user->id, $password);
-
+    $U->create_events_for_hook('au.passwd_changed', $user, $user->home_ou);
+    
     # And flag that this password reset request has been honoured
     $aupr->[0]->has_been_reset('t');
     $e->update_actor_usr_password_reset($aupr->[0]);
@@ -4987,6 +4994,49 @@ sub get_barcodes {
         return $db_result;
     }
 }
+
+__PACKAGE__->register_method(
+    method   => "get_password_last_edit_age",
+    api_name => "open-ils.actor.get_password_age"
+);
+
+sub get_password_last_edit_age {
+    my( $self, $client, $auth, $patron_id ) = @_;
+    my $e = new_editor(authtoken => $auth);
+    return $e->event unless $e->checkauth;
+    my $patron = $e->retrieve_actor_user($patron_id);
+    
+    #return unless the requestor is either the patron in question, or can view users at that patron's home ou
+    unless($patron && ($patron_id == $e->requestor->id || $e->allowed('VIEW_USER', $patron->home_ou))) {
+         return $e->event;
+    }
+    
+    #get the password dates from the virtual table
+    my $aupsds = $e->json_query({
+        select => {aupsd => ['create_date','edit_date']},
+        from => 'aupsd',
+        where => {
+            usr => $patron_id
+        }
+    });
+
+    if(defined $aupsds){
+        my $pwd = $aupsds->[0];
+        #convert the dates with the DateTime module
+        if($pwd){
+            my $edit_datetime = DateTime::Format::ISO8601->parse_datetime(clean_ISO8601($pwd->{'edit_date'}));
+            #get time in days since last password update
+            #my $now = DateTime->today()->iso8601();
+            my $now = DateTime->now();
+            
+            my $duration = $now->subtract_datetime_absolute($edit_datetime)->delta_seconds / (24*60*60);
+            return int($duration);            
+        }
+    }
+    #no password entry, return -1 days
+    return -1;    
+}
+
 __PACKAGE__->register_method(
     method   => 'address_alert_test',
     api_name => 'open-ils.actor.address_alert.test',
