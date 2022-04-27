@@ -166,6 +166,35 @@ sub PatronNotBarred {
     return !PatronBarred(@_);
 }
 
+# returns invalid if the patron's password was updated in the time
+# between now and the parent event being created
+sub PatronOldPassword {
+    my ($self, $env) = @_;
+    my $event = $env->{event};
+    # get add time of the event 
+    my $add_time = DateTime::Format::ISO8601->new->parse_datetime(clean_ISO8601($event->add_time));
+    # get the last time the user changed their password
+    my $aupsds = new_editor()->json_query({
+        select => {aupsd => ['create_date','edit_date']},
+        from => 'aupsd',
+        where => {
+            usr => $env->{target}->id
+        }
+    });
+
+    if(defined $aupsds){
+        my $pwd = $aupsds->[0];
+        #convert the dates with the DateTime module
+        if($pwd){
+            my $edit_datetime = DateTime::Format::ISO8601->parse_datetime(clean_ISO8601($pwd->{'edit_date'}));
+            # if the change time is after the add time, return invalid
+            return $edit_datetime <= $add_time;         
+        }
+    }    
+    
+    return 1;
+}
+
 # core type "circ".
 # Being "In Collections" means having the PATRON_IN_COLLECTIONS penalty 
 # applied to the user at or above the circ_lib of the target circ.

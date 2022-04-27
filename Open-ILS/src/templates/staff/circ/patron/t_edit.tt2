@@ -222,7 +222,7 @@ within the "form" by name for validation.
       [% l('Generate Password') %]</button>
   </div>
 </div>
-<div class="row reg-field-row">
+<div class="row reg-field-row" ng-show="!patron.isnew">
     <div class="col-md-3">
     </div>
     <div class="col-md-9">
