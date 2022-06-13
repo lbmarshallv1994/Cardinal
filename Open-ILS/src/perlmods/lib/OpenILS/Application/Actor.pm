@@ -4997,11 +4997,20 @@ sub get_barcodes {
 
 __PACKAGE__->register_method(
     method   => "get_password_last_edit_age",
-    api_name => "open-ils.actor.get_password_age"
+    api_name => "open-ils.actor.get_password_age",
+    signature => {
+        desc => "Finds the number of days since a user's password was last updated.",
+        params => [
+            {desc => 'Authentication token',  type => 'string'},
+            {desc => 'Patron ID',             type => 'number'},
+            {desc => 'Reference Time',        type => 'string'},
+        ],
+        return => {desc => 'Number of days since password update'}
+    }
 );
 
 sub get_password_last_edit_age {
-    my( $self, $client, $auth, $patron_id ) = @_;
+    my( $self, $client, $auth, $patron_id, $ref_time ) = @_;
     my $e = new_editor(authtoken => $auth);
     return $e->event unless $e->checkauth;
     my $patron = $e->retrieve_actor_user($patron_id);
@@ -5021,13 +5030,12 @@ sub get_password_last_edit_age {
     });
 
     if(defined $aupsds){
-        my $pwd = $aupsds->[0];
-        #convert the dates with the DateTime module
+        my $pwd = $aupsds->[0];        
         if($pwd){
+            #convert the dates with the DateTime module
             my $edit_datetime = DateTime::Format::ISO8601->parse_datetime(clean_ISO8601($pwd->{'edit_date'}));
-            #get time in days since last password update
-            #my $now = DateTime->today()->iso8601();
-            my $now = DateTime->now();
+            #get the time we are subtracting from, use ref_time if it's defined or the current datetime otherwise
+            my $now = defined($ref_time) ?  DateTime::Format::ISO8601->parse_datetime(clean_ISO8601($ref_time)) : DateTime->now();
             
             my $duration = $now->subtract_datetime_absolute($edit_datetime)->delta_seconds / (24*60*60);
             return int($duration);            
