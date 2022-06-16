@@ -226,8 +226,8 @@ within the "form" by name for validation.
     <div class="col-md-3">
     </div>
     <div class="col-md-9">
-        <div ng-show="password_age !== undefined && password_age !== '' && password_age !== '-1'"><i>Password last changed <b>{{password_age}}</b> day(s) ago</i></div>
-        <div ng-show="password_age === '-1'"><i>User has never changed their password</i></div>
+        <div ng-show="password_age !== undefined && password_age !== '' && password_age !== '-1'"><i>[% l('Password last changed <b>[_1]</b> day(s) ago', '{{password_age}}') %]</i></div>
+        <div ng-show="password_age === '-1'"><i>[% l('User has never changed their password') %]</i></div>
     </div>
 </div>
 <div class="row reg-field-row">

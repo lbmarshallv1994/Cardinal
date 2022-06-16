@@ -8,7 +8,7 @@ INSERT INTO config.org_unit_setting_type
     (name, grp, label, description, datatype)
     VALUES (
         'global.password_reset_age',
-        'global',
+        'glob',
         oils_i18n_gettext(
             'global.password_reset_age',
             'Password Reset Age',
