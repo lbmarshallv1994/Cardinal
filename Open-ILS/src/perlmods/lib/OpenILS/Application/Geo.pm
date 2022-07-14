@@ -23,6 +23,7 @@ my $have_geocoder_free = eval {
 };
 use Geo::Coder::OSM;
 use Geo::Coder::Google;
+use Geo::Coder::Bing;
 
 use Math::Trig qw(great_circle_distance deg2rad);
 use Digest::SHA qw(sha256_base64);
@@ -131,6 +132,35 @@ __PACKAGE__->register_method(
     }
 );
 
+# creates a Geo::Coder object
+sub _create_geocoder { 
+    my $service = shift;
+    my $service_id = $service->id;
+    my $geo_coder;
+    eval {
+        if ($service->service_code eq 'Free') {
+            if ($have_geocoder_free) {
+                $logger->debug("Using Geo::Coder::Free (service id $service_id)");
+                $geo_coder = Geo::Coder::Free->new();
+            } else {
+                $logger->error("geosort: Geo::Coder::Free not installed but referenced.");
+            }
+        } elsif ($service->service_code eq 'Google') {
+            $logger->debug("Using Geo::Coder::Google (service id $service_id)");
+            $geo_coder =  Geo::Coder::Google->new(key => $service->api_key);
+        } elsif ($service->service_code eq 'Bing') {
+            $logger->debug("Using Geo::Coder::Bing (service id $service_id)");
+            $geo_coder =  Geo::Coder::Bing->new(key => $service->api_key);
+        } else {
+            $logger->debug("Using Geo::Coder::OSM (service id $service_id)");
+            $geo_coder =  Geo::Coder::OSM->new();
+        }
+    };
+    if ($@ || !$geo_coder) {
+        $logger->error("geosort: problem creating Geo::Coder instance : $@");
+    }
+    return $geo_coder;
+}
 
 sub retrieve_coordinates { # invoke 3rd party API for latitude/longitude lookup
     my ($self, $conn, $org, $address) = @_;
@@ -165,26 +195,8 @@ sub retrieve_coordinates { # invoke 3rd party API for latitude/longitude lookup
     my $coords = OpenSRF::Utils::JSON->JSON2perl($cache->get_cache($cache_key));
     return $coords if $coords;
 
-    my $geo_coder;
-    eval {
-        if ($service->service_code eq 'Free') {
-            if ($have_geocoder_free) {
-                $logger->debug("Using Geo::Coder::Free (service id $service_id)");
-                $geo_coder = Geo::Coder::Free->new();
-            } else {
-                $logger->error("geosort: Geo::Coder::Free not installed but referenced.");
-                return OpenILS::Event->new('GEOCODING_LOCATION_NOT_FOUND');
-            }
-        } elsif ($service->service_code eq 'Google') {
-            $logger->debug("Using Geo::Coder::Google (service id $service_id)");
-            $geo_coder = Geo::Coder::Google->new(key => $service->api_key);
-        } else {
-            $logger->debug("Using Geo::Coder::OSM (service id $service_id)");
-            $geo_coder = Geo::Coder::OSM->new();
-        }
-    };
-    if ($@ || !$geo_coder) {
-        $logger->error("geosort: problem creating Geo::Coder instance : $@");
+    my $geo_coder = _create_geocoder($service);
+    if (!$geo_coder) {
         return OpenILS::Event->new('GEOCODING_LOCATION_NOT_FOUND');
     }
     my $location;
@@ -204,6 +216,9 @@ sub retrieve_coordinates { # invoke 3rd party API for latitude/longitude lookup
     } elsif ($service->service_code eq 'Google') {
        $latitude = $location->{'geometry'}->{'location'}->{'lat'};
        $longitude = $location->{'geometry'}->{'location'}->{'lng'};
+    } elsif ($service->service_code eq 'Bing') {
+       $latitude = $location->{point}{coordinates}[0];
+       $longitude = $location->{point}{coordinates}[1];
     } else {
        $latitude = $location->{lat};
        $longitude = $location->{lon};

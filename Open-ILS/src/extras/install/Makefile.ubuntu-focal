@@ -93,6 +93,7 @@ export DEB_APACHE_DISCONF = \
 
 export CPAN_MODULES = \
 	Geo::Coder::Google \
+	Geo::Coder::Bing \
 	Business::OnlinePayment::PayPal \
 	Email::Send \
 	MARC::Charset \
