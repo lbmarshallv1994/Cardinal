@@ -41,6 +41,61 @@ sub child_init {
     $cache = OpenSRF::Utils::Cache->new('global');
 }
 
+sub calculate_driving_distance {
+    my ($self, $conn, $auth, $pointA, $pointB) = @_;
+
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Missing coordinates") unless $pointA;
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Missing coordinates") unless $pointB;
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Malformed coordinates") unless scalar(@{ $pointA }) == 2;
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Malformed coordinates") unless scalar(@{ $pointB }) == 2;
+
+    my $e = new_editor(xact => 1, authtoken=>$auth);
+    return $e->die_event unless $e->checkauth;
+    #   get the requestor's org unit
+    my $org = $e->requestor->ws_ou;
+    my $use_geo = $e->retrieve_config_global_flag('opac.use_geolocation');
+    $use_geo = ($use_geo and $U->is_true($use_geo->enabled));
+    return new OpenILS::Event("GEOCODING_NOT_ENABLED") unless ($U->is_true($use_geo));
+
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "No org ID supplied") unless $org;
+    my $service_id = $U->ou_ancestor_setting_value($org, 'opac.geographic_location_service_for_address');
+    return new OpenILS::Event("GEOCODING_NOT_ALLOWED") unless ($U->is_true($service_id));
+
+    my $service = $e->retrieve_config_geolocation_service($service_id);
+    return new OpenILS::Event("GEOCODING_NOT_ALLOWED") unless ($U->is_true($service));   
+
+    my $geo_coder = _create_geocoder($service);
+    if (!$geo_coder) {
+        return OpenILS::Event->new('GEOCODING_LOCATION_NOT_FOUND');
+    }
+    
+    if ($service->service_code eq 'Bing') {
+        my $origin_coord = join(',',@{ $pointA });
+        my $dest_coord = join(',',@{ $pointB });
+        my $uri = URI->new("https://dev.virtualearth.net/REST/v1/Routes/DistanceMatrix?origins=$origin_coord&destinations=$dest_coord&distanceUnit=km&travelMode=driving&key=".$service->api_key);
+        my $results = $geo_coder->_rest_request($uri)->{results};        
+        return $results->[0]->{travelDistance};
+    } else {
+        $logger->info($service->service_code." can not get driving distance. Reverting to as-the-crow-flies.");
+        # if geocoder can't do driving distance just get as-the-crow-flies
+       return calculate_distance($self, $conn, $pointA, $pointB);
+    }
+    return 0;
+}
+
+__PACKAGE__->register_method(
+    method   => "calculate_driving_distance",
+    api_name => "open-ils.geo.calculate_driving_distance",
+    signature => {
+        params => [
+            {type => 'string', desc => 'User\'s authorization token'},
+            {type => 'array', desc => 'An array containing latitude and longitude for point A'},
+            {type => 'array', desc => 'An array containing latitude and longitude for point B'}
+        ],
+        return => { desc => 'Driving distance between points A and B in kilometers'}
+    }
+);
+
 sub calculate_distance {
     my ($self, $conn, $pointA, $pointB) = @_;
 
