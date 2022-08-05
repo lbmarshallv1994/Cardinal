@@ -6,12 +6,16 @@ use warnings;
 use OpenSRF::AppSession;
 use OpenILS::Application;
 use base qw/OpenILS::Application/;
+use List::MoreUtils qw(natatime);
+use List::Util qw(min);
 
 use OpenSRF::Utils::SettingsClient;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
 use OpenILS::Utils::Fieldmapper;
 use OpenSRF::Utils::Cache;
 use OpenILS::Application::AppUtils;
+use Data::Dumper;
+use JSON::XS;
 my $U = "OpenILS::Application::AppUtils";
 
 use OpenSRF::Utils::Logger qw/$logger/;
@@ -120,6 +124,163 @@ __PACKAGE__->register_method(
             {type => 'array', desc => 'An array containing latitude and longitude for point B'}
         ],
         return => { desc => '"Great Circle (as the crow flies)" distance between points A and B in kilometers'}
+    }
+);
+
+sub _post_request {
+    my ($bing, $uri, $form, $json_coder) = @_;
+    my $json = $json_coder->encode($form); 
+    return unless $uri;
+    $logger->info($uri);
+    $logger->info($form);
+    my $res = $bing->{response} = $bing->ua->post($uri,'Content-Length' => 3500,'Content-Type' => 'application/json',Content => $json);
+    unless($res->is_success){
+        $logger->error("API ERROR\n");
+        return;
+    }
+
+    my @error = split /\n/, $res->decoded_content;
+    foreach(@error){
+        $logger->error($_);
+    }
+ 
+    # Change the content type of the response from 'application/json' so
+    # HTTP::Message will decode the character encoding.
+    $res->content_type('text/plain');
+ 
+    my $content = $res->decoded_content;
+    return unless $content;
+    my $data= eval { $json_coder->decode($res->decoded_content) };
+    return unless $data;
+    my @results = @{ $data->{resourceSets}[0]{resources} || [] };
+    return wantarray ? @results : $results[0];
+}
+
+sub calculate_bulk_driving_distance {
+    my ($self, $conn, $auth, $origin_array, $destination_array) = @_;
+
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Missing coordinates") unless $origin_array;
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "Missing coordinates") unless $destination_array;
+
+    my $e = new_editor(xact => 1, authtoken=>$auth);
+    return $e->die_event unless $e->checkauth;
+    #   get the requestor's org unit
+    my $org = $e->requestor->ws_ou;
+    my $use_geo = $e->retrieve_config_global_flag('opac.use_geolocation');
+    $use_geo = ($use_geo and $U->is_true($use_geo->enabled));
+    return new OpenILS::Event("GEOCODING_NOT_ENABLED") unless ($U->is_true($use_geo));
+
+    return new OpenILS::Event("BAD_PARAMS", "desc" => "No org ID supplied") unless $org;
+    my $service_id = $U->ou_ancestor_setting_value($org, 'opac.geographic_location_service_for_address');
+    return new OpenILS::Event("GEOCODING_NOT_ALLOWED") unless ($U->is_true($service_id));
+
+    my $service = $e->retrieve_config_geolocation_service($service_id);
+    return new OpenILS::Event("GEOCODING_NOT_ALLOWED") unless ($U->is_true($service));   
+
+    my $geo_coder = _create_geocoder($service);
+    if (!$geo_coder) {
+        return OpenILS::Event->new('GEOCODING_LOCATION_NOT_FOUND');
+    }
+    
+    my @results;
+    
+    if ($service->service_code eq 'Bing') {
+        my @origins;
+        my @destinations;
+        my $uri = URI->new("https://dev.virtualearth.net/REST/v1/Routes/DistanceMatrix?key=".$service->api_key);
+      
+        # get the data into the right form for our request
+        foreach(@{$origin_array}){
+            my %ocoord; 
+            $ocoord{'latitude'} = $_->[0];
+            $ocoord{'longitude'} = $_->[1];
+            push(@origins, \%ocoord);
+        }        
+        $logger->info(Dumper(\@origins));
+        
+        foreach(@{$destination_array}){
+            my %dcoord; 
+            $dcoord{'latitude'} = $_->[0];
+            $dcoord{'longitude'} = $_->[1];
+            push(@destinations, \%dcoord);
+        }
+        $logger->info(Dumper(\@destinations));
+        
+        # find out how many coords we can process per request.
+        my $budget = int(2500 / scalar(@origins));
+        $logger->debug("data being chunked into ".$budget.".\n");
+        my $it = natatime $budget, @origins;
+        my $real_index = 0;
+        my $json_coder = JSON::XS->new->convert_blessed;  
+        
+        while (my @coords = $it->())
+        {
+            my %content = (
+                origins => \@coords, 
+                destinations => \@destinations, 
+                travelMode => "driving",
+                timeUnit => "minute", 
+                distanceUnit => "km"
+            );
+            $logger->info("Hash for JSON: ".Dumper(\%content));             
+            my $rest_req = _post_request($geo_coder,$uri,\%content,$json_coder);
+            # print Dumper $rest_req;
+            #calculate the distance matrix for this chunk of origins.
+            $logger->info("results from post: ".Dumper($rest_req));
+            my @distance_matrix = eval{$rest_req->{results}};
+             if(@distance_matrix){
+                for my $ref (@distance_matrix) {
+                    for (@$ref){
+                        my %dist;
+                        $dist{origin} = $_->{originIndex} + $real_index;
+                        $dist{destination} = $_->{destinationIndex};
+                        $dist{distance} = $_->{travelDistance}; 
+                        push(@results,\%dist);
+                        }
+                }
+             
+                $logger->info("Information from server: ".Dumper(\@results));
+                $real_index += min($budget,scalar(@coords));
+                print("setting index to ".$real_index."\n");
+            }               
+        }
+        
+        return \@results;
+    } else {
+        $logger->info($service->service_code." can not get driving distance. Reverting to as-the-crow-flies.");
+        # if geocoder can't do driving distance just get as-the-crow-flies
+        my $index = 0; 
+        foreach(@{$origin_array}){
+            my $pointA = $_;
+            my $dindex = 0;
+            foreach(@{$destination_array}){
+                my $pointB = $_;
+                my $d = calculate_distance($self, $conn, $pointA, $pointB);
+                my %dist;
+                $dist{origin} = $index;
+                $dist{destination} = $dindex;
+                $dist{distance} = $d; 
+                push(@results,\%dist);
+                $dindex++;
+            }
+            $index++;
+        }
+
+        return \@results;
+    }
+    return [];
+}
+
+__PACKAGE__->register_method(
+    method   => "calculate_bulk_driving_distance",
+    api_name => "open-ils.geo.calculate_bulk_driving_distance",
+    signature => {
+        params => [
+            {type => 'string', desc => 'User\'s authorization token'},
+            {type => 'array', desc => 'An array containing latitude and longitude origin points as an array.'},
+            {type => 'array', desc => 'An array containing latitude and longitude destination points as an array.'}
+        ],
+        return => { desc => 'Driving distance between origin points and destinations in kilometers'}
     }
 );
 

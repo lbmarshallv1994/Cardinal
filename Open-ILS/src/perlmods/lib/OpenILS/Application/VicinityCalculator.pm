@@ -7,14 +7,6 @@ use OpenILS::Utils::VicinityCalculator;
 use OpenSRF::Utils::SettingsClient;
 use OpenSRF::Utils::Logger qw(:logger);
 
-sub get_api_key {
-   my $config = OpenSRF::Utils::SettingsClient->new();
-   my $key = $config->config_value(
-                apps => 'open-ils.vicinity-calculator' => app_settings => 'key'
-        );
-   return $key;
-}
-
 __PACKAGE__->register_method(
     method    => 'build_distance_matrix',
     api_name  => 'open-ils.vicinity-calculator.build-distance-matrix',
@@ -25,34 +17,12 @@ __PACKAGE__->register_method(
 );
 
 sub build_distance_matrix{
-   my ($self) = @_;
-   my $key = get_api_key();
-   if(!defined($key) || $key eq ''){
-       $logger->error("No Maps API key has been set up in opensrf xml.");  
-       return undef;
-   }
-   else{
-       my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
-       $calculator->calculate_distance_matrix();
+   my ($self, $conn, $auth) = @_;
+   my $calculator = OpenILS::Utils::VicinityCalculator->new($auth);
+   $calculator->calculate_distance_matrix();
    return 1;
-   }
 }
 
-__PACKAGE__->register_method(
-    method    => 'set_coords',
-    api_name  => 'open-ils.vicinity-calculator.set-coords',
-    signature => {
-        desc     => q/Calculate the latitude and longitude of an address/,
-    }
-);
-
-sub set_coords{
-   my ($self, $client, $addr) = @_;
-   my $key = get_api_key();
-   my $calculator = OpenILS::Utils::VicinityCalculator->new($key);
-   $logger->info("calculating address coordinates");
-   return $calculator->set_coord_for_addr($addr);    
-}
 
 __PACKAGE__->register_method(
     method    => 'get_all_hubs',
@@ -63,13 +33,8 @@ __PACKAGE__->register_method(
 );
 
 sub get_all_hubs{
-   my ($self) = @_;
+   my ($self, $conn, $auth) = @_;
    my $calculator = OpenILS::Utils::VicinityCalculator->new();
-   my $key = get_api_key();
-   if(!defined($key) || $key eq ''){
-       $logger->error("No Maps API key has been set up in opensrf xml.");  
-       return undef;
-   }
    $logger->info("retreiving org unit shipping hubs");
    return $calculator->get_all_hubs();    
 }

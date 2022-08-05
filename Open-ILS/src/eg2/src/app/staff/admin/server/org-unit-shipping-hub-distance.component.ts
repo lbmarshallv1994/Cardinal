@@ -108,7 +108,8 @@ export class OrgUnitShippingHubDistanceComponent implements OnInit {
         this.calculating = true;
             this.net.request(
                 'open-ils.vicinity-calculator',
-                'open-ils.vicinity-calculator.build-distance-matrix'
+                'open-ils.vicinity-calculator.build-distance-matrix',
+                this.auth.token()
             ).subscribe(
                 n => {this.calculating = false; location.reload();},
                 err  => {alert('API failed to calculate ' + err);this.calculating = false;}
