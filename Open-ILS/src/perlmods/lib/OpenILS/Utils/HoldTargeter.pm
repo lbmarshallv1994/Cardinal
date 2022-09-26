@@ -265,6 +265,7 @@ use DateTime;
 use OpenSRF::AppSession;
 use OpenILS::Utils::DateTime qw/:datetime/;
 use OpenSRF::Utils::Logger qw(:logger);
+use OpenILS::Const qw/:const/;
 use OpenILS::Application::AppUtils;
 use OpenILS::Utils::CStoreEditor qw/:funcs/;
 
@@ -365,6 +366,20 @@ sub result {
         found_copy => $self->{found_copy},
         eligible_copies => $self->{eligible_copy_count}
     };
+}
+
+sub retarget_previous_targets_interval {
+    my ($self) = @_;
+    if (!defined($self->{retarget_previous_targets_interval}) || !$self->{retarget_previous_targets_interval}) { 
+     # See if we have a global flag value for the interval
+     my $rri = $self->editor->search_config_global_flag({
+    name => 'circ.holds.retarget_previous_targets_interval',
+    enabled => 't'
+    })->[0];
+    # If no flag is present, default to 0 so feature is disabled
+    $self->{retarget_previous_targets_interval} = $rri ? $rri->value : 0;
+    }    
+    return $self->{retarget_previous_targets_interval};
 }
 
 # List of potential copies in the form of slim hashes.  This list
@@ -735,6 +750,32 @@ sub get_copy_circ_libs {
 sub compile_weighted_proximity_map {
     my $self = shift;
 
+    my %copy_reset_map = {};   
+    my $pt_interval = $self->retarget_previous_targets_interval();
+    if($pt_interval){
+        my $reset_cutoff_time = DateTime->now(time_zone => 'local')
+                ->subtract(days => $pt_interval);
+
+        # Collect reset reason info and previous copies.
+        # for this hold within the last time interval
+        my $reset_entries = $self->editor->json_query({
+            select => {ahrrre => ['reset_reason','reset_time','previous_copy']},
+            from => 'ahrrre',
+            where => {
+                hold => $self->hold_id, 
+                previous_copy => {'!=' => undef},
+                reset_time => {'>=' => $reset_cutoff_time->strftime('%F %T%z')},
+                reset_reason => [OILS_HOLD_TIMED_OUT, OILS_HOLD_MANUAL_RESET]
+            }
+        });
+     
+        # count how many times each copy was reset
+        for(@$reset_entries){
+            my $pc = $_->{previous_copy};
+            $copy_reset_map{$pc} = ($copy_reset_map{$pc} || 0) + 1;
+        }
+    }
+    
     # Collect copy proximity info (generated via DB trigger)
     # from our newly create copy maps.
     my $hold_copy_maps = $self->editor->json_query({
@@ -753,7 +794,15 @@ sub compile_weighted_proximity_map {
 
     my %prox_map;
     for my $copy_hash (@{$self->copies}) {
-        my $prox = $copy_prox_map{$copy_hash->{id}};
+        my $copy_id = $copy_hash->{id};
+        my $prox = $copy_prox_map{$copy_id};
+        my $reset_count = $copy_reset_map{$copy_id};
+
+        # make adjustments to proximity based on the
+        # last reason why the copy was reset on the hold.        
+        $prox += $reset_count if defined $reset_count;
+        $self->log_hold("hold_copy: ".$copy_id." prox: ".$prox);
+        
         $copy_hash->{proximity} = $prox;
         $prox_map{$prox} ||= [];
 

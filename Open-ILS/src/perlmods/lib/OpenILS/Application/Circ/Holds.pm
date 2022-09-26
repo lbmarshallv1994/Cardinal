@@ -2257,9 +2257,13 @@ sub create_reset_reason_entry
         @holds = ($hold);
     }
     for my $holdid (@holds){
-        my ($hold, $evt) = $U->fetch_hold($holdid);
-        return $evt if $evt;   
-        _create_reset_reason_entry($e, $hold, $reset_reason, $note);
+		try{
+			my ($hold, $evt) = $U->fetch_hold($holdid);  
+			_create_reset_reason_entry($e, $hold, $reset_reason, $note) unless $evt;
+		}
+		catch Error with{
+			$logger->error("holds: create reset reason failed with ".shift());
+		};
     }
     $e->commit;
     return 1;
@@ -2275,10 +2279,10 @@ sub _create_reset_reason_entry
     $entry->hold($hold->id);
     $entry->reset_reason($reset_reason);
     $entry->reset_time('now');
-    $entry->requestor($e->requestor->id) if defined $e->requestor;
-    $entry->requestor_workstation($e->requestor->wsid)  if defined $e->requestor;
     $entry->previous_copy($last_copy);
     $entry->note($note);
+	$entry->requestor($e->requestor->id) if defined $e->requestor;
+	$entry->requestor_workstation($e->requestor->wsid)  if defined $e->requestor;
     $e->create_action_hold_request_reset_reason_entry($entry) or return $e->die_event;
     return 1;
 }

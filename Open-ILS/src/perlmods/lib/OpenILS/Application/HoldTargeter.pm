@@ -89,19 +89,21 @@ sub hold_targeter {
         my $single = 
             OpenILS::Utils::HoldTargeter::Single->new(parent => $targeter);
 
-        # If targeter is issued without a hold
-        # it will retarget all of the holds that need it
-        # so we shoot off a RRE for all them.      		
-		$hold_ses->request(
-        "open-ils.circ.hold_reset_reason_entry.create",
-		$single->editor()->authtoken,
-        $hold_id,
-        OILS_HOLD_TIMED_OUT) 
-        unless defined $args->{hold};
-
         # Don't let an explosion on a single hold stop processing
-        eval { $single->target($hold_id) };
+        eval { 
+            $single->target($hold_id) ;
+            my $res = $single->result();
+            if($res->{previous_copy_id} != $res->{found_copy}){
+                # only create a reset note if copies changed
+                $hold_ses->request(
+                "open-ils.circ.hold_reset_reason_entry.create",
+                $single->editor()->authtoken,
+                $hold_id,
+                OILS_HOLD_TIMED_OUT);            
+            }
+        };
 
+        # we need a way to differentiate between soft retargets and retargets
         if ($@) {
             my $msg = "Targeter failed processing hold: $hold_id : $@";
             $single->error(1);
