@@ -162,7 +162,12 @@ function($uibModal , $q , egCore , egConfirmDialog , egAlertDialog) {
                 aggregate : true,
                 label : egCore.strings.TRANSFORMS_MAX
             },
-        
+            
+            string_agg : {
+                datatype : [ OILS_RPT_DTYPE_NOT_BOOL ],
+                label : egCore.strings.TRANSFORMS_STRING_AGG,
+                aggregate : true
+            },         
             /* string transforms ------------------------- */
         
             substring : {

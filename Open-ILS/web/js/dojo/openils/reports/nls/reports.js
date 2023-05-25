@@ -77,6 +77,7 @@
 	"TFORMS_LABEL_MONTHS_AGO": "Months ago",
 	"TFORMS_LABEL_QUARTERS_AGO": "Quarters ago",
 	"TFORMS_LABEL_SUM": "Sum",
+	"TFORMS_LABEL_STRING_AGG": "String Aggregate",
 	"TFORMS_LABEL_AVERAGE": "Average",
 	"TFORMS_LABEL_ROUND": "Round",
 	"TFORMS_LABEL_INT": "Drop trailing decimals",
@@ -166,6 +167,7 @@
 	"TRANSFORMS_MONTHS_AGO": "Months ago",
 	"TRANSFORMS_QUARTERS_AGO": "Quarters ago",
 	"TRANSFORMS_SUM": "Sum",
+	"TRANSFORMS_STRING_AGG": "String Aggregate",
 	"TRANSFORMS_AVERAGE": "Average",
 	"TRANSFORMS_ROUND": "Round",
 	"TRANSFORMS_INT": "Drop trailing decimals"

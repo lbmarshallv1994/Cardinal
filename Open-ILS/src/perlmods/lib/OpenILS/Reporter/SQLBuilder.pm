@@ -888,6 +888,15 @@ sub toSQL {
 
 sub is_aggregate { return 1 }
 
+#-------------------------------------------------------------------------------------------------
+package OpenILS::Reporter::SQLBuilder::Column::Transform::string_agg;
+
+sub toSQL {
+    my $self = shift;
+    return 'STRING_AGG("' . $self->{_relation} . '"."' . $self->name . '"::text,\',\')';
+}
+
+sub is_aggregate { return 1 }
 
 #-------------------------------------------------------------------------------------------------
 package OpenILS::Reporter::SQLBuilder::Column::Where;
