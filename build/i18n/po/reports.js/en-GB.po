@@ -441,6 +441,10 @@ msgstr "Hour of day"
 msgid "Max"
 msgstr "Max"
 
+#: reports.js:TFORMS_LABEL_STRING_AGG reports.js:TRANSFORMS_STRING_AGG
+msgid "String Aggregate"
+msgstr "String Aggregate"
+
 #: reports.js:TEMPLATE_CONF_NOT_IN reports.js:TEMPLATE_CONF_NO_MATCH
 msgid "Field does not match one of list (comma separated):"
 msgstr "Field does not match one of list (comma separated):"

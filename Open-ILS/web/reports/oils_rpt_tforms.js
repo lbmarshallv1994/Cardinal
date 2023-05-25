@@ -35,6 +35,11 @@ var OILS_RPT_TRANSFORMS = {
 		aggregate : true,
 		label : rpt_strings.TFORMS_LABEL_MAX
 	},
+    
+	string_agg : {
+		aggregate : true,
+		label : rpt_strings.TFORMS_STRING_AGG
+	},
 
 	/* string transforms ------------------------- */
 
