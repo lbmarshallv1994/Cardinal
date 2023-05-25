@@ -216,6 +216,10 @@ msgstr ""
 msgid "Max"
 msgstr ""
 
+#: reports.js:TFORMS_LABEL_STRING_AGG reports.js:TRANSFORMS_STRING_AGG
+msgid "String Aggregate"
+msgstr ""
+
 #: reports.js:TFORMS_LABEL_LOWER reports.js:TRANSFORMS_LOWER
 msgid "Lower case"
 msgstr ""

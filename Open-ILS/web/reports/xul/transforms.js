@@ -74,6 +74,11 @@ var OILS_RPT_TRANSFORMS = {
 		label : rpt_strings.TRANSFORMS_MAX
 	},
 
+    string_agg : {
+        datatype :  OILS_RPT_DTYPE_NOT_BOOL,
+        label : rpt_strings.TRANSFORMS_STRING_AGG,
+        aggregate : true
+    }, 
 	/* string transforms ------------------------- */
 
 	substring : {

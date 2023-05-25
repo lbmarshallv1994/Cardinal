@@ -164,7 +164,7 @@ function($uibModal , $q , egCore , egConfirmDialog , egAlertDialog) {
             },
             
             string_agg : {
-                datatype : [ OILS_RPT_DTYPE_NOT_BOOL ],
+                datatype :  OILS_RPT_DTYPE_NOT_BOOL,
                 label : egCore.strings.TRANSFORMS_STRING_AGG,
                 aggregate : true
             },         
